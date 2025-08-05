@@ -1,0 +1,97 @@
+function varargout = parsestruct(S, varargin)
+% Description: Parse struct vector S
+% Usage:
+%     parsestruct(S)
+%     parsestruct(S, sIndex)
+%     parsestruct(S, fieldName1, fieldName2, ...)
+%     parsestruct(S, sIndex, fieldName1, fieldName2, ...)
+%     [varName1, varName2, ...] = parsestruct(...)
+% Input:
+%     S: struct vector or scalar
+%     sIndex: indices of S to parse (only S(sIndex) will be parsed)
+%             If not specified, sIndex=1:length(S).
+%             If numel(sIndex)>1, return vars in column vector.
+%     fieldNames: fieldnames of S to parse (default: parse all)
+% Output:
+%     varNames: variable names to receive S.(fieldNames)
+% Notice:
+%     An error occurs if not all values of S(sIdx).(f) are of the same class
+%     because vertcat(S(sIdx).(f)) does not work.
+% Example:
+%     A(1).a1=1;
+%     A(1).a2=2;
+%     A(1).a3=3;
+%     A(2).a1=11;
+%     A(2).a2=12;
+%     A(2).a3=13;
+%
+%     parsestruct(A) returns a1=[1;11] a2=[2;12] a3=[3;13] in workspace
+%     parsestruct(A, 1) returns a1=1 a2=2 a3=3 in workspace
+%     parsestruct(A, "a1") returns a1=[1;11] in workspace
+%     parsestruct(A, 1, "a1") returns a1=1 in workspace
+%     parsestruct(A, 2, "a1") returns a1=11 in workspace
+%     b1=parsestruct(A, "a1") returns b1=[1;11] in workspace (same as b1=vertcat(A.a1))
+
+if isstruct(S)
+    S = S(:); % convert to column vector
+else
+    error("parsestruct(): input [S] should be struct");
+end
+
+if nargin > 1
+
+    if isnumeric(varargin{1}) && isvector(varargin{1})
+        sIndex = varargin{1};
+        warning("parsestruct(): input [sIndex] is considered to be redundant and will be removed in a future release");
+        varargin = varargin(2:end);
+    else
+        sIndex = 1:length(S);
+
+        if ~all(cellfun(@(x) isstring(x) || ischar(x), varargin))
+            error("Invalid variable name input");
+        end
+
+    end
+
+else
+    sIndex = 1:length(S);
+end
+
+if ~isempty(varargin) && nargout > 0 && nargout ~= length(varargin)
+    error("The number of output does not match the number of input field names");
+end
+
+if isempty(varargin)
+    sField = fieldnames(S);
+
+    for fIndex = 1:length(sField)
+        % add local var to base workspace
+        eval(['assignin(''caller'', ''', sField{fIndex}, ''', vertcat(S(sIndex).', sField{fIndex}, '));']);
+    end
+
+else
+
+    if nargout == 0
+
+        for fIndex = 1:length(varargin)
+            % add local var to base workspace
+            eval(['assignin(''caller'', ''', char(varargin{fIndex}), ''', vertcat(S(sIndex).', char(varargin{fIndex}), '));']);
+        end
+
+    else
+
+        for fIndex = 1:nargout
+            try
+                varargout{fIndex} = vertcat(S(sIndex).(varargin{fIndex}));
+            catch
+                disp("Not all values are of the same type and size. Return in cell.");
+                varargout{fIndex} = {S(sIndex).(varargin{fIndex})}';
+            end
+        end
+
+    end
+
+end
+
+return;
+end
