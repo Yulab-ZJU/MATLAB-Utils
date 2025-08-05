@@ -4,6 +4,14 @@ To initialize toolbox, run `initMATLABUtils.m`
 
 
 
+# Functions
+
+### 1. plot
+
+​	`addBars.m` Adds transparent vertical bars to axes (usually serving as significant areas).
+
+​	`addLines.`
+
 # Effect size
 
 | Effect size | Cohen’s d (*t*-test) | $\eta^2$ or partial $\eta^2$ (ANOVA) | Rank-Biserial Correlation (Mann–Whitney U、Wilcoxon test) |
