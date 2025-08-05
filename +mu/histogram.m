@@ -1,15 +1,15 @@
 function varargout = histogram(varargin)
-% mHistogram(X)
-% mHistogram(X, edges)
-% mHistogram(..., "width", barWidthVal)
-% mHistogram(..., "LineWidth", barEdgeLineWidthVal)
-% mHistogram(..., "EdgeColor", colorsCellArray | "none")
-% mHistogram(..., "FaceColor", colorsCellArray | "none")
-% mHistogram(..., "DisplayName", legendStrCellArray)
-% mHistogram(..., "BinWidth", binWidthVal)
-% mHistogram(..., "BinMethod", methodName)
-% mHistogram(..., "DistributionCurve", "show")
-% [H, N, edges] = mHistogram(...)
+% mu.histogram(X)
+% mu.histogram(X, edges)
+% mu.histogram(..., "width", barWidthVal)
+% mu.histogram(..., "LineWidth", barEdgeLineWidthVal)
+% mu.histogram(..., "EdgeColor", colorsCellArray | "none")
+% mu.histogram(..., "FaceColor", colorsCellArray | "none")
+% mu.histogram(..., "DisplayName", legendStrCellArray)
+% mu.histogram(..., "BinWidth", binWidthVal)
+% mu.histogram(..., "BinMethod", methodName)
+% mu.histogram(..., "DistributionCurve", "show")
+% [H, N, edges] = mu.histogram(...)
 %
 % Input data X can be a double vector, a double matrix or a cell vector.
 % If X is a matrix, each row of X is a group.
@@ -23,7 +23,7 @@ function varargout = histogram(varargin)
 %     x2 = [1 2 6 8];
 %     X = [x1; x2];
 %     % For x1,x2 different in size use X = [{x1}; {x2}}];
-%     [H, N, edges] = mHistogram(X, "BinWidth", 1, ...
+%     [H, N, edges] = mu.histogram(X, "BinWidth", 1, ...
 %                                   "FaceColor", {[1 0 0], [0 0 1]}, ...
 %                                   "DisplayName", {'condition 1', 'condition 2'});
 
