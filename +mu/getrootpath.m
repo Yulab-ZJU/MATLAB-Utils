@@ -5,7 +5,7 @@ function ROOTPATH = getrootpath(P, N)
 %     currentPath = fileparts(mfilename("fullpath"))
 %     >> currentPath = 'D:\Education\Lab\MATLAB Utils\file'
 %
-%     ROOTPATH = getrootpath(currentPath, 1)
+%     ROOTPATH = mu.getrootpath(currentPath, 1)
 %     >> ROOTPATH = 'D:\Education\Lab\MATLAB Utils\'
 
 if N <= 0

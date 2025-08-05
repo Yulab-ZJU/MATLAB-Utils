@@ -7,7 +7,7 @@ function res = perms(v, k, sortCol)
 % e.g.
 %     v = 1:10;
 %     k = 3;
-%     cmb = mperms(v, k, "first")
+%     cmb = mu.perms(v, k, "first")
 %     >> cmb = [1, 1, 1
 %               1, 1, 2
 %               1, 1, 3

@@ -1,6 +1,5 @@
 function cb = colorbar(varargin)
 % Create a colorbar outside the tightPosition("IncludeLabels", true)
-% Use `colorbar` for input hint and modify function name to `mColorbar`
 
 % Find "location"/"interval"/"width" input
 if isempty(varargin)

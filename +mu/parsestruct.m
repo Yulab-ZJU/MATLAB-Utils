@@ -1,11 +1,11 @@
 function varargout = parsestruct(S, varargin)
 % Description: Parse struct vector S
 % Usage:
-%     parsestruct(S)
-%     parsestruct(S, sIndex)
-%     parsestruct(S, fieldName1, fieldName2, ...)
-%     parsestruct(S, sIndex, fieldName1, fieldName2, ...)
-%     [varName1, varName2, ...] = parsestruct(...)
+%     mu.parsestruct(S)
+%     mu.parsestruct(S, sIndex)
+%     mu.parsestruct(S, fieldName1, fieldName2, ...)
+%     mu.parsestruct(S, sIndex, fieldName1, fieldName2, ...)
+%     [varName1, varName2, ...] = mu.parsestruct(...)
 % Input:
 %     S: struct vector or scalar
 %     sIndex: indices of S to parse (only S(sIndex) will be parsed)
@@ -25,12 +25,12 @@ function varargout = parsestruct(S, varargin)
 %     A(2).a2=12;
 %     A(2).a3=13;
 %
-%     parsestruct(A) returns a1=[1;11] a2=[2;12] a3=[3;13] in workspace
-%     parsestruct(A, 1) returns a1=1 a2=2 a3=3 in workspace
-%     parsestruct(A, "a1") returns a1=[1;11] in workspace
-%     parsestruct(A, 1, "a1") returns a1=1 in workspace
-%     parsestruct(A, 2, "a1") returns a1=11 in workspace
-%     b1=parsestruct(A, "a1") returns b1=[1;11] in workspace (same as b1=vertcat(A.a1))
+%     mu.parsestruct(A) returns a1=[1;11] a2=[2;12] a3=[3;13] in workspace
+%     mu.parsestruct(A, 1) returns a1=1 a2=2 a3=3 in workspace
+%     mu.parsestruct(A, "a1") returns a1=[1;11] in workspace
+%     mu.parsestruct(A, 1, "a1") returns a1=1 in workspace
+%     mu.parsestruct(A, 2, "a1") returns a1=11 in workspace
+%     b1=mu.parsestruct(A, "a1") returns b1=[1;11] in workspace (same as b1=vertcat(A.a1))
 
 if isstruct(S)
     S = S(:); % convert to column vector

@@ -19,7 +19,7 @@ function [trialsData, window] = cutdata(trialsData, windowOld, windowNew)
 %   - For cell arrays, empty cells are ignored.
 %
 % Example:
-%   [dataCut, win] = cutdata(data, [-200, 800], [0, 500]);
+%   [dataCut, win] = mu.cutdata(data, [-200, 800], [0, 500]);
 
 if windowNew(2) > windowOld(2)
     warning('New time window exceeds data range. Limit to upper range.');

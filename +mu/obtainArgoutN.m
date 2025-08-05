@@ -8,10 +8,10 @@ function varargout = obtainArgoutN(fcn, Ns, varargin) %#ok<*STOUT,*INUSL>
 % Output:
 %     varargout: [fcn] output value of specified ordinal number [Ns]
 % Example:
-%     [res1, res2] = obtainArgoutN(@size, [2, 3], ones(10, 20, 30))
+%     [res1, res2] = mu.obtainArgoutN(@size, [2, 3], ones(10, 20, 30))
 %     >> res1 = 20
 %     >> res2 = 30
-%     ext = obtainArgoutN(@fileparts, 3, 'D:\Education\Test.wav')
+%     ext = mu.obtainArgoutN(@fileparts, 3, 'D:\Education\Test.wav')
 %     >> ext = '.wave'
 
 nout = numel(Ns);

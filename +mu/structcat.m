@@ -7,7 +7,7 @@ function S = structcat(varargin)
 %     A = struct("a", {1; 2; 3; 4});
 %     B = struct("a", {11; 12; 13; 14}), ...
 %                "b", {101; 102; 103; 104});
-%     C = structcat(A, B)
+%     C = mu.structcat(A, B)
 %     returns C as a 8*1 struct with fields "a" and "b"
 %     >> C.a =  1,  2,  3,  4,  11,  12,  13,  14
 %     >> C.b = [], [], [], [], 101, 102, 103, 104

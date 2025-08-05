@@ -26,11 +26,11 @@ function addLines(varargin)
 %     If not specified, line legend will not be shown.
 % Example:
 %     % Example 1: Draw lines to mark stimuli oneset and offset at t=0, t=1000 ms
-%     addLines2Axes(Fig, struct("X", {0; 1000}));
+%     mu.addLines(Fig, struct("X", {0; 1000}));
 %
 %     % Example 2: Draw a dividing line y=x for ROC in current axes
 %     syncXY(gca); % synchronize x&y range first
-%     addLines2Axes(gca);
+%     mu.addLines(gca);
 
 if nargin > 0 && all(isgraphics(varargin{1}))
     FigsOrAxes = varargin{1};

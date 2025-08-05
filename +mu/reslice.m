@@ -1,7 +1,7 @@
 function out = reslice(C, dim)
 % RESLICE - Reslice a cell array of multi-dimensional arrays along a specified dimension.
 %
-% out = reslice(C, dim)
+% out = mu.reslice(C, dim)
 % 
 % INPUTS:
 %     C : nt x 1 cell array. Each cell contains an n-dimensional array of the same size.

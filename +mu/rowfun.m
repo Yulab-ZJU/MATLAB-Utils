@@ -13,7 +13,7 @@ function varargout = rowfun(fcn, A, varargin)
 %     When "UniformOutput" is set false, return size(A,1)*1 cell with results of fcn(a,...)
 %     When "UniformOutput" is set true, return size(A,1)*1 vector
 % Example:
-%     C = rowfun(@mFcn, A, B, "UniformOutput", false);
+%     C = mu.rowfun(@mFcn, A, B, "UniformOutput", false);
 
 %% Validation
 mIp = inputParser;

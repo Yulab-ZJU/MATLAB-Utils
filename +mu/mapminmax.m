@@ -4,7 +4,7 @@ function res = mapminmax(data, ymax)
 % 
 % e.g.
 %     data = [-2, -1, 0, 1, 2, 3, 4];
-%     res = mMapminmax(data, 1)
+%     res = mu.mapminmax(data, 1)
 % >> res = [-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]
 
 narginchk(1, 2);

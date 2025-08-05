@@ -23,17 +23,17 @@ function res = replaceval(x, newVal, conditions)
 %     A = {"a", 1, 2, "b"};
 %
 %     % Replace X(i) with 100 if X(i) is negative or even
-%     Y1 = arrayfun(@(x) replaceVal(x, 100, {@(t) t<0, @(t) mod(t,2)==0}), X)
+%     Y1 = arrayfun(@(x) mu.replaceval(x, 100, {@(t) t<0, @(t) mod(t,2)==0}), X)
 %
 %     % Replace X(i) with 100 if X(i) is in [-3, -2, -1]
-%     Y2 = arrayfun(@(x) replaceVal(x, 100, [-3, -2, -1]), X)
-%     Y2_1 = arrayfun(@(x) replaceVal(x, 100, {-3, -2, -1}), X)
+%     Y2 = arrayfun(@(x) mu.replaceval(x, 100, [-3, -2, -1]), X)
+%     Y2_1 = arrayfun(@(x) mu.replaceval(x, 100, {-3, -2, -1}), X)
 %
 %     % Replace X(i) with 100 if X(i) equals 1 or is even
-%     Y3 = arrayfun(@(x) replaceVal(x, 100, {1, @(t) mod(t,2)==0}), X)
+%     Y3 = arrayfun(@(x) mu.replaceval(x, 100, {1, @(t) mod(t,2)==0}), X)
 %
 %     % Replace A{i} with 100 if A{i} is a letter
-%     B = cellfun(@(x) replaceVal(x, 100, @isletter), A, "uni", false)
+%     B = cellfun(@(x) mu.replaceval(x, 100, @isletter), A, "uni", false)
 %
 %     >> Y1 = [100, 100, 100, 1, 100]
 %     >> Y2 = [100, 100, 0, 1, 2]
@@ -56,7 +56,7 @@ elseif ischar(conditions) || isstring(conditions)
 elseif iscell(conditions)
     % do nothing
 else
-    error("replaceVal(): Invalid conditions input");
+    error("Invalid conditions input");
 end
 
 % vectorize

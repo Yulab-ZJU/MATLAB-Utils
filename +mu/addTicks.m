@@ -1,5 +1,5 @@
 function addTicks(varargin)
-% addTicks(ax, axisName, vals, labelStrs)
+% mu.addTicks(ax, axisName, vals, labelStrs)
 
 if strcmp(class(varargin{1}), "matlab.graphics.axis.Axes")
     ax = varargin{1};

@@ -6,7 +6,7 @@ function [H, pFisher, chi_square_stat, sigLevel] = fisherstat(p, dim, alphaVal)
 % which produces a 5-element vector [p]. To tell whether there is a
 % difference between the paired samples considering all 5 groups, a joint
 % p-value is computed:
-% >> [~, pFisher] = fisherstat(p(:))
+% >> [~, pFisher] = mu.fisherstat(p(:))
 
 narginchk(1, 3);
 

@@ -1,6 +1,6 @@
 function v = getor(s, field, default, replaceEmpty)
 % GETOR Returns the structure field or a default if either don't exist
-% v = getor(s, field, [default], replaceEmpty) returns the 'field' of the
+% v = mu.getor(s, field, [default], replaceEmpty) returns the 'field' of the
 % structure 's' or 'default' if the structure is empty of the field does
 % not exist. If default is not specified it defaults to []. 'field' can
 % also be a cell array of fields, in which case it will check for all of

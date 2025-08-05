@@ -26,21 +26,21 @@ function [y, durs, ICIseq] = ctgen(ICIs, durs, fs, type, varargin)
 %   - [ICIseq]: ICI sequence vector.
 % Example:
 %   % 1. Generate a 1-sec regular click train with a 4-ms ICI
-%   y = ctgen(4e-3, 1, 48e3, "REG");
+%   y = mu.ctgen(4e-3, 1, 48e3, "REG");
 %   
 %   % 2. Generate a 1-sec to 1-sec trainsitional regular click train
 %   %    with ICI altering from 4 ms to 5 ms
-%   y = ctgen([4, 5] * 1e-3, [1, 1], 48e3, "REG");
+%   y = mu.ctgen([4, 5] * 1e-3, [1, 1], 48e3, "REG");
 %   
 %   % 3. Insert two 4.06-ms ICIs into the middle of a 2-sec 4-ms ICI
 %   %    regular click train
 %   %    e.g. | | | | |   |   | | | | |
-%   y = ctgen([4, 4.06, 4] * 1e-3, [1, 4.06e-3 * 2, 1], 48e3, "REG");
+%   y = mu.ctgen([4, 4.06, 4] * 1e-3, [1, 4.06e-3 * 2, 1], 48e3, "REG");
 %   
 %   % 4. Generate a 1-sec to 1-sec trainsitional irregular click train
 %   %    with ICI altering from 4 ms to 5 ms. Set standard deviation to be 
 %   %    0.01 of the mean ICI.
-%   y = ctgen([4, 5] * 1e-3, [1, 1], 48e3, "IRREG", "sigmas", 0.01);
+%   y = mu.ctgen([4, 5] * 1e-3, [1, 1], 48e3, "IRREG", "sigmas", 0.01);
 % NOTICE:
 %   Sound generated using this function starts with a pulse.
 

@@ -161,7 +161,7 @@ if isscalar(nSize)
 elseif numel(nSize) == 2
     nY = nSize(2);
 else
-    error('nSize input should be a scalar or a 2-element double vector');
+    error('[nSize] input should be a scalar or a 2-element double vector');
 end
 
 % paddings or margins is [Left, Right, Bottom, Top]
@@ -170,7 +170,7 @@ divHeight = (1 - paddings(3) - paddings(4)) / row;
 rIndex = ceil(index / col);
 
 if rIndex > row
-    error('mu.subplot(): index > col * row');
+    error('[index] should not be greater than [col] * [row]');
 end
 
 cIndex = mod(index, col);
@@ -181,31 +181,31 @@ end
 
 divX = paddings(1) + divWidth  * (cIndex - 1);
 divY = paddings(3) + divHeight * (row - rIndex);
-axeWidth  = (1 - margins(1) - margins(2)) * divWidth  * nX;
-axeHeight = (1 - margins(3) - margins(4)) * divHeight * nY;
+axesWidth  = (1 - margins(1) - margins(2)) * divWidth  * nX;
+axesHeight = (1 - margins(3) - margins(4)) * divHeight * nY;
 
 FigSize = get(0, "screensize"); % for maximized figure size
 % FigSize = get(Fig, "OuterPosition"); % for original figure size
 adjIdx = FigSize(4) / FigSize(3);
 
-borderMin = min([axeWidth / adjIdx, axeHeight]);
-borderMax = max([axeWidth / adjIdx, axeHeight]);
+borderMin = min([axesWidth / adjIdx, axesHeight]);
+borderMax = max([axesWidth / adjIdx, axesHeight]);
 
 switch shape
     case 'auto'
         % default: without adjustment
     case 'square-min'
-        axeWidth  = borderMin * adjIdx;
-        axeHeight = borderMin;
+        axesWidth  = borderMin * adjIdx;
+        axesHeight = borderMin;
     case 'square-max'
-        axeWidth  = borderMax * adjIdx;
-        axeHeight = borderMax;
+        axesWidth  = borderMax * adjIdx;
+        axesHeight = borderMax;
     case 'fill'
-        axeWidth  = divWidth;
-        axeHeight = divHeight;
+        axesWidth  = divWidth;
+        axesHeight = divHeight;
         margins   = zeros(1, 4);
     otherwise
-        error('mu.subplot(): Invalid shape input');
+        error('Invalid shape input');
 end
 
 if isempty(alignment_horizontal)
@@ -236,75 +236,75 @@ end
 
 if isnumeric(alignment_horizontal)
     if alignment_horizontal >= 0
-        axeX = divX + ((1 - margins(1) - margins(2)) * alignment_horizontal + margins(1)) * divWidth - axeWidth / 2;
+        axesX = divX + ((1 - margins(1) - margins(2)) * alignment_horizontal + margins(1)) * divWidth - axesWidth / 2;
         X = (1 - margins(1) - margins(2)) * alignment_horizontal + margins(1);
     else
-        axeX = divX + ((1 - margins(1) - margins(2)) * (1 + alignment_horizontal) + margins(1)) * divWidth - axeWidth / 2;
+        axesX = divX + ((1 - margins(1) - margins(2)) * (1 + alignment_horizontal) + margins(1)) * divWidth - axesWidth / 2;
         X = (1 - margins(1) - margins(2)) * (1 + alignment_horizontal) + margins(1);
     end
 else
     switch alignment_horizontal
         case 'left'
-            axeX = divX + margins(1) * divWidth;
-            X = margins(1) + axeWidth / divWidth / 2;
+            axesX = divX + margins(1) * divWidth;
+            X = margins(1) + axesWidth / divWidth / 2;
         case 'center'
-            axeX = divX + (1 + margins(1) - margins(2)) * divWidth / 2 - axeWidth / 2;
+            axesX = divX + (1 + margins(1) - margins(2)) * divWidth / 2 - axesWidth / 2;
             X = (1 + margins(1) - margins(2)) / 2;
         case 'right'
-            axeX = divX + divWidth  * (1 - margins(2)) - axeWidth;
-            X = 1 - margins(2) - axeWidth / divWidth / 2;
+            axesX = divX + divWidth  * (1 - margins(2)) - axesWidth;
+            X = 1 - margins(2) - axesWidth / divWidth / 2;
     end
 end
 
 if isnumeric(alignment_vertical)
     if alignment_vertical >= 0
-        axeY = divY + ((1 - margins(3) - margins(4)) * alignment_vertical + margins(3)) * divHeight - axeHeight / 2;
+        axesY = divY + ((1 - margins(3) - margins(4)) * alignment_vertical + margins(3)) * divHeight - axesHeight / 2;
         Y = (1 - margins(3) - margins(4)) * alignment_vertical + margins(3);
     else
-        axeY = divY + ((1 - margins(3) - margins(4)) * (1 + alignment_vertical) + margins(3)) * divHeight - axeHeight / 2;
+        axesY = divY + ((1 - margins(3) - margins(4)) * (1 + alignment_vertical) + margins(3)) * divHeight - axesHeight / 2;
         Y = (1 - margins(3) - margins(4)) * (1 + alignment_vertical) + margins(3);
     end
 else
     switch alignment_vertical
         case 'bottom'
-            axeY = divY + margins(3) * divHeight;
-            Y = margins(3) + axeHeight / divHeight / 2;
+            axesY = divY + margins(3) * divHeight;
+            Y = margins(3) + axesHeight / divHeight / 2;
         case 'center'
-            axeY = divY + (1 + margins(3) - margins(4)) * divHeight / 2 - axeHeight / 2;
+            axesY = divY + (1 + margins(3) - margins(4)) * divHeight / 2 - axesHeight / 2;
             Y = (1 + margins(3) - margins(4)) / 2;
         case 'top'
-            axeY = divY + divHeight * (1 - margins(4)) - axeHeight;
-            Y = 1 - margins(4) - axeHeight / divHeight / 2;
+            axesY = divY + divHeight * (1 - margins(4)) - axesHeight;
+            Y = 1 - margins(4) - axesHeight / divHeight / 2;
     end
 end
 
 if strcmpi(divBox, "show")
-    divAxe = axes(Fig, "Position", [divX, divY, divWidth, divHeight], "Box", "on");
-    set(divAxe, "LineWidth", 1);
-    set(divAxe, "TickLength", [0, 0]);
-    set(divAxe, "XLim", [0, 1]);
-    set(divAxe, "YLim", [0, 1]);
-    set(divAxe, "XTick", [0, 1]);
-    set(divAxe, "YTick", [0, 1]);
-    set(divAxe, "XTickLabels", num2str([0; 1]));
-    set(divAxe, "YTickLabels", num2str([0; 1]));
+    divAx = axes(Fig, "Position", [divX, divY, divWidth, divHeight], "Box", "on");
+    set(divAx, "LineWidth", 1);
+    set(divAx, "TickLength", [0, 0]);
+    set(divAx, "XLim", [0, 1]);
+    set(divAx, "YLim", [0, 1]);
+    set(divAx, "XTick", [0, 1]);
+    set(divAx, "YTick", [0, 1]);
+    set(divAx, "XTickLabels", num2str([0; 1]));
+    set(divAx, "YTickLabels", num2str([0; 1]));
 
     if ~isempty(X)
-        xline(divAxe, X, "r--");
-        mu.addTicks(divAxe, "x", X);
+        xline(divAx, X, "r--");
+        mu.addTicks(divAx, "x", X);
     end
 
     if ~isempty(Y)
-        yline(divAxe, Y, "r--");
-        mu.addTicks(divAxe, "y", Y);
+        yline(divAx, Y, "r--");
+        mu.addTicks(divAx, "y", Y);
     end
 
 end
 
-mAxe = axes(Fig, "Position", [axeX, axeY, axeWidth, axeHeight]);
+ax = axes(Fig, "Position", [axesX, axesY, axesWidth, axesHeight]);
 
 if nargout >= 1
-    varargout{1} = mAxe;
+    varargout{1} = ax;
 end
 
 if nargout == 2
@@ -317,7 +317,7 @@ if nargout == 2
     opts.shape = shape;
     opts.alignment = [X, Y];
     opts.divPosition = [divX, divY, divWidth, divHeight];
-    opts.axesPosition = [axeX, axeY, axeWidth, axeHeight];
+    opts.axesPosition = [axesX, axesY, axesWidth, axesHeight];
     varargout{2} = opts;
 end
 

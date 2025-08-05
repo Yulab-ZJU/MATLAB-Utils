@@ -15,7 +15,7 @@ function ax = rasterplot(varargin)
 %     data(1).color = [1 0 0];
 %     data(2).X = {[2, 4, 6]}; % one trial
 %     data(2).color = [0 0 1];
-%     mRaster(data, 20);
+%     mu.rasterplot(data, 20);
 
 if isgraphics(varargin{1}(1), "axes")
     ax = varargin{1}(1);

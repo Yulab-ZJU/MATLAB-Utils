@@ -5,9 +5,9 @@ function load(fileName, varNames)
 % If [fileName] is dir path or empty, use uigetfile to select a mat file.
 %
 % Example:
-%     mLoad([], ["var1", "var2"]);
-%     mLoad([], {"var1", "var2"});
-%     mLoad("C:\desktop", 'var1');
+%     mu.load([], ["var1", "var2"]);
+%     mu.load([], {"var1", "var2"});
+%     mu.load("C:\desktop", 'var1');
 
 narginchk(0, 2);
 

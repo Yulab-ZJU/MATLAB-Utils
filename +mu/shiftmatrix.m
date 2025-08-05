@@ -1,7 +1,7 @@
 function Y = shiftmatrix(X, N, opt)
 % SHIFTMATRIX - Shift a 2-D matrix by [Nlr, Nud] and pad with specified method.
 %
-% Y = shiftmatrix(X, N, opt)
+% Y = mu.shiftmatrix(X, N, opt)
 %
 % INPUTS:
 %     X   : 2D numeric matrix

@@ -25,7 +25,7 @@ function data = filter(data, fs, varargin)
 %   - Requires FieldTrip toolbox.
 %
 % Example:
-%   data_filt = filter(data, fs, "fhp", 1, "flp", 40, "fnotch", [50, 100]);
+%   data_filt = mu.filter(data, fs, "fhp", 1, "flp", 40, "fnotch", [50, 100]);
 
 %% Validation
 mIp = inputParser;

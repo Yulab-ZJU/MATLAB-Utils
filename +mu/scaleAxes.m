@@ -1,12 +1,12 @@
 function varargout = scaleAxes(varargin)
-% scaleAxes(axisName)
-% scaleAxes(axisName, axisRange)
-% scaleAxes(axisName, axisRange, cutoffRange)
-% scaleAxes(axisName, axisRange, cutoffRange, symOpt)
-% scaleAxes(axisName, autoScale, cutoffRange, symOpt)
-% scaleAxes(..., namevalueOptions)
-% scaleAxes(FigsOrAxes, ...)
-% axisRange = scaleAxes(...)
+% mu.scaleAxes(axisName)
+% mu.scaleAxes(axisName, axisRange)
+% mu.scaleAxes(axisName, axisRange, cutoffRange)
+% mu.scaleAxes(axisName, axisRange, cutoffRange, symOpt)
+% mu.scaleAxes(axisName, autoScale, cutoffRange, symOpt)
+% mu.scaleAxes(..., namevalueOptions)
+% mu.scaleAxes(FigsOrAxes, ...)
+% axisRange = mu.scaleAxes(...)
 %
 % Description: apply the same scale settings to all subplots in figures
 % Input:
@@ -264,7 +264,7 @@ end
 if nargout == 1
     varargout{1} = axisRange;
 elseif nargout > 1
-    error("scaleAxes(): the number of output should be no greater than 1");
+    error("The number of output should be no greater than 1");
 end
 
 return;
