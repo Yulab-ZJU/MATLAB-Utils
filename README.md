@@ -1,6 +1,6 @@
-# Initialize MATLAB Utils
+# Initializing MATLAB Utils
 
-To initialize toolbox, run `initMATLABUtils.m`
+To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSignatures.json` to `/resources/`.
 
 
 
@@ -10,62 +10,256 @@ To initialize toolbox, run `initMATLABUtils.m`
 
 ### 1. plot
 
-​	`mu.addBars.m` Adds transparent vertical bars to axes (usually serving as significant areas).
+​	`mu.addBars` Adds transparent vertical bars to axes (usually serving as significant areas).
 
-​	\*`mu.addLines.m` Adds lines to all axes in figures.
+​	\*`mu.addLines` Adds lines to all axes in figures.
 
-​	`mu.addTicks.m` Adds special ticks and tick labels to specified axis.
+​	`mu.addTicks` Adds special ticks and tick labels to specified axis.
 
-​	`mu.addTitle.m` Adds a title to a figure.
+​	`mu.addTitle` Adds a title to a figure.
 
-​	`mu.adddWaveError.m` Adds shaded areas to a curve (usually error bars).
+​	`mu.adddWaveError` Adds shaded areas to a curve (usually error bars).
 
-​	\*`mu.boxplot.m` Creates custom grouped boxplots with advanced styling options.
+​	\*`mu.autoplotsize` Automatically determines the [row, col] numbers of the subplots based on the total number of subplots in a figure.
 
-​	`mu.colorbar.m` Creates a colorbar outside the `tightPosition("IncludeLabels", true)`
+​	\*`mu.boxplot` Creates custom grouped boxplots with advanced styling options.
 
-​	`mu.copyaxes.m` Copy the content of one axes to the other (two axes are usually of different sizes).
+​	`mu.colorbar` Creates a colorbar outside the `tightPosition("IncludeLabels", true)`
 
-​	`mu.genColormap.m` Generates a colormap using white as middle.
+​	`mu.copyaxes` Copy the content of one axes to the other (two axes are usually of different sizes).
 
-​	`mu.genColors.m` Generates gradient colors with pre-set color pool.
+​	`mu.genColormap` Generates a colormap using white as middle.
 
-​	`mu.genGradientColors.m` Generates gradient colors by increasing saturation.
+​	`mu.genColors` Generates gradient colors with pre-set color pool.
 
-​	`mu.genPolygon.m` Draws a polygon in the axes and returns its endpoint coordinates and borderlines.
+​	`mu.genGradientColors` Generates gradient colors by increasing saturation.
 
-​	\*`mu.histogram.m` Plots grouped histograms (without overlapping).
+​	`mu.genPolygon` Draws a polygon in the axes and returns its endpoint coordinates and borderlines.
 
-​	`mu.mixColors.m` Mixes two colors with specified ratios to generate a new color.
+​	\*`mu.histogram` Plots grouped histograms (without overlapping).
 
-​	\*`mu.rasterplot.m` Plots raster data (usually spike-by-trial).
+​	`mu.mixColors` Mixes two colors with specified ratios to generate a new color.
 
-​	\*`mu.scaleAxes.m` Synchronizes the axis range with advanced settings and UI control.
+​	\*`mu.rasterplot` Plots raster data (usually spike-by-trial).
 
-​	\*`mu.setAxes.m` Sets the values of axes parameters with name-value pairs. "default" mode will set the axes to be ORIGIN-style.
+​	\*`mu.scaleAxes` Synchronizes the axis range with advanced settings and UI control.
 
-​	`mu.setLegendOff.m` Hides legends of targets.
+​	\*`mu.setAxes` Sets the values of axes parameters with name-value pairs. "default" mode will set the axes to be ORIGIN-style.
 
-​	\*`mu.subplot.m` Creates subplot with advanced settings.
+​	`mu.setLegendOff` Hides legends of targets.
 
-​	`mu.syncXY.m` Synchronizes x-y range.
+​	\*`mu.subplot` Creates subplot with advanced settings.
+
+​	`mu.syncXY` Synchronizes x-y range.
+
+------
 
 ### 2. data structure
 
 #### 2.1 struct
 
-​	`mu.addfield.m` Adds a new field to [s] or alter the value of an existed field.
+​	\*`mu.addfield` Adds a new field to [s] or alter the value of an existed field.
 
-​	`mu.`
+​	\*`mu.getor` Returns the structure field or a default if either don't exist.
+
+​	\*`mu.getorfull` Complete [s] with [default]. [default] is specified as a struct containing some fields of [s] with default values.
+
+​	`mu.getVarsFromWorkspace` Finds variables in workspace using regular expression.
+
+​	\*`mu.parsestruct` Parses fields of struct [S] and assigns the fields as variables to workspace.
+
+​	`mu.structcat` Concatenate input struct arrays, left empty for fields with conflict.
+
+​	`mu.validatestruct` Validates a struct array by validating each field.
+
+#### 2.2 cell
+
+​	`mu.cell2mat` Advanced `cell2mat`. Elements of the cell can be cell/string/numeric.
+
+​	`mu.reslice` Re-slices a cell array of multi-dimensional arrays along a specified dimension.
+
+#### 2.3 matrix
+
+​	`mu.findpeaktrough` Finds indices (in logical) of peak and trough along specified dimension of 2-D data.
+
+​	`mu.findvectorloc` Finds location of vector [pat] in vector [X]. [direction] specifies [locs] of the first or the last index of [pat].
+
+​	`mu.insertrows` Inserts [val] in [X] at specified rows.
+
+​	`mu.lcm` Returns least common multiple of a real array [A].
+
+​	`mu.mapminmax` Maps data to [-ymax, ymax] with zero point unshifted.
+
+​	`mu.max` Returns maximum value of time series data [X] and the corresponding time [t].
+
+​	`mu.min` Returns minimum value of time series data [X] and the corresponding time [t].
+
+​	`mu.perms` Returns a N^k-by-k matrix containing all possible permutations of k-element.
+
+​	`mu.replaceval` Replaces scalar [x] with [newVal] if [x] is in [conditions] or satisfies conditions(x).
+
+​	`mu.replacevalMat` Equals to `X(X == oldVal) = newVal`.
+
+​	\*`mu.rowfun` Applies [fcn] along the first dimension of 2-D matrix or vector [A] (based on cellfun).
+
+​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
+
+​	`mu.slicefun` Applies [fcn] along the dimension [k] of [A] (based on cellfun).
+
+#### 2.4 string/char
+
+​	\*`mu.getabspath` Gets absolute path from relative path of a folder or file.
+
+​	\*`mu.getlastpath` Gets the last `end-N+1:end` folder path of path [P].
+
+​	\*`mu.getrootpath` Gets N-backward root path of path [P].
+
+#### 2.5 function_handle
+
+​	`mu.obtainArgoutN` Returns the [fcn] outputs of specified ordinal numbers.
+
+​	`mu.path2func` Gets function handle from the full path of an M file.
+
+------
 
 ### 3. data processing
 
-​	``
+#### 3.1 filter
 
-# Effect size
+​	`mu.filter` General zero-phase multi-channel filter for trial or matrix data.
+
+#### 3.2 frequency domain
+
+​	`mu.fft` Computes the single-sided amplitude and phase spectrum of input data X using the Fast Fourier Transform (FFT).
+
+​	\*`mu.cwt` Computes cwt results of multi-channel and multi-trial data using parallel computation on GPU.
+
+#### 3.3 trial data (for FieldTrip)
+
+​	`mu.calchMean` Computes the weighted-average [chMean] (nCh\*xx\*xx\*...\*nTime) and NAN-padded [trialsData].
+
+​	`mu.calchErr` Computes the standard error of the mean for [trialsData].
+
+​	`mu.calchStd` Computes the standard deviation of the mean for [trialsData].
+
+​	`mu.calchFunc` Calculate a function over trial data with padding direction.
+
+​	`mu.checkdata` Validates trial data.
+
+​	`mu.cutdata` Cuts trial data within specified time window.
+
+​	`mu.resampledata` Resamples data with a new sample rate.
+
+​	`mu.shuffledata` Shuffle N-D matrix A along specific dimension, with each slice shuffled independently. It is useful when performing permutation test for correlation. For slice shuffled with the same order, use `shuffle`.
+
+#### 3.4 statistics
+
+[p, stats, effectSize, bf10] = mu.statfcn(...)
+
+​	`mu.anovan` , `mu.ttest`, `mu.ttest2`, `mu.signrank`, `mu.ranksum`
 
 | Effect size | Cohen’s d (*t*-test) | $\eta^2$ or partial $\eta^2$ (ANOVA) | Rank-Biserial Correlation (Mann–Whitney U、Wilcoxon test) |
 | ----------- | -------------------- | ------------------------------------ | --------------------------------------------------------- |
 | Small       | 0.2                  | 0.01                                 | 0.1                                                       |
 | Medium      | 0.5                  | 0.06                                 | 0.3                                                       |
 | Large       | 0.8                  | 0.14                                 | 0.5                                                       |
+
+​	`mu.prepareANOVA` Prepares group data for ANOVA.
+
+​	`mu.histcounts` Calculates hist counts for overlapped bins.
+
+​	`mu.fisherstat` Calculates joint p-value with Fisher's method.
+
+​	`mu.calDP` Calculates detection probability.
+
+​	`mu.se`  Calculates standard error of [x] along [dim].
+
+------
+
+### 4. stimulus generation
+
+​	`mu.ctgen` Generates click trains with specified inter-click interval sequences.
+
+​	`mu.tonegen` Generates pure tones or complex tones.
+
+​	`mu.genRiseFallEdge` Generates rise-fall edges for sound wave.
+
+------
+
+### 5. file
+
+​	`mu.exportFigure2PDF` Exports a figure to PDF file with specified [with, height] in mm.
+
+​	`mu.exportgraphics` Advanced `exportgraphics` allowing axes array as input (for overlapped axes).
+
+​	`mu.load` Skip loading if variables exist in workspace.
+
+​	`mu.print` Skip printing if file exists.
+
+​	`mu.save` Skip saving if file exists.
+
+​	`mu.syncRepositories` Updates all GIT repositories in the specified root path.
+
+------
+
+### 6. UI
+
+​	\*`ccc` Equals to `clear;close all;clc;`
+
+​	`validateinput` Loops input until validation passes.
+
+​	`mu.msgbox` Creates a message box.
+
+​	`colorpicker` Picks color from screen.
+
+​	`addLinesApp` UI control for `mu.addLines`.
+
+​	`scaleAxesApp` UI control for `mu.scaleAxes`.
+
+​	`validateinputApp` UI control for `validateinput`.
+
+------
+
+### 7. callback handler function
+
+Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`
+
+​	`errorHandlerFcnEmpty`, `errorHandlerFcnNAN` Returns []/NAN if error occurs.
+
+​	`onTargetDeleteFcn` This function is registered as the `deleteFcn` of an axes target `src.UserData.apps` is a cell array containing multiple apps.
+
+------
+
+### 8. toolbox API
+
+#### 8.1 512 system
+
+​	`readrhd` Reads Intan Technologies RHD data file generated by Intan USB interface.
+
+#### 8.2 FieldTrip
+
+​	`ft_promotepaths` Set FielTrip paths to top.
+
+​	`ft_removepaths` Remove FieldTrip paths but reserve `ft_defaults`.
+
+#### 8.3 kilosort
+
+​	`kilosort3` API for kilosort3
+
+​	`kilosort4` Runs kilosort4 (python version) via MATLAB.
+
+​	`checkPython` Converts system python version to `3.7` for kilosort3.
+
+​	`parseNPY` Reads sort results from NPY files.
+
+#### 8.4 psignifit
+
+​	`pfit` Customized API for using `psignifit`.
+
+​	`fitBehavior`
+
+#### 8.5 PTB-3
+
+​	`KbGet` Gets keyboard press within a time window.
+
+​	`playAudio` Plays audio from a signal or file under ptb-3 control.

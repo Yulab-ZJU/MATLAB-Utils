@@ -1,5 +1,5 @@
 function res = insertrows(X, rows, val)
-% To insert [val] in X at specified rows.
+% To insert [val] in [X] at specified rows.
 
 narginchk(2, 3);
 
