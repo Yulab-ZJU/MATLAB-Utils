@@ -1,14 +1,14 @@
 function varargout = boxplot(varargin)
-% MBOXPLOTGROUP Custom grouped boxplot visualization with advanced styling options
+% mu.BOXPLOT Custom grouped boxplot visualization with advanced styling options
 %
-%   [ax, res] = mBoxplotGroup(X) creates a grouped boxplot of the data in cell array X,
+%   [ax, res] = mu.boxplot(X) creates a grouped boxplot of the data in cell array X,
 %   where each cell contains a matrix representing one group (columns = categories).
 %   Returns the handle to the axes object and a struct containing the box coordinates 
 %   and parameters.
 %
-%   ax = mBoxplotGroup(ax, X) plots into specified axes handle.
+%   ax = mu.boxplot(ax, X) plots into specified axes handle.
 %
-%   ax = mBoxplotGroup(..., Name, Value) specifies additional options:
+%   ax = mu.boxplot(..., Name, Value) specifies additional options:
 %
 %   DATA SPECIFICATION:
 %     'X'               - Cell array of matrices (required). Each cell represents a group, 
@@ -44,13 +44,13 @@ function varargout = boxplot(varargin)
 %   EXAMPLE:
 %     data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories each
 %     figure;
-%     mBoxplotGroup(data, ...
-%                   'GroupLabels', {'Control', 'Treatment'}, ...
-%                   'CategoryLabels', {'Method A', 'Method B', 'Method C'}, ...
-%                   'Whisker', [5, 95], ...
-%                   'Colors', lines(2), ...
-%                   'Notch', 'on', ...
-%                   'BoxParameters', {'FaceColor', 'auto'});
+%     mu.boxplot(data, ...
+%                'GroupLabels', {'Control', 'Treatment'}, ...
+%                'CategoryLabels', {'Method A', 'Method B', 'Method C'}, ...
+%                'Whisker', [5, 95], ...
+%                'Colors', lines(2), ...
+%                'Notch', 'on', ...
+%                'BoxParameters', {'FaceColor', 'auto'});
 %
 %   NOTES:
 %     - For different category numbers across groups, use NAN values to fill the columns
@@ -62,7 +62,7 @@ function varargout = boxplot(varargin)
 %     - Default colors of center line, whisker, and whisker cap are 'auto',
 %       which uses [Colors] (of box edges).
 %     - To set the font size of group/category labels, please set(ax, "FontSize", val) 
-%       before using `mBoxplotGroup`.
+%       before using `mu.boxplot`.
 %
 % Copyright (c) 2025 HX Xu. All rights reserved.
 % 
@@ -209,8 +209,13 @@ else
         error("The number of Positions should be equal to the number of categories.");
     end
 end
-categoryEdgeLeft = positions - min(diff(positions));
-categoryWidthHalf = min(diff(positions)) * (1 - categorySpace) / 2;
+if isscalar(positions)
+    categoryWidth0 = 1;
+else
+    categoryWidth0 = min(diff(positions));
+end
+categoryEdgeLeft = positions - categoryWidth0 / 2;
+categoryWidthHalf = categoryWidth0 * (1 - categorySpace) / 2;
 groupEdgeLeft  = positions - categoryWidthHalf;
 groupEdgeRight = positions + categoryWidthHalf;
 
@@ -341,7 +346,7 @@ for cIndex = 1:nCategory
             end
 
             swarmchart(mid * ones(numel(data), 1), data, ...
-                       "XJitterWidth", jitterWidth * min(diff(positions)), params{:});
+                       "XJitterWidth", jitterWidth * categoryWidth0, params{:});
         end
         
         % plot box
@@ -441,7 +446,7 @@ for cIndex = 1:nCategory
 
 end
 
-if isempty(positions)
+if isequal(positions, (1:nCategory)')
     xlim(ax, [0.5, nCategory + 0.5]);
 end
 drawnow;
@@ -594,7 +599,7 @@ function setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, Group
                  'FontSize', get(ax, 'FontSize'));
         end
 
-        linkaxes([ax, labelAx], 'x');
+        xlim(labelAx, xlim(ax));
         ylim(labelAx, [0, 1]);
     else
         set(ax, 'XTick', [], 'XTickLabel', []);
