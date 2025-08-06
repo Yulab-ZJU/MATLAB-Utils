@@ -224,7 +224,7 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`
 
-​	`errorHandlerFcnEmpty`, `errorHandlerFcnNAN` Returns []/NAN if error occurs.
+​	`errNAN`, `errEmpty` Returns []/NAN if error occurs.
 
 ​	`onTargetDeleteFcn` This function is registered as the `deleteFcn` of an axes target `src.UserData.apps` is a cell array containing multiple apps.
 

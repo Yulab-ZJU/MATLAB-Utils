@@ -117,9 +117,54 @@
         "description": "Convert path to function handle"
     },
 
+    "mu.parcellfun": {
+        "inputs": [
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
+            {"name": "A", "kind": "required", "type": ["cell"]},
+            {"name": "B", "kind": "ordered", "type": ["cell"], "repeating": true},
+            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+        ],
+        "description": "Apply a function to each cell in parallel"
+    },
+
+    "mu.pararrayfun": {
+        "inputs": [
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
+            {"name": "A", "kind": "required"},
+            {"name": "B", "kind": "ordered", "repeating": true},
+            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+        ],
+        "description": "Apply a function to each element in an array in parallel"
+    },
+
+    "mu.parrowfun": {
+        "inputs": [
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
+            {"name": "A", "kind": "required"},
+            {"name": "B", "kind": "ordered", "repeating": true},
+            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+        ],
+        "description": "Apply a function to each row in parallel"
+    },
+
+    "mu.parslicefun": {
+        "inputs": [
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
+            {"name": "dim", "kind": "required", "type": ["numeric", "scalar", "positive"]},
+            {"name": "A", "kind": "required"},
+            {"name": "B", "kind": "ordered", "repeating": true},
+            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+        ],
+        "description": "Apply a function to each slice in parallel"
+    },
+
     "mu.rowfun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle"]},
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
             {"name": "A", "kind": "required"},
             {"name": "B", "kind": "ordered", "repeating": true},
             {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
@@ -130,7 +175,7 @@
 
     "mu.slicefun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle"]},
+            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
             {"name": "dim", "kind": "required", "type": ["numeric", "scalar", "positive"]},
             {"name": "A", "kind": "required"},
             {"name": "B", "kind": "ordered", "repeating": true},
