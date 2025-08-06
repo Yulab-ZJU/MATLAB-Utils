@@ -56,13 +56,19 @@ pos = get(ax, "Position"); % axes size
 
 switch loc
     case "northoutside"
-        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) + pos0(4) + interval * pos(4), pos(3), width * pos(4)], "Location", "northoutside");
+        width = min(width * pos(4), 0.015);
+        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) + pos0(4) + interval * pos(4), pos(3), width], "Location", "northoutside");
+        cb.TickLength = width / 5;
     case "southoutside"
-        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) - interval * pos(4), pos(3), width * pos(4)], "Location", "southoutside");
+        width = min(width * pos(4), 0.015);
+        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) - interval * pos(4), pos(3), width], "Location", "southoutside");
+        cb.TickLength = width / 5;
     case "eastoutside"
-        cb = colorbar(varargin{:}, "Position", [pos0(1) + pos0(3) + interval * pos(3), pos(2), width * pos(3), pos(4)], "Location", "eastoutside");
+        width = min(width * pos(3), 0.01);
+        cb = colorbar(varargin{:}, "Position", [pos0(1) + pos0(3) + interval * pos(3), pos(2), width, pos(4)], "Location", "eastoutside");
     case "westoutside"
-        cb = colorbar(varargin{:}, "Position", [pos0(1) - interval * pos(3), pos(2), width * pos(3), pos(4)], "Location", "westoutside");
+        width = min(width * pos(3), 0.01);
+        cb = colorbar(varargin{:}, "Position", [pos0(1) - interval * pos(3), pos(2), width, pos(4)], "Location", "westoutside");
 end
 
 if ~isempty(label)
