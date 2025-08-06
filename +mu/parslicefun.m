@@ -1,99 +1,90 @@
-function varargout = parslicefun(fcn, dim, A, varargin)
-% parslicefun - Parallel version of mu.slicefun using parfor
-% Description:
-%     Applies function fcn to slices of A along dimension dim in parallel.
-%     Supports multiple input arrays and optional error handling.
+function varargout = parslicefun(fcn, dim, varargin)
+% PARSLICEFUN - Parallel mu.slicefun with block-wise processing
+%
+% Syntax:
+%   Y = mu.parslicefun(fcn, A1, A2, ..., 'UniformOutput', true/false, 'BlockSize', N, 'ErrorHandler', @eh)
 %
 % Inputs:
-%     fcn - Function handle to apply
-%     dim - Dimension to slice
-%     A - Input array
-%     varargin - Additional arrays and optional Name-Value pairs:
-%         'UniformOutput' - (default: true)
-%         'ErrorHandler'  - function handle to use when error occurs
+%   fcn             - Function handle to apply to each group of elements
+%   A1, A2, ...     - Arrays of same size
+%   'UniformOutput' (optional) - logical (default: true)
+%   'BlockSize'     (optional) - scalar int, elements per block (default: auto)
+%   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
 % Outputs:
-%     varargout - Outputs of the function, either cell array or regular array
+%   varargout       - Same as mu.slicefun output
 
-%% Input parsing
+% ---------------- Separate cell inputs ----------------
+isParam = cellfun(@(x) ischar(x) || isstring(x), varargin);
+paramIdx = find(isParam, 1, 'first');
+if isempty(paramIdx)
+    Ainputs = varargin;
+    params = {};
+else
+    Ainputs = varargin(1:paramIdx - 1);
+    params = varargin(paramIdx:end);
+end
+
+% ---------------- Parse optional arguments ----------------
 mIp = inputParser;
-mIp.addRequired("fcn", @(x) isa(x, 'function_handle'));
-mIp.addRequired("dim", @(x) isnumeric(x) && isscalar(x));
-mIp.addRequired("A");
+mIp.addRequired("dim", @(x) validateattributes(x, 'numeric', {'integer', 'scalar', 'positive'}));
 mIp.addParameter("UniformOutput", true, @(x) islogical(x) || isnumeric(x));
 mIp.addParameter("ErrorHandler", [], @(x) isempty(x) || isa(x, 'function_handle'));
+mIp.addParameter("BlockSize", [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
+mIp.parse(dim, params{:});
+uniformOutput = mIp.Results.UniformOutput;
+blockSize = mIp.Results.BlockSize;
+errorHandler = mIp.Results.ErrorHandler;
 
-% Split varargin into data and params
-isParamName = @(x) ischar(x) || isstring(x);
-splitIdx = find(cellfun(@(x) isParamName(x) && any(strcmpi(x, ["UniformOutput", "ErrorHandler"])), varargin), 1);
-if isempty(splitIdx)
-    bArgs = varargin;
-    paramArgs = {};
-else
-    bArgs = varargin(1:splitIdx-1);
-    paramArgs = varargin(splitIdx:end);
+% ---------------- Check input sizes ----------------
+sz = cellfun(@(x) size(x, dim), Ainputs);
+if ~all(sz == sz(1))
+    error('All array inputs must have the same size of the %d-th dimension.', dim);
 end
+nDimSize = sz(1);
 
-mIp.parse(fcn, dim, A, paramArgs{:});
-UniformOutput = mIp.Results.UniformOutput;
-ErrorHandler = mIp.Results.ErrorHandler;
-
-%% Validate B sizes
-for i = 1:numel(bArgs)
-    assert(size(bArgs{i}, dim) == size(A, dim), ...
-        "parslicefun:InputSizeMismatch", ...
-        "Size mismatch: B%d must match A along dimension %d.", i, dim);
+% ---------------- Determine block size ----------------
+if isempty(blockSize)
+    pool = gcp('nocreate');
+    nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    blockSize = max(1, ceil(nDimSize / max(nWorkers, 1)));
 end
+nBlocks = ceil(nDimSize / blockSize);
 
-%% Prepare slicing
-sz = size(A);
-segN = sz(dim);
-idx = repmat({':'}, 1, ndims(A));
-A_cells = cell(segN, 1);
-for k = 1:segN
-    idx{dim} = k;
-    A_cells{k} = A(idx{:});
-end
+% ---------------- Preallocate output ----------------
+nout = nargout;
+outCell = cell(nBlocks, nout);
 
-B_cells_all = cell(numel(bArgs), 1);
-for i = 1:numel(bArgs)
-    Bi = bArgs{i};
-    Bi_cells = cell(segN, 1);
-    for k = 1:segN
-        idx{dim} = k;
-        Bi_cells{k} = Bi(idx{:});
+% ---------------- Parallel block loop ----------------
+for bIndex = 1:nBlocks
+    % Slice inputs for this block
+    startIdx = (bIndex - 1) * blockSize + 1;
+    endIdx = min(bIndex * blockSize, nDimSize);
+    idx = startIdx:endIdx;
+    slicedInputs = cellfun(@(a) slice_N_dim(a, idx, dim), Ainputs, 'UniformOutput', false);
+
+    % Apply function
+    if ~isempty(errorHandler)
+        [outCell{bIndex, 1:nout}] = mu.slicefun(fcn, dim, slicedInputs{:}, 'UniformOutput', false, 'ErrorHandler', errorHandler);
+    else
+        [outCell{bIndex, 1:nout}] = mu.slicefun(fcn, dim, slicedInputs{:}, 'UniformOutput', false);
     end
-    B_cells_all{i} = Bi_cells;
+
 end
 
-%% Parallel computation
-result = cell(segN, 1);
-if isempty(ErrorHandler)
-    parfor k = 1:segN
-        args = cellfun(@(C) C{k}, B_cells_all, 'UniformOutput', false);
-        result{k} = fcn(A_cells{k}, args{:});
-    end
-else
-    parfor k = 1:segN
-        try
-            args = cellfun(@(C) C{k}, B_cells_all, 'UniformOutput', false);
-            result{k} = fcn(A_cells{k}, args{:});
-        catch err
-            result{k} = ErrorHandler(err);  % ignore index for compatibility
-        end
-    end
-end
+% ---------------- Concatenate or collect output ----------------
+for k = 1:nout
+    % Flatten all block outputs into a column vector
+    outVec = vertcat(outCell{:, k});
 
-%% Format output
-if UniformOutput
-    try
-        varargout{1} = cell2mat(result);
-    catch
-        error("parslicefun:OutputConversion", ...
-            "Cannot convert cell output to matrix. Set 'UniformOutput' to false.");
+    if uniformOutput
+        % Attempt to concatenate the content of each cell into numeric array
+        % Each element of outVec should be scalar or compatible
+        varargout{k} = cellfun(@(x) x, outVec, 'UniformOutput', true);
+    else
+        % Always return as cell array with original shape
+        varargout{k} = outVec;
     end
-else
-    varargout{1} = result;
 end
 
 return;

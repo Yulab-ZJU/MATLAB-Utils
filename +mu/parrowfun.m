@@ -1,118 +1,90 @@
-function varargout = parrowfun(fcn, A, varargin)
-% PARROWFUN - Parallel version of rowfun using parfor
-%
-% Description:
-%   Applies the function handle `fcn` to each row of the input array `A` in parallel.
-%   Supports additional inputs with the same number of rows as `A`.
+function varargout = parrowfun(fcn, varargin)
+% PARROWFUN - Parallel mu.rowfun with block-wise processing
 %
 % Syntax:
-%   C = mu.parrowfun(fcn, A)
-%   C = mu.parrowfun(fcn, A, B1, B2, ..., 'UniformOutput', true/false, 'ErrorHandler', @errFcn)
+%   Y = mu.parrowfun(fcn, A1, A2, ..., 'UniformOutput', true/false, 'BlockSize', N, 'ErrorHandler', @eh)
 %
 % Inputs:
-%   fcn          - Function handle to apply to each row
-%   A            - An N-by-... array (numeric, cell, or any data type)
-%   B1, B2, ...  - Additional inputs, each with same number of rows as A
-%   'UniformOutput' (optional) - Logical flag (default true), controls output format
-%   'ErrorHandler'  (optional) - Function handle to handle errors during `fcn` execution
+%   fcn             - Function handle to apply to each group of elements
+%   A1, A2, ...     - Arrays of same size
+%   'UniformOutput' (optional) - logical (default: true)
+%   'BlockSize'     (optional) - scalar int, elements per block (default: auto)
+%   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
 % Outputs:
-%   When 'UniformOutput' is true (default), outputs are returned as arrays
-%   When false, outputs are returned as cell arrays
-%
-% Example:
-%   C = parrowfun(@(x) sum(x.^2), A);
-%   C = parrowfun(@(x,y) x+y, A, B, 'UniformOutput', false);
+%   varargout       - Same as mu.rowfun output
 
-%% Input parsing and validation
-mIp = inputParser;
-mIp.addRequired("fcn", @(x) isa(x,'function_handle'));
-mIp.addRequired("A");
-
-% Find indices of optional parameter names 'UniformOutput' or 'ErrorHandler'
-idxParam = find(cellfun(@(x) ischar(x) && ...
-    any(strcmpi(x, {'UniformOutput','ErrorHandler'})), varargin));
-
-if isempty(idxParam)
-    bIdx = 1:numel(varargin);  % All varargin before parameters are data inputs
+% ---------------- Separate cell inputs ----------------
+isParam = cellfun(@(x) ischar(x) || isstring(x), varargin);
+paramIdx = find(isParam, 1, 'first');
+if isempty(paramIdx)
+    Ainputs = varargin;
+    params = {};
 else
-    bIdx = 1:idxParam(1)-1;     % Data inputs before parameter name
+    Ainputs = varargin(1:paramIdx - 1);
+    params = varargin(paramIdx:end);
 end
 
-% Add optional inputs for validation (must have same number of rows as A)
-for k = 1:numel(bIdx)
-    name = sprintf('B%d', k);
-    val = varargin{bIdx(k)};
-    assignin('caller', name, val); % Used for inputParser optional inputs
-    mIp.addOptional(name, [], @(x) size(x,1) == size(A,1));
-end
-
-% Add parameter-value pairs
-mIp.addParameter('UniformOutput', true, @(x) isscalar(x) && (islogical(x) || ismember(x,[0 1])));
-mIp.addParameter('ErrorHandler', [], @(x) isempty(x) || isa(x,'function_handle'));
-
-% Parse inputs
-mIp.parse(fcn, A, varargin{:});
-uniform = mIp.Results.UniformOutput;
+% ---------------- Parse optional arguments ----------------
+mIp = inputParser;
+mIp.addParameter("UniformOutput", true, @(x) islogical(x) || isnumeric(x));
+mIp.addParameter("ErrorHandler", [], @(x) isempty(x) || isa(x, 'function_handle'));
+mIp.addParameter("BlockSize", [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
+mIp.parse(params{:});
+uniformOutput = mIp.Results.UniformOutput;
+blockSize = mIp.Results.BlockSize;
 errorHandler = mIp.Results.ErrorHandler;
 
-%% Convert each row of inputs into cell arrays (for parfor)
-nRows = size(A,1);
-rowSizes = ones(nRows,1);  % Split exactly by single rows
-Ac = mat2cell(A, rowSizes);
+% ---------------- Check input sizes ----------------
+sz = cellfun(@(x) size(x, 1), Ainputs);
+if ~all(sz == sz(1))
+    error('All array inputs must have the same size of the first dimension.');
+end
+nRows = sz(1);
 
-% Convert extra inputs to cell arrays, each cell contains one row
-vararginReduced = varargin(bIdx);
-Bc = cellfun(@(x) mat2cell(x, rowSizes), vararginReduced, 'UniformOutput', false);
+% ---------------- Determine block size ----------------
+if isempty(blockSize)
+    pool = gcp('nocreate');
+    nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    blockSize = max(1, ceil(nRows / max(nWorkers, 1)));
+end
+nBlocks = ceil(nRows / blockSize);
 
-% Combine all inputs for each row into a cell array
-allInputs = [{Ac}, Bc];
+% ---------------- Preallocate output ----------------
+nout = nargout;
+outCell = cell(nBlocks, nout);
 
-%% Initialize output storage
-nout = nargout;  % Number of function outputs
-out = cell(nRows, nout);  % Preallocate cell array for outputs
+% ---------------- Parallel block loop ----------------
+parfor bIndex = 1:nBlocks
+    % Slice inputs for this block
+    startIdx = (bIndex - 1) * blockSize + 1;
+    endIdx = min(bIndex * blockSize, nRows);
+    idx = startIdx:endIdx;
+    slicedInputs = cellfun(@(a) slice_N_dim(a, idx, 1), Ainputs, 'UniformOutput', false);
 
-%% Parallel loop over rows
-parfor i = 1:nRows
-    % Collect inputs for current iteration
-    args = cell(1, numel(allInputs));
-    for j = 1:numel(allInputs)
-        args{j} = allInputs{j}{i};
+    % Apply function
+    if ~isempty(errorHandler)
+        [outCell{bIndex, 1:nout}] = mu.rowfun(fcn, slicedInputs{:}, 'UniformOutput', false, 'ErrorHandler', errorHandler);
+    else
+        [outCell{bIndex, 1:nout}] = mu.rowfun(fcn, slicedInputs{:}, 'UniformOutput', false);
     end
-    
-    % Call user function with error handling
-    % init temp output
-    localOut = cell(1, nout);
 
-    try
-        [localOut{:}] = fcn(args{:});
-    catch err
-        if isempty(errorHandler)
-            rethrow(err);
-        else
-            [localOut{:}] = errorHandler(err);
-        end
-    end
-    
-    % Store outputs for this iteration
-    for k = 1:nout
-        out{i, k} = localOut{k};
+end
+
+% ---------------- Concatenate or collect output ----------------
+for k = 1:nout
+    % Flatten all block outputs into a column vector
+    outVec = vertcat(outCell{:, k});
+
+    if uniformOutput
+        % Attempt to concatenate the content of each cell into numeric array
+        % Each element of outVec should be scalar or compatible
+        varargout{k} = cellfun(@(x) x, outVec, 'UniformOutput', true);
+    else
+        % Always return as cell array with original shape
+        varargout{k} = outVec;
     end
 end
 
-%% Format outputs based on UniformOutput flag
-if uniform
-    for k = 1:nout
-        try
-            varargout{k} = cellfun(@(x) x, out(:,k), 'UniformOutput', true);
-        catch
-            error('Outputs are not uniform. Consider setting UniformOutput to false.');
-        end
-    end
-else
-    for k = 1:nout
-        varargout{k} = out(:,k);
-    end
-end
-
+return;
 end

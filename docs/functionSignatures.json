@@ -123,7 +123,8 @@
             {"name": "A", "kind": "required", "type": ["cell"]},
             {"name": "B", "kind": "ordered", "type": ["cell"], "repeating": true},
             {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
+            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
         ],
         "description": "Apply a function to each cell in parallel"
     },
@@ -134,7 +135,8 @@
             {"name": "A", "kind": "required"},
             {"name": "B", "kind": "ordered", "repeating": true},
             {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
+            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
         ],
         "description": "Apply a function to each element in an array in parallel"
     },
@@ -145,7 +147,8 @@
             {"name": "A", "kind": "required"},
             {"name": "B", "kind": "ordered", "repeating": true},
             {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
+            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
         ],
         "description": "Apply a function to each row in parallel"
     },
@@ -157,7 +160,8 @@
             {"name": "A", "kind": "required"},
             {"name": "B", "kind": "ordered", "repeating": true},
             {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
+            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
         ],
         "description": "Apply a function to each slice in parallel"
     },

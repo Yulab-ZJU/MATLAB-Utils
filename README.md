@@ -2,8 +2,6 @@
 
 To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSignatures.json` to `/resources/`.
 
-
-
 # Functions
 
 '\*' marks the most widely-used functions.
@@ -78,6 +76,8 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.reslice` Re-slices a cell array of multi-dimensional arrays along a specified dimension.
 
+​	`mu.parcellfun` Similar to `cellfun` but works in parallel mode.
+
 #### 2.3 matrix
 
 ​	`mu.findpeaktrough` Finds indices (in logical) of peak and trough along specified dimension of 2-D data.
@@ -96,15 +96,9 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.perms` Returns a N^k-by-k matrix containing all possible permutations of k-element.
 
-​	`mu.replaceval` Replaces scalar [x] with [newVal] if [x] is in [conditions] or satisfies conditions(x).
-
 ​	`mu.replacevalMat` Equals to `X(X == oldVal) = newVal`.
 
-​	\*`mu.rowfun` Applies [fcn] along the first dimension of 2-D matrix or vector [A] (based on cellfun).
-
 ​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
-
-​	`mu.slicefun` Applies [fcn] along the dimension [k] of [A] (based on cellfun).
 
 #### 2.4 string/char
 
@@ -120,13 +114,27 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.path2func` Gets function handle from the full path of an M file.
 
+#### 2.6 array (any type)
+
+​	`mu.pararrayfun` Similar to `arrayfun` but works in parallel mode.
+
+​	`mu.parrowfun` Similar to `mu.rowfun` but works in parallel mode.
+
+​	`mu.parslicefun` Similar to `mu.slicefun` but works in parallel mode.
+
+​	`mu.replaceval` Replaces scalar [x] with [newVal] if [x] is in [conditions] or satisfies conditions(x).
+
+​	\*`mu.rowfun` Applies [fcn] along the first dimension of 2-D matrix or vector [A] (based on cellfun).
+
+​	`mu.slicefun` Applies [fcn] along the dimension [k] of [A] (based on cellfun).
+
 ------
 
 ### 3. data processing
 
 #### 3.1 filter
 
-​	`mu.filter` General zero-phase multi-channel filter for trial or matrix data.
+​	`mu.filter` General zero-phase multi-channel filter for trial or matrix data. (Require *FieldTrip* toolbox)
 
 #### 3.2 frequency domain
 
@@ -222,7 +230,7 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ### 7. callback handler function
 
-Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`
+Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`, `mu.par***fun`
 
 ​	`errNAN`, `errEmpty` Returns []/NAN if error occurs.
 

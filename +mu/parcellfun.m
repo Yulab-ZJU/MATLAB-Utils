@@ -7,9 +7,9 @@ function varargout = parcellfun(fcn, varargin)
 % Inputs:
 %   fcn             - Function handle to apply to each group of elements
 %   C1, C2, ...     - Cell arrays of same size
-%   'UniformOutput' (optional) - logical (default: false)
+%   'UniformOutput' (optional) - logical (default: true)
 %   'BlockSize'     (optional) - scalar int, elements per block (default: auto)
-%   'ErrorHandler'  (optional) - function handle @(err, idx) to catch errors
+%   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
 % Outputs:
 %   varargout       - Same as cellfun output
@@ -27,7 +27,7 @@ end
 
 % ---------------- Parse optional arguments ----------------
 mIp = inputParser;
-mIp.addParameter("UniformOutput", false, @(x) islogical(x) || isnumeric(x));
+mIp.addParameter("UniformOutput", true, @(x) islogical(x) || isnumeric(x));
 mIp.addParameter("ErrorHandler", [], @(x) isempty(x) || isa(x, 'function_handle'));
 mIp.addParameter("BlockSize", [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
 mIp.parse(params{:});
@@ -37,79 +37,63 @@ errorHandler = mIp.Results.ErrorHandler;
 
 % ---------------- Check input sizes ----------------
 sz = cellfun(@size, Cinputs, "UniformOutput", false);
-
-N = numel(Cinputs{1});
-for k = 2:numel(Cinputs)
-    if numel(Cinputs{k}) ~= N
-        error('All cell inputs must have the same number of elements.');
-    end
+if ~all(cellfun(@(x) isequal(x, sz{1}), sz), 'all')
+    error('All cell inputs must have the same size.');
 end
+
+% ---------------- Vectorize all inputs ----------------
+inputVec = cellfun(@(c) c(:), Cinputs, 'UniformOutput', false);  % Flatten to column vectors
+nElements = numel(Cinputs{1});
 
 % ---------------- Determine block size ----------------
 if isempty(blockSize)
     pool = gcp('nocreate');
     nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
-    blockSize = max(1, ceil(N / max(nWorkers, 1)));
+    blockSize = max(1, ceil(nElements / max(nWorkers, 1)));
 end
-blockEdges = 1:blockSize:N;
-nBlocks = numel(blockEdges);
+nBlocks = ceil(nElements / blockSize);
 
 % ---------------- Preallocate output ----------------
 nout = nargout;
 outCell = cell(nBlocks, nout);
 
 % ---------------- Parallel block loop ----------------
-parfor b = 1:nBlocks
-    idxStart = blockEdges(b);
-    idxEnd = min(N, blockEdges(b) + blockSize - 1);
-    nBlock = idxEnd - idxStart + 1;
+parfor bIndex = 1:nBlocks
+    % Slice inputs for this block
+    startIdx = (bIndex - 1) * blockSize + 1;
+    endIdx = min(bIndex * blockSize, nElements);
+    idx = startIdx:endIdx;
+    slicedInputs = cellfun(@(c) c(idx), inputVec, 'UniformOutput', false);
 
-    % Extract slices of inputs for this block
-    blockSlices = cellfun(@(C) C(idxStart:idxEnd), Cinputs, 'UniformOutput', false);
-
-    % Local block outputs
-    blockOut = cell(1, nout);
-    for k = 1:nout
-        blockOut{k} = cell(nBlock, 1);
+    % Apply function
+    if ~isempty(errorHandler)
+        [outCell{bIndex, 1:nout}] = cellfun(fcn, slicedInputs{:}, 'UniformOutput', false, 'ErrorHandler', errorHandler);
+    else
+        [outCell{bIndex, 1:nout}] = cellfun(fcn, slicedInputs{:}, 'UniformOutput', false);
     end
 
-    % Loop over elements in block
-    for i = 1:nBlock
-        args = cellfun(@(C) C{i}, blockSlices, 'UniformOutput', false);
-        tmpOut = cell(1, nout);  % <-- FIX: define tmpOut here inside loop
-
-        try
-            [tmpOut{:}] = fcn(args{:});
-        catch err
-            if isempty(errorHandler)
-                rethrow(err);
-            else
-                [tmpOut{:}] = errorHandler(err, idxStart + i - 1);
-            end
-        end
-
-        for k = 1:nout
-            blockOut{k}{i} = tmpOut{k};
-        end
-        
-    end
-
-    % Store block results
-    for k = 1:nout
-        outCell{b, k} = blockOut{k};
-    end
 end
 
-% ---------------- Concatenate block results ----------------
-varargout = cell(1, nout);
+% ---------------- Concatenate or collect output ----------------
 for k = 1:nout
+    % Flatten all block outputs into a column vector
+    outVec = vertcat(outCell{:, k});  
+
     if uniformOutput
-        varargout{k} = vertcat(outCell{:, k});
-    else
-        varargout{k} = [outCell{:, k}];
-        if iscolumn(Cinputs{1})
-            varargout{k} = varargout{k}(:);
+        try
+            % Attempt to concatenate the content of each cell into numeric array
+            % Each element of outVec should be scalar or compatible
+            temp = cellfun(@(x) x, outVec, 'UniformOutput', true);
+            % Reshape back to original N-D cell array shape
+            varargout{k} = reshape(temp, size(Cinputs{1}));
+        catch
+            % Fallback to cell array if concatenation fails
+            warning('Cannot concatenate outputs; returning as cell array.');
+            varargout{k} = reshape(outVec, size(Cinputs{1}));
         end
+    else
+        % Always return as cell array with original shape
+        varargout{k} = reshape(outVec, size(Cinputs{1}));
     end
 end
 

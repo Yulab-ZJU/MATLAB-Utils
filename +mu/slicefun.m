@@ -52,7 +52,15 @@ segLens = ones(sz(dim), 1);
 cellSizeVec = num2cell(sz);
 cellSizeVec{dim} = segLens;
 A_cells = mat2cell(A, cellSizeVec{:});
-B_cells = cellfun(@(B) mat2cell(B, cellSizeVec{:}, 'UniformOutput', false), bArgs, 'UniformOutput', false);
+B_cells = cell(1, numel(bArgs));
+for i = 1:numel(bArgs)
+    Bi = bArgs{i};
+    szB = size(Bi);
+    segLensB = ones(szB(dim), 1);
+    cellSizeVecB = num2cell(szB);
+    cellSizeVecB{dim} = segLensB;
+    B_cells{i} = mat2cell(Bi, cellSizeVecB{:});
+end
 
 % Apply function
 if isempty(mIp.Results.ErrorHandler)
