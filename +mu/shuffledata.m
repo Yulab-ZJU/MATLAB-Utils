@@ -1,4 +1,4 @@
-function B = shuffledata(A, dim)
+function [B, I] = shuffledata(A, dim)
 % Shuffle N-D matrix A along specific dimension, with each slice shuffled
 % independently. It is useful when performing permutation test for
 % correlation.
@@ -32,6 +32,7 @@ B_perm = reshape(B_reshaped, sz_perm);
 
 % Inverse permute
 B = ipermute(B_perm, perm);
+I = ipermute(reshape(lin_idx, sz_perm), perm);
 
 return;
 end
