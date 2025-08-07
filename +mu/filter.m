@@ -71,11 +71,11 @@ ntrial = numel(data);
 if ~isempty(fhp) || ~isempty(flp)
     cfg = [];
     cfg.trials = 'all';
-    data.trial = data(:)';
-    data.time = repmat({t}, 1, ntrial);
-    data.label = arrayfun(@num2str, (1:nch)', "UniformOutput", false);
-    data.fsample = fs;
-    data = ft_selectdata(cfg, data);
+    dataTemp.trial = data(:)';
+    dataTemp.time = repmat({t}, 1, ntrial);
+    dataTemp.label = arrayfun(@num2str, (1:nch)', "UniformOutput", false);
+    dataTemp.fsample = fs;
+    dataTemp = ft_selectdata(cfg, dataTemp);
 
     cfg = [];
     cfg.demean = 'no';
@@ -89,9 +89,9 @@ if ~isempty(fhp) || ~isempty(flp)
         cfg.lpfreq = flp;
         cfg.lpfiltord = order;
     end
-    data = ft_preprocessing(cfg, data);
+    dataTemp = ft_preprocessing(cfg, dataTemp);
 
-    data = data.trial(:); % column vector
+    data = dataTemp.trial(:); % column vector
 end
 
 %% Notch filtering

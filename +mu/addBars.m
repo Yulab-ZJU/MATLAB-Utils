@@ -1,6 +1,5 @@
 function varargout = addBars(varargin)
-% Description:
-%     This function adds significant areas to axes (vertical bars).
+%ADDBARS adds significant areas to axes (vertical bars).
 % Input:
 %     - ax: target axes (default: gca)
 %     - xval: X values, real vector
