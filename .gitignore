@@ -19,6 +19,9 @@ untitled*
 #ignore resources folder
 /resources/
 
+#reserve file
+!**/functionSignatures.json
+
 #ignore Package folder
 /Package/
 
