@@ -17,10 +17,8 @@ untitled*
 **/MATLAB Add-Ons/
 
 #ignore resources folder
-/resources/
-
-#reserve file
-!**/functionSignatures.json
+/resources/*
+!/resources/functionSignatures.json
 
 #ignore Package folder
 /Package/

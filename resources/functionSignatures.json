@@ -503,12 +503,12 @@
             {"mutuallyExclusiveGroup": [
                 [
                     {"name": "rasterData", "kind": "required", "type": ["struct"]},
-                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"]}
+                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"], "purpose": "default:40"}
                 ],
                 [
                     {"name": "axes", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.Graphics')"]},
                     {"name": "rasterData", "kind": "required", "type": ["struct"]},
-                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"]}
+                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"], "purpose": "default:40"}
                 ]
             ]},
             {"name": "border", "kind": "namevalue", "type": ["logical", "scalar"]}
