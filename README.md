@@ -100,6 +100,8 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
 
+​	`mu.slicedata` Returns sliced A(:,...,idx,...,:) at specified dimension.
+
 #### 2.4 string/char
 
 ​	\*`mu.getabspath` Gets absolute path from relative path of a folder or file.
