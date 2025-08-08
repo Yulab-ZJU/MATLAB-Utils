@@ -1,0 +1,23 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "excludeTrials": {
+        "inputs": [
+            {"name": "trialsData", "kind": "required", "type": ["cell"], "description": "trial data"},
+            {"name": "tTh", "kind": "ordered", "type": ["scalar", "numeric"], "description": "trial threshold"},
+            {"name": "chTh", "kind": "ordered", "type": ["scalar", "numeric"], "description": "channel threshold (percentage or nTrials)"},
+            {"name": "userDefineOpt", "kind": "namevalue", "type": ["choices={'on', 'off'}"], "description": "bad channels defined by user"},
+            {"name": "absTh", "kind": "namevalue", "type": ["scalar", "numeric"], "description": "absolute threshold"},
+            {"name": "badCHs", "kind": "namevalue", "type": ["numeric"], "description": "bad channel number vector"}
+        ]
+    },
+
+    "mPrepareNeighbours": {
+        "inputs": [
+            {"name": "channels", "kind": "ordered", "type": ["positive", "numeric"]},
+            {"name": "topoSize", "kind": "ordered", "type": ["positive", "numel=2"]},
+            {"name": "opt", "kind": "ordered", "type": ["choices = {'orthogonal', 'surrounding'}"]}
+        ]
+    }
+    
+}

@@ -1,0 +1,11 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "CBPT": {
+        "inputs": [
+            {"name": "cfg", "kind": "required", "type": [["struct"], ["@isempty"]]},
+            {"name": "trialsData", "kind": "required", "type": ["cell"], "repeating": true}
+        ]
+    }
+
+}
