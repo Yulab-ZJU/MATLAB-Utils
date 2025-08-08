@@ -48,7 +48,11 @@ nElements = numel(Cinputs{1});
 % ---------------- Determine block size ----------------
 if isempty(blockSize)
     pool = gcp('nocreate');
-    nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    if ~isempty(pool)
+        nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    else
+        nWorkers = parcluster('local').NumWorkers;
+    end
     blockSize = max(1, ceil(nElements / max(nWorkers, 1)));
 end
 nBlocks = ceil(nElements / blockSize);
@@ -80,17 +84,11 @@ for k = 1:nout
     outVec = vertcat(outCell{:, k});  
 
     if uniformOutput
-        try
-            % Attempt to concatenate the content of each cell into numeric array
-            % Each element of outVec should be scalar or compatible
-            temp = cellfun(@(x) x, outVec, 'UniformOutput', true);
-            % Reshape back to original N-D cell array shape
-            varargout{k} = reshape(temp, size(Cinputs{1}));
-        catch
-            % Fallback to cell array if concatenation fails
-            warning('Cannot concatenate outputs; returning as cell array.');
-            varargout{k} = reshape(outVec, size(Cinputs{1}));
-        end
+        % Attempt to concatenate the content of each cell into numeric array
+        % Each element of outVec should be scalar or compatible
+        temp = cellfun(@(x) x, outVec, 'UniformOutput', true);
+        % Reshape back to original N-D cell array shape
+        varargout{k} = reshape(temp, size(Cinputs{1}));
     else
         % Always return as cell array with original shape
         varargout{k} = reshape(outVec, size(Cinputs{1}));

@@ -448,10 +448,10 @@
             {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1"},
             {"name": "CategoryLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]]},
             {"name": "CategorySpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.4"},
-            {"name": "IndividualDataPoint", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'show'"},
+            {"name": "IndividualDataPoint", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'hide'"},
             {"name": "SymbolParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Marker','o','SizeData',36,'MarkerEdgeColor','w','MarkerFaceColor','auto','MarkerFaceAlpha',0.3,'LineWidth',0.1}"},
             {"name": "Jitter", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1"},
-            {"name": "Outlier", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'hide'"},
+            {"name": "Outlier", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'show'"},
             {"name": "OutlierParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Marker','+','MarkerEdgeColor','auto','MarkerFaceColor','auto','SizeData',36,'LineWidth',0.5"}
         ],
         "description": "Create a boxplot with various customization options"

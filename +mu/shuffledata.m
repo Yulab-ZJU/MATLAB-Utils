@@ -1,38 +1,72 @@
 function [B, I] = shuffledata(A, dim)
-% Shuffle N-D matrix A along specific dimension, with each slice shuffled
-% independently. It is useful when performing permutation test for
-% correlation.
-% For slice shuffled with the same order, use `shuffle`.
+% SHUFFLEDATA Randomly shuffle data along a specified dimension.
+%   B = SHUFFLEDATA(A) shuffles vector A or, for N-D array, shuffles along
+%   the first dimension by default. Each slice along other dimensions is
+%   independently shuffled.
+%
+%   B = SHUFFLEDATA(A, DIM) shuffles A along dimension DIM.
+%
+%   [B, I] = SHUFFLEDATA(...) also returns the index map I such that:
+%       B = A(I)
+%
+%   Examples:
+%       shuffledata([1 2 3 4])        % shuffles a vector
+%       shuffledata(rand(5, 10), 1)   % shuffles each column
+%       shuffledata(rand(5, 10), 2)   % shuffles each row
 
-nd = ndims(A);
-
-if dim < 1 || dim > nd
-    error('dim must be between 1 and ndims(A)');
+% Check input
+if ~isnumeric(A)
+    error('Input A must be numeric.');
 end
 
-% move target dim to the first dimension
+% Determine shuffle dimension if not provided
+if nargin < 2 || isempty(dim)
+    if isvector(A)
+        dim = find(size(A) > 1, 1);  % preserve orientation
+        if isempty(dim), dim = 1; end
+    else
+        dim = 1;  % default to 1st dimension
+    end
+end
+
+nd = ndims(A);
+if dim < 1 || dim > nd
+    error('Specified dimension must be between 1 and ndims(A).');
+end
+
+% Early return for trivial case
+if isempty(A) || size(A, dim) <= 1
+    B = A;
+    I = reshape(1:numel(A), size(A));
+    return;
+end
+
+% Permute target dimension to front
 perm = 1:nd;
 perm([1, dim]) = [dim, 1];
 A_perm = permute(A, perm);
+sz_perm = size(A_perm);
 
-sz_perm = size(A_perm); % size of current matrix (for inverse permuting)
-len = sz_perm(1); % size of the dimension to be shuffled
-num_blocks = prod(sz_perm(2:end)); % numel of the rest dimensions
+len = sz_perm(1);                        % shuffle length
+numSlices = prod(sz_perm(2:end));       % number of slices
 
-% Generate random shuffled orders for each column
-[~, idx] = sort(rand(len, num_blocks), 1);  % len x num_blocks
+% Generate shuffle indices
+[~, idx] = sort(rand(len, numSlices), 1);  % [len x numSlices]
 
-% Re-indexing
-A_reshaped = reshape(A_perm, len, num_blocks);
-
-% Shuffle
-lin_idx = sub2ind([len, num_blocks], idx(:), repelem((1:num_blocks)', len, 1));
-B_reshaped = A_reshaped(lin_idx);
-B_perm = reshape(B_reshaped, sz_perm);
+% Flatten and shuffle
+A_flat = reshape(A_perm, len, numSlices);
+colIdx = repelem((1:numSlices)', len, 1);
+linIdx = sub2ind([len, numSlices], idx(:), colIdx);
+B_flat = A_flat(linIdx);
+B_perm = reshape(B_flat, sz_perm);
 
 % Inverse permute
 B = ipermute(B_perm, perm);
-I = ipermute(reshape(lin_idx, sz_perm), perm);
+
+% Return shuffle index map
+if nargout > 1
+    I = ipermute(reshape(linIdx, sz_perm), perm);
+end
 
 return;
 end

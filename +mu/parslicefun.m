@@ -46,10 +46,14 @@ nDimSize = sz(1);
 % ---------------- Determine block size ----------------
 if isempty(blockSize)
     pool = gcp('nocreate');
-    nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
-    blockSize = max(1, ceil(nDimSize / max(nWorkers, 1)));
+    if ~isempty(pool)
+        nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    else
+        nWorkers = parcluster('local').NumWorkers;
+    end
+    blockSize = max(1, ceil(nElements / max(nWorkers, 1)));
 end
-nBlocks = ceil(nDimSize / blockSize);
+nBlocks = ceil(nElements / blockSize);
 
 % ---------------- Preallocate output ----------------
 nout = nargout;

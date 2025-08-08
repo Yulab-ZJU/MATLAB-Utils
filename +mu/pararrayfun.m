@@ -84,17 +84,11 @@ for k = 1:nout
     outVec = vertcat(outCell{:, k});  
 
     if uniformOutput
-        try
-            % Attempt to concatenate the content of each cell into numeric array
-            % Each element of outVec should be scalar or compatible
-            temp = cellfun(@(x) x, outVec, 'UniformOutput', true);
-            % Reshape back to original N-D array shape
-            varargout{k} = reshape(temp, size(Ainputs{1}));
-        catch
-            % Fallback to cell array if concatenation fails
-            warning('Cannot concatenate outputs; returning as cell array.');
-            varargout{k} = reshape(outVec, size(Ainputs{1}));
-        end
+        % Attempt to concatenate the content of each cell into numeric array
+        % Each element of outVec should be scalar or compatible
+        temp = cellfun(@(x) x, outVec, 'UniformOutput', true);
+        % Reshape back to original N-D array shape
+        varargout{k} = reshape(temp, size(Ainputs{1}));
     else
         % Always return as cell array with original shape
         varargout{k} = reshape(outVec, size(Ainputs{1}));

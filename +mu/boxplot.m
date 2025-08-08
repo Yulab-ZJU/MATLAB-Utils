@@ -1,68 +1,102 @@
 function varargout = boxplot(varargin)
-% mu.BOXPLOT Custom grouped boxplot visualization with advanced styling options
+% BOXPLOT Custom grouped boxplot visualization with advanced styling options
 %
-%   [ax, res] = mu.boxplot(X) creates a grouped boxplot of the data in cell array X,
-%   where each cell contains a matrix representing one group (columns = categories).
-%   Returns the handle to the axes object and a struct containing the box coordinates 
-%   and parameters.
+%   [ax, res] = mu.boxplot(X) creates a grouped boxplot for data in cell array X,
+%   where each cell corresponds to a group and columns within the cell are categories.
 %
-%   ax = mu.boxplot(ax, X) plots into specified axes handle.
+%   mu.boxplot(ax, X) draws on specified axes.
 %
-%   ax = mu.boxplot(..., Name, Value) specifies additional options:
+%   mu.boxplot(..., Name, Value) accepts additional options:
 %
-%   DATA SPECIFICATION:
-%     'X'               - Cell array of matrices (required). Each cell represents a group, 
-%                         columns represent categories within groups.
+% ════════════════════════════════════════════════════════════════════════
+%  DATA FORMAT
+% ════════════════════════════════════════════════════════════════════════
+%   'X'                  : Cell array (1 x nGroup) of matrices [nSample x nCategory]
+%                          Each group can contain same-size category columns
+%                          Use NaN to pad unequal-length data
 %
-%   GROUPING CONTROLS:
-%     'GroupLabels'     - Cell array of strings for group labels (primary labels)
-%     'CategoryLabels'  - Cell array of strings for category labels (secondary labels)
-%     'GroupLegends'    - Cell array of strings for legend entries (per group)
-%     'GroupSpace'      - Spacing between groups (default: 0.1)
-%     'CategorySpace'   - Spacing between categories within groups (default: 0.4)
-%     'GroupLines'      - Show vertical lines between groups (logical, default: false)
+% ════════════════════════════════════════════════════════════════════════
+%  GROUPING CONTROLS
+% ════════════════════════════════════════════════════════════════════════
+%   'GroupLabels'        : Cell array of strings for each group (primary labels)
+%   'CategoryLabels'     : Cell array of strings for each category (secondary labels)
+%   'GroupLegends'       : Legend labels for each group (linked to color)
+%   'GroupSpace'         : Scalar [0–1] spacing between groups (default: 0.1)
+%   'CategorySpace'      : Scalar [0–1] spacing between categories (default: 0.4)
+%   'GroupLines'         : Logical, show vertical lines between categories (default: false)
 %
-%   BOX APPEARANCE:
-%     'Positions'            - X-positions of category centers (default: 1:nCategory)
-%     'BoxEdgeType'          - Box edge calculation: 'SE', 'STD', or [low,high] percentiles
-%     'Notch'                - Notch option, 'on' or 'off' (defualt: 'off')
-%     'Whisker'              - Maximum whisker length W (see BOXPLOT) or 
-%                              whisker percentiles [low,high] (default: 1.5)
-%     'Colors'               - Color specification (single color, cell array, or colormap)
-%     'BoxParameters'        - Cell array of patch properties for boxes
-%     'CenterLineParameters' - Properties for center lines (mean/median)
-%     'WhiskerParameters'    - Properties for whisker lines
-%     'WhiskerCapParameters' - Properties for whisker caps 
+% ════════════════════════════════════════════════════════════════════════
+%  BOX APPEARANCE
+% ════════════════════════════════════════════════════════════════════════
+%   'Positions'          : Vector of category center positions (length = nCategory)
+%   'BoxEdgeType'        : 'SE', 'STD', or [low high] percentiles (default: [25, 75])
+%   'Notch'              : 'on' or 'off' (default: 'off')
+%   'Whisker'            : Scalar (×IQR) or [low high] percentiles (default: 1.5)
+%   'Colors'             : Color spec: single RGB row, group-level RGBs (nGroup×3), 
+%                          or full map (nGroup×nCategory×3)
+%   'BoxParameters'      : Patch property pairs for boxes
+%   'CenterLineParameters' : Line property pairs for mean/median line
+%   'WhiskerParameters'  : Line property pairs for whiskers
+%   'WhiskerCapParameters': Line property pairs for whisker caps
 %
-%   DATA POINTS:
-%     'IndividualDataPoint' - 'show' or 'hide' individual points (default: 'show')
-%     'SymbolParameters'    - Properties for individual data points
-%     'Jitter'              - Amount of horizontal jitter (default: 0.1)
-%     'Outlier'             - 'show' or 'hide' outliers (default: 'hide')
-%     'OutlierParameters'   - Properties for outliers
+% ════════════════════════════════════════════════════════════════════════
+%  DATA POINTS & OUTLIERS
+% ════════════════════════════════════════════════════════════════════════
+%   'IndividualDataPoint': 'show' or 'hide' (default: 'hide')
+%   'SymbolParameters'    : Scatter properties for individual data points
+%   'Jitter'              : Scalar jitter width in X (default: 0.1)
+%   'Outlier'             : 'show' or 'hide' (default: 'hide')
+%   'OutlierParameters'   : Scatter properties for outliers
 %
-%   EXAMPLE:
-%     data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories each
-%     figure;
-%     mu.boxplot(data, ...
-%                'GroupLabels', {'Control', 'Treatment'}, ...
-%                'CategoryLabels', {'Method A', 'Method B', 'Method C'}, ...
-%                'Whisker', [5, 95], ...
-%                'Colors', lines(2), ...
-%                'Notch', 'on', ...
-%                'BoxParameters', {'FaceColor', 'auto'});
+% ════════════════════════════════════════════════════════════════════════
+%  OUTPUT
+% ════════════════════════════════════════════════════════════════════════
+%   ax   : Handle to axes used for plotting
+%   res  : Struct with computed box edge locations, medians, whiskers, etc.
 %
-%   NOTES:
-%     - For different category numbers across groups, use NAN values to fill the columns
-%     - For box edges: 'SE' uses mean±SE, 'STD' uses mean±STD, or specify percentiles
-%     - Category legends only shown if 'CategoryLegends' specified
-%     - Default point size is 36 (in points^2)
-%     - Default line widths of center line, whisker, and whisker cap are 'auto', 
-%       which implements from [BoxParameters].
-%     - Default colors of center line, whisker, and whisker cap are 'auto',
-%       which uses [Colors] (of box edges).
-%     - To set the font size of group/category labels, please set(ax, "FontSize", val) 
-%       before using `mu.boxplot`.
+% ════════════════════════════════════════════════════════════════════════
+%  EXAMPLE
+% ════════════════════════════════════════════════════════════════════════
+%   data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories
+%   figure;
+%   mu.boxplot(data, ...
+%              'GroupLabels', {'Control', 'Treatment'}, ...
+%              'CategoryLabels', {'A', 'B', 'C'}, ...
+%              'Colors', lines(2), ...
+%              'Whisker', [5, 95], ...
+%              'BoxEdgeType', 'SE');
+%
+%   % see `demo\demo_boxplot.mlx` for more examples.
+% ════════════════════════════════════════════════════════════════════════
+%  ⚠️  NOTES & CAUTIONS
+% ════════════════════════════════════════════════════════════════════════
+%   - All groups must contain the same number of categories (columns).
+%     Use NaN-padding if some groups lack certain categories.
+%
+%   - The 'Whisker' input:
+%       * scalar: interpreted as multiplier of IQR (e.g. 1.5)
+%       * 2-element vector: treated as [low, high] percentiles (e.g. [5, 95])
+%
+%   - The 'BoxEdgeType' input:
+%       * 'SE' : mean ± standard error (based on sample size)
+%       * 'STD': mean ± standard deviation
+%       * [low, high]: e.g., [25, 75] for quartiles
+%
+%   - 'Colors' can be:
+%       * Single RGB triplet → all boxes same color
+%       * Cell array of RGB rows → per group
+%       * Full RGB matrix → per category & group (no legend support)
+%
+%   - For full control, set LineWidth, MarkerSize, Alpha, etc. in
+%     'BoxParameters', 'SymbolParameters', etc.
+%
+%   - Clipping behavior: data points near edges may be clipped.
+%     If necessary, manually adjust axis limits or set 'Clipping', 'off'.
+%
+%   - For hierarchical x-axis labels (group/category), font size follows ax.FontSize.
+%     Set it **before** calling mu.boxplot.
+%
+% ════════════════════════════════════════════════════════════════════════
 %
 % Copyright (c) 2025 HX Xu. All rights reserved.
 % 
@@ -111,7 +145,7 @@ mIp.addParameter("GroupSpace", 0.1, @(x) validateattributes(x, 'numeric', {'scal
 mIp.addParameter("GroupLines", false, @(x) validateattributes(x, 'logical', {'scalar'}));
 mIp.addParameter("CategoryLabels", '');
 mIp.addParameter("CategorySpace", 0.4, @(x) validateattributes(x, 'numeric', {'scalar'}));
-mIp.addParameter("Colors", [1, 0, 0]);
+mIp.addParameter("Colors", []);
 mIp.addParameter("BoxEdgeType", [25, 75]);
 mIp.addParameter("Whisker", 1.5);
 mIp.addParameter("Notch", "off", @(x) any(validatestring(x, {'on', 'off'})));
@@ -119,10 +153,10 @@ mIp.addParameter("BoxParameters", defaultBoxParameters, @iscell);
 mIp.addParameter("CenterLineParameters", defaultCenterLineParameters, @iscell);
 mIp.addParameter("WhiskerParameters", defaultWhiskerParameters, @iscell);
 mIp.addParameter("WhiskerCapParameters", defaultWhiskerCapParameters, @iscell);
-mIp.addParameter("IndividualDataPoint", "show", @(x) any(validatestring(x, {'show', 'hide'})));
+mIp.addParameter("IndividualDataPoint", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
 mIp.addParameter("SymbolParameters", defaultSymbolParameters, @iscell);
 mIp.addParameter("Jitter", 0.1, @(x) validateattributes(x, 'numeric', {'scalar'}));
-mIp.addParameter("Outlier", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
+mIp.addParameter("Outlier", "show", @(x) any(validatestring(x, {'show', 'hide'})));
 mIp.addParameter("OutlierParameters", defaultOutlierParameters, @iscell);
 
 mIp.parse(ax, varargin{:});
@@ -190,10 +224,10 @@ q2 = cellfun(@(x) prctile(x, 50, 1), X, 'UniformOutput', false); % median
 q3 = cellfun(@(x) prctile(x, 75, 1), X, 'UniformOutput', false);
 nNonNaN = cellfun(@(x) sum(~isnan(x), 1), X, 'UniformOutput', false); % non-NaN counts
 
-q1 = cat(1, q1{:})'; % category-by-group
-q2 = cat(1, q2{:})'; % category-by-group
-q3 = cat(1, q3{:})'; % category-by-group
-iqr = q3 - q1; % category-by-group
+q1 = cat(1, q1{:})'; % [nCategory × nGroup]
+q2 = cat(1, q2{:})'; % [nCategory × nGroup]
+q3 = cat(1, q3{:})'; % [nCategory × nGroup]
+iqr = q3 - q1; % [nCategory × nGroup]
 nNonNaN = cat(1, nNonNaN{:})';
 
 % Notch bounds
@@ -225,8 +259,8 @@ boxWidth = (1 - (nGroup - 1) * groupSpace) / nGroup * categoryWidthHalf * 2;
 % Compute box edge (left & right) for each category
 boxEdgeLeft  = arrayfun(@(x, y) x:boxWidth + groupSpace * categoryWidthHalf * 2:y, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
 boxEdgeRight = arrayfun(@(x, y) x + boxWidth:boxWidth + groupSpace * categoryWidthHalf * 2:y + boxWidth, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
-boxEdgeLeft  = cat(1, boxEdgeLeft {:}); % category-by-group
-boxEdgeRight = cat(1, boxEdgeRight{:}); % category-by-group
+boxEdgeLeft  = cat(1, boxEdgeLeft {:}); % [nCategory × nGroup]
+boxEdgeRight = cat(1, boxEdgeRight{:}); % [nCategory × nGroup]
 
 % Compute box edge - top & bottom
 if strcmpi(boxEdgeType, "se")
@@ -241,21 +275,26 @@ elseif isnumeric(boxEdgeType) && numel(boxEdgeType) == 2 && boxEdgeType(2) > box
 else
     error("[BoxEdgeType] should be 'SE', 'STD', or a 2-element percentile vector (default=[25,75])");
 end
-boxEdgeLower = cat(1, boxEdgeLower{:})'; % category-by-group
-boxEdgeUpper = cat(1, boxEdgeUpper{:})'; % category-by-group
+boxEdgeLower = cat(1, boxEdgeLower{:})'; % [nCategory × nGroup]
+boxEdgeUpper = cat(1, boxEdgeUpper{:})'; % [nCategory × nGroup]
 
 % Compute whisker
 if isscalar(whisker) % whisker length * IQR
-    temp = cat(3, X{:}); % sample_category_group
-    whiskerLower = max(q1 - whisker * iqr, squeeze(min(temp, [], 1)));  % category-by-group
-    whiskerUpper = min(q3 + whisker * iqr, squeeze(max(temp, [], 1)));  % category-by-group
+    % Compute lower whisker: max(q1 - whisker * IQR, min(data))
+    mins = cell2mat(cellfun(@(x) min(x, [], 1), X, 'UniformOutput', false))'; % [nCategory × nGroup]
+    maxs = cell2mat(cellfun(@(x) max(x, [], 1), X, 'UniformOutput', false))'; % [nCategory × nGroup]
+
+    whiskerLower = max(q1 - whisker * iqr, mins); % [nCategory × nGroup]
+    whiskerUpper = min(q3 + whisker * iqr, maxs); % [nCategory × nGroup]
 elseif numel(whisker) == 2 % percentile
     whiskerLower = cellfun(@(x) prctile(x, whisker(1), 1), X, "UniformOutput", false);
     whiskerUpper = cellfun(@(x) prctile(x, whisker(2), 1), X, "UniformOutput", false);
-    whiskerLower = cat(1, whiskerLower{:})'; % category-by-group
-    whiskerUpper = cat(1, whiskerUpper{:})'; % category-by-group
+    whiskerLower = cat(1, whiskerLower{:})'; % [nCategory × nGroup]
+    whiskerUpper = cat(1, whiskerUpper{:})'; % [nCategory × nGroup]
 else % empty
     % do not show whisker
+    whiskerLower = [];
+    whiskerUpper = [];
 end
 whiskerCapWidth = getNameValue(whiskerCapParameters, "Width") * boxWidth;
 whiskerCapParameters = removeNameValue(whiskerCapParameters, "Width");
@@ -263,7 +302,7 @@ whiskerColor = getNameValue(whiskerParameters, "Color");
 whiskerCapColor = getNameValue(whiskerCapParameters, "Color");
 
 % Compute outliers
-if strcmpi(outlierOpt, "show")
+if strcmpi(outlierOpt, "show") && ~isempty(whisker)
     outliers = cell(nCategory, nGroup);
     for cIndex = 1:nCategory
         for gIndex = 1:nGroup
@@ -274,6 +313,9 @@ if strcmpi(outlierOpt, "show")
 end
 
 % Colors
+if isempty(colors)
+    colors = lines(nGroup);
+end
 if isnumeric(colors) % single color for all boxes
     if size(colors, 1) == 1
         colors = repmat({repmat(validatecolor(colors), nCategory, 1)}, nGroup, 1);
@@ -293,10 +335,10 @@ elseif iscell(colors)
 
     % specifies colors for each category in each group
     nColor = cellfun(@(x) size(x, 1), colors);
-    for cIndex = 1:nGroup
-        if nColor == 1
-            colors{cIndex} = repmat(colors{cIndex}, nCategory, 1);
-        elseif nColor(cIndex) ~= nCategory
+    for gIndex = 1:nGroup
+        if nColor(gIndex) == 1
+            colors{gIndex} = repmat(colors{gIndex}, nCategory, 1);
+        elseif nColor(gIndex) ~= nCategory
             error("The number of colors should be equal to the number of categories.");
         end
     end
@@ -332,7 +374,6 @@ for cIndex = 1:nCategory
         if strcmpi(outlierMarkerFaceColor, "auto")
             params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
         end
-
         if strcmpi(outlierOpt, "show") && ~isempty(outliers{cIndex, gIndex})
             data = data(~ismember(data, outliers{cIndex, gIndex}));
             scatter(mid * ones(numel(outliers{cIndex, gIndex}), 1), outliers{cIndex, gIndex}, params{:});
@@ -354,7 +395,6 @@ for cIndex = 1:nCategory
         if strcmpi(boxFaceColor, "auto")
             params = changeNameValue(params, "FaceColor", colors{gIndex}(cIndex, :));
         end
-
         if strcmpi(notchOpt, "on")
             notchWidth = boxWidth * 0.3;
             top = q3(cIndex, gIndex);
@@ -366,7 +406,6 @@ for cIndex = 1:nCategory
                     right, right, ...
                     mid + notchWidth, ...
                     right, right];
-            
             yBox = [top, notchUpper(cIndex, gIndex), ...
                     q2(cIndex, gIndex), ...
                     notchLower(cIndex, gIndex), bottom, ...
@@ -384,21 +423,23 @@ for cIndex = 1:nCategory
             yBox = [top, top, bottom, bottom];
             centerLineX = [left, right];
         end
+        patch(ax, "XData", xBox, ...
+                  "YData", yBox, ...
+                  "EdgeColor", colors{gIndex}(cIndex, :), ...
+                  params{:});
 
+        % set legends
         if cIndex == 1
-            % set legends
-            legendHandles(gIndex) = patch(ax, "XData", xBox, ...
-                                              "YData", yBox, ...
+            if strcmpi(boxFaceColor, "none")
+                params = changeNameValue(params, "FaceColor", get(ax, "Color"));
+            end
+            legendHandles(gIndex) = patch(ax, "XData", nan, ...
+                                              "YData", nan, ...
                                               "EdgeColor", colors{gIndex}(cIndex, :), ...
                                               params{:});
             if ~isempty(groupLegends) && numel(groupLegends) >= gIndex
                 legendLabels{gIndex} = groupLegends{gIndex};
             end
-        else
-            patch(ax, "XData", xBox, ...
-                      "YData", yBox, ...
-                      "EdgeColor", colors{gIndex}(cIndex, :), ...
-                      params{:});
         end
         
         % plot center line
@@ -406,7 +447,6 @@ for cIndex = 1:nCategory
         if strcmpi(CenterLineColor, "auto")
             params = changeNameValue(params, "Color", colors{gIndex}(cIndex, :));
         end
-
         if strcmpi(CenterLineType, 'mean')
             yCenterLine = mean(X{gIndex}(:, cIndex), 1, "omitnan");
         elseif strcmpi(CenterLineType, 'median')
@@ -437,24 +477,31 @@ for cIndex = 1:nCategory
                      [whiskerUpper(cIndex, gIndex), whiskerUpper(cIndex, gIndex)], params{:});
         end
 
-        % plot group lines
-        if groupLines && cIndex > 1
-            xline(categoryEdgeLeft(cIndex));
+        % plot group division lines
+        if groupLines && cIndex > 1 && gIndex == 1
+            xline(ax, categoryEdgeLeft(cIndex));
         end
 
     end
 
 end
 
+% set x-axis range
 if isequal(positions, (1:nCategory)')
     xlim(ax, [0.5, nCategory + 0.5]);
 end
 drawnow;
+
+% set labels
 setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, groupLabels, categoryLabels);
 
+% show legends
 if ~all(cellfun(@isempty, groupLegends))
     validHandles = isgraphics(legendHandles);
-    legend(ax, legendHandles(validHandles), legendLabels(validHandles), 'Location', 'best', 'AutoUpdate', 'off');
+    legend(ax, legendHandles(validHandles), ...
+               legendLabels(validHandles), ...
+               'Location', 'best', ...
+               'AutoUpdate', 'off');
 end
 
 if nargout >= 1
@@ -489,6 +536,7 @@ axes(ax);
 return;
 end
 
+%% Utils
 function A = getOrCellParameters(C, default)
     params0 = cellstr(default(1:2:end));
     params = cellstr(C(1:2:end));
@@ -558,7 +606,7 @@ function setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, Group
     hasCategoryLabels = ~all(cellfun(@isempty, CategoryLabels));
 
     % label positions
-    boxCenters = (boxEdgeLeft + boxEdgeRight) / 2; % category-by-group
+    boxCenters = (boxEdgeLeft + boxEdgeRight) / 2; % [nCategory × nGroup]
 
     if hasGroupLabels && ~hasCategoryLabels
         set(ax, 'XTick', sort(boxCenters(:), "ascend"), ...
