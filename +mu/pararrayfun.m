@@ -48,7 +48,11 @@ nElements = numel(Ainputs{1});
 % ---------------- Determine block size ----------------
 if isempty(blockSize)
     pool = gcp('nocreate');
-    nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    if ~isempty(pool)
+        nWorkers = isempty(pool) * 0 + (~isempty(pool) * pool.NumWorkers);
+    else
+        nWorkers = parcluster('local').NumWorkers;
+    end
     blockSize = max(1, ceil(nElements / max(nWorkers, 1)));
 end
 nBlocks = ceil(nElements / blockSize);
