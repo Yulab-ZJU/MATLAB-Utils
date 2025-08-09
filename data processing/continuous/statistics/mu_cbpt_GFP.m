@@ -68,13 +68,11 @@ if isa(data1, "double") && isa(data2, "double")
         temp = [data1; data2];
         [resPerm1, resPerm2] = deal(zeros(nperm, nSample));
 
-        dispstat('', 'init');
         for index = 1:nperm
             shuffleIdx = 1:(A + B);
             shuffleIdx = randperm(length(shuffleIdx));
             resPerm1(index, :) = mean(temp(shuffleIdx(1:A), :), 1);
             resPerm2(index, :) = mean(temp(shuffleIdx(A + 1:A + B), :), 1);
-            dispstat(['Permutation: ', num2str(index), '/', num2str(nperm)]);
         end
         
         wave1 = mean(data1, 1);
@@ -134,13 +132,11 @@ if iscell(data1) && iscell(data2)
         nSample = size(data1{1}, 2);
         [resPerm1, resPerm2] = deal(zeros(nperm, nSample));
 
-        dispstat('', 'init');
         for index = 1:nperm
             shuffleIdx = 1:(A + B);
             shuffleIdx = randperm(length(shuffleIdx));
             resPerm1(index, :) = mu_GFP(mu.calchMean(temp(shuffleIdx(1:A))), chs2Ignore);
             resPerm2(index, :) = mu_GFP(mu.calchMean(temp(shuffleIdx(A + 1:A + B))), chs2Ignore);
-            dispstat(['Permutation: ', num2str(index), '/', num2str(nperm)]);
         end
 
         wave1 = mu_GFP(mu.calchMean(data1), chs2Ignore);

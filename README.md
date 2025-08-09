@@ -50,6 +50,18 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.syncXY` Synchronizes x-y range.
 
+##### \*Multi-channel data plotting
+
+​	`mu_plotWaveArray` Plots multi-channel and multi-group data of electrode array in one figure.
+
+​	`mu_plotWaveEEG` Plots multi-channel and multi-group EEG data with actual electrode positions.
+
+​	`mu_topoplotArray` Plots topographic distribution of specified values on an electrode array.
+
+​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.\
+
+​	`mu_plotTFR` Plots multi-channel time-frequency responses.
+
 ------
 
 ### 2. data structure
@@ -162,6 +174,22 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.shuffledata` Shuffle N-D matrix A along specific dimension, with each slice shuffled independently. It is useful when performing permutation test for correlation. For slice shuffled with the same order, use `shuffle`.
 
+##### Preprocessing
+
+​	\*`mu_selectWave` Extracts multi-channel time-series trial data.
+
+​	\*`mu_selectSpikes` Extracts spikes for events (trials).
+
+​	`mu_excludeTrials` Determines bad trials and bad channels using Normalized distribution criteria (exceed 5%-95%).
+
+​	`mu_interpolateBadChannels` Interpolates bad channels by inserting zeros and averaging across neighbors.
+
+​	`mu_prepareNeighboursArray` Generates neighbors for each electrode in an electrode array.
+
+​	`mu_export_Neuracle` Exports trial data recorded in Neuracle system and `EEG App (git@github.com:TOMORI233/EEGApp.git)`. Preprocessing procedures include re-referencing, filtering, epoching, ICA, and trial exclusion.
+
+​	`mu_export_NeuracleJoint` Exports trial data of several protocols at a time.
+
 #### 3.4 statistics
 
 [p, stats, effectSize, bf10] = mu.statfcn(...)
@@ -183,6 +211,38 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 ​	`mu.calDP` Calculates detection probability.
 
 ​	`mu.se`  Calculates standard error of [x] along [dim].
+
+#### 3.5 ICA
+
+​	`mu_ica` Performs independent component analysis (ICA) on trial data.
+
+​	`mu_ica_reconstructData` Reconstruct trial data by removing selected independent components.
+
+#### 3.6 Granger causality
+
+​	`mu_granger` Computes Granger causality (GC) of trial data using parametric/non-parametric methods.
+
+​	`mu_granger_wavelet` Computes GC of wavelet transformed data using non-parametric method.
+
+​	`mu_gMI`  Computes global Moran's I.
+
+​	`mu_gMI_rcWeightMat` Builds contiguity weights matrix for electrode map [nX,nY].
+
+#### 3.7 source analysis
+
+​	`mu_source` Performs source analysis on trial data.
+
+​	`mu_source_config` and `mu_source_prepareData` Prepare covariance matrix and electrode/anatomical data before source analysis.
+
+​	`mu_source_plot` Plots source analysis result in 2-D and 3-D view.
+
+#### 3.8 permutation test
+
+​	`mu_cbpt` Performs cluster-based permutation test on trial data.
+
+​	`mu_cbpt_GFP` Performs cluster-based permutation test on global field power (GFP) data, shuffling at trial level. Use `mu_GFP` to compute GFP with trial data.
+
+#### 3.9
 
 ------
 
