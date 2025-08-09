@@ -1,10 +1,30 @@
 {
     "_schemaVersion": "1.0.0",
 
-    "CBPT": {
+    "mu_cbpt": {
         "inputs": [
             {"name": "cfg", "kind": "required", "type": [["struct"], ["@isempty"]]},
             {"name": "trialsData", "kind": "required", "type": ["cell"], "repeating": true}
+        ]
+    },
+
+    "mu_cbpt_GFP": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [
+                    {"name": "data1", "kind": "required", "type": ["numeric"], "purpose": "nSubject-by-nSample double"},
+                    {"name": "data2", "kind": "required", "type": ["numeric"], "purpose": "nSubject-by-nSample double"}
+                ],
+                [
+                    {"name": "trialsData1", "kind": "required", "type": ["cell"], "purpose": "T1-by-1 cell"},
+                    {"name": "trialsData2", "kind": "required", "type": ["cell"], "purpose": "T2-by-1 cell"}
+                ]
+            ]},
+            {"name": "nperm", "kind": "ordered", "type": ["numeric", "scalar"]},
+            {"name": "Tail", "kind": "namevalue", "type": ["choices = {'both', 'left', 'right'}"]},
+            {"name": "Type", "kind": "namevalue", "type": ["choices = {'ERP', 'GFP'}"]},
+            {"name": "chs2Ignore", "kind": "namevalue", "type": ["numeric", "positive"]},
+            {"name": "EEGPos", "kind": "namevalue", "type": ["struct", "scalar"]}
         ]
     }
 

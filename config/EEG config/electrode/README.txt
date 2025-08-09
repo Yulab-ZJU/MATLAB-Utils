@@ -1,0 +1,1 @@
+Standard-10-5-Cap385.sfp is the standard 10-20 system electrode position file copied from EEGLAB.

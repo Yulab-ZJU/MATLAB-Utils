@@ -1,0 +1,15 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_ica": {
+        "inputs": [
+            {"name": "trialsData", "kind": "required"},
+            {"name": "windowICA", "kind": "required", "type": ["numeric", "numel=2"], "purpose": "time window for ICA (ms)"},
+            {"name": "fs", "kind": "required", "type": ["numeric", "positive", "numel=1"], "purpose": "sample rate (Hz)"},
+            {"name": "topo", "kind": "required", "type": [["numeric", "numel=2"], ["struct"]], "purpose": "[nX,nY] or EEGPos"},
+            {"name": "chs2doICA", "kind": "ordered", "type": [["choices = {'all'}"], ["numeric", "positive", "vector"]], "purpose": "default:'all'"},
+            {"name": "Method", "kind": "namevalue", "type": ["choices = {'runica', 'fastica'}"], "purpose": "default:'runica'"}
+        ]
+    }
+
+}

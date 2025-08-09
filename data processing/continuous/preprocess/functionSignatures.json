@@ -1,7 +1,7 @@
 {
     "_schemaVersion": "1.0.0",
 
-    "excludeTrials": {
+    "mu_excludeTrials": {
         "inputs": [
             {"name": "trialsData", "kind": "required", "type": ["cell"], "description": "trial data"},
             {"name": "tTh", "kind": "ordered", "type": ["scalar", "numeric"], "description": "trial threshold"},
@@ -12,12 +12,12 @@
         ]
     },
 
-    "mPrepareNeighbours": {
+    "mu_prepareNeighboursArray": {
         "inputs": [
-            {"name": "channels", "kind": "ordered", "type": ["positive", "numeric"]},
-            {"name": "topoSize", "kind": "ordered", "type": ["positive", "numel=2"]},
-            {"name": "opt", "kind": "ordered", "type": ["choices = {'orthogonal', 'surrounding'}"]}
+            {"name": "channels", "kind": "required", "type": ["vector", "numeric", "integer"], "purpose": "channel vector"},
+            {"name": "topoSize", "kind": "required", "type": ["numeric", "positive", "numel=2"], "purpose": "topographic size [nX,nY]"},
+            {"name": "opt", "kind": "ordered", "type": ["choices = {'orthogonal', 'surrounding'}"], "default": "surrounding"}
         ]
     }
-    
+
 }

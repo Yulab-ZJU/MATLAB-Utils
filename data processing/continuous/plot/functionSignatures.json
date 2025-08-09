@@ -1,120 +1,87 @@
 {
     "_schemaVersion": "1.0.0",
 
-    "plotLayout": {
-        "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "posIndex", "kind": "required", "type": ["numeric", "choices = {1, 2, 3, 4}"]},
-                    {"name": "alphaValue", "kind": "ordered", "type": ["numeric", "scalar"]},
-                    {"name": "tag", "kind": "ordered", "type": [["string"], ["char"]]},
-                    {"name": "target", "kind": "ordered", "type": ["choices = {'figure','axes','FigOrAxes'}"]}
-                ],
-                [
-                    {"name": "FigOrAxes", "kind": "required", "type": ["@(args) all(isgraphics(args))"]},
-                    {"name": "posIndex", "kind": "required", "type": ["numeric", "choices = {1, 2, 3, 4}"]},
-                    {"name": "alphaValue", "kind": "ordered", "type": ["numeric", "scalar"]},
-                    {"name": "tag", "kind": "ordered", "type": [["string"], ["char"]]},
-                    {"name": "target", "kind": "ordered", "type": ["choices = {'figure','axes','FigOrAxes'}"]}
-                ]
-            ]}
-        ]
-    },
-
-    "plotTopo": {
-        "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "Data", "kind": "required", "type": ["numeric"]},
-                    {"name": "topoSize", "kind": "ordered", "type": ["numel=2", "positive", "integer"]},
-                    {"name": "contourOpt", "kind": "namevalue", "type": ["choices = {'on', 'off'}"]},
-                    {"name": "resolution", "kind": "namevalue", "type": ["scalar", "positive", "integer"]},
-                    {"name": "contourVal", "kind": "namevalue", "type": ["vector"]},
-                    {"name": "contourTh", "kind": "namevalue", "type": ["scalar", "numeric"]},
-                    {"name": "marker", "kind": "namevalue", "type": ["choices = {'o', 'x', 'pentagram', '+'}"]},
-                    {"name": "markerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default: 36"}
-                ],
-                [
-                    {"name": "FigOrAxes", "kind": "required", "type": ["@(args) isgraphics(args(1), 'axes')"]},
-                    {"name": "Data", "kind": "required", "type": ["numeric"]},
-                    {"name": "topoSize", "kind": "ordered", "type": ["numel=2", "positive", "integer"]},
-                    {"name": "contourOpt", "kind": "namevalue", "type": ["choices = {'on', 'off'}"]},
-                    {"name": "resolution", "kind": "namevalue", "type": ["scalar", "positive", "integer"]},
-                    {"name": "contourVal", "kind": "namevalue", "type": ["vector"]},
-                    {"name": "contourTh", "kind": "namevalue", "type": ["scalar", "numeric"]},
-                    {"name": "marker", "kind": "namevalue", "type": ["choices = {'o', 'x', 'pentagram', '+'}"]},
-                    {"name": "markerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default: 36"}
-                ]
-            ]}
-        ]
-    },
-
-    "plotBehaviorOnly": {
-        "inputs": [
-            {"name": "trials", "kind": "required", "type": ["@(x) isstruct(x)"]},
-            {"name": "color", "kind": "required", "type": ["@(x) numel(x) == 3 || any(validatestring(x, {'r', 'g', 'b', 'k', 'y', 'c', 'm', 'w'}))"]},
-            {"name": "Fig", "kind": "ordered"},
-            {"name": "mAxe", "kind": "ordered"},
-            {"name": "cueType", "kind": "namevalue", "type": ["choices = {'freq','loc'}"]},
-            {"name": "legendStr", "kind": "namevalue"},
-            {"name": "xlabelStr", "kind": "namevalue"}
-        ]
-    },
-
-    "plotRawWave": {
-        "inputs": [
-            {"name": "chMean", "kind": "required", "type": ["numeric"]},
-            {"name": "chStd", "kind": "required", "type": ["numeric"]},
-            {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
-            {"name": "titleStr", "kind": "ordered", "type": ["@(x) isstring(x) || ischar(x) || isempty(x)"]},
-            {"name": "plotSize", "kind": "ordered", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
-            {"name": "chs", "kind": "ordered", "type": [["numel=1"], ["numel=2"], "integer", "@(x) x >= 0"]},
-            {"name": "visible", "kind": "ordered", "type": ["choices = {'on', 'off'}"]},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]}
-        ]
-    },
-
-    "plotRawWaveMulti": {
-        "inputs": [
-            {"name": "chData", "kind": "required", "type": ["@(x) isstruct(x)"]},
-            {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
-            {"name": "titleStr", "kind": "ordered", "type": ["@(x) isstring(x) || ischar(x) || isempty(x)"]},
-            {"name": "plotSize", "kind": "ordered", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
-            {"name": "chs", "kind": "ordered", "type": [["numel=1"], ["numel=2"], "integer", "@(x) x >= 0"]},
-            {"name": "visible", "kind": "ordered", "type": ["choices = {'on', 'off'}"]},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]}
-        ]
-    },
-
-    "plotTFA": {
+    "mu_plotTFR": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
                     {"name": "trialsData", "kind": "required", "type": ["cell"], "description": "nTrial*1 | {nCh*nTime}"},
-                    {"name": "fs0", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"},
-                    {"name": "fsD", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "downsample rate (Hz)"}
+                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"}
                 ],
                 [
                     {"name": "chMean", "kind": "required", "type": ["@(x) ismatrix(x) && isreal(x)"]},
-                    {"name": "fs0", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"},
-                    {"name": "fsD", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "downsample rate (Hz)"}
+                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"}
                 ],
                 [
-                    {"name": "cwtresRaw", "kind": "required", "type": ["@(x) ~isreal(x) && ndims(x) == 4"], "description": "nTrial*nCh*nFreq*nTime"},
-                    {"name": "f", "kind": "required", "type": ["positive"], "description": "frequency vector (Hz)"},
-                    {"name": "coi", "kind": "required", "type": ["positive"], "description": "cone of influence"}
-                ],
-                [
-                    {"name": "cwtresAbs", "kind": "required", "type": ["@(x) isreal(x) && (ndims(x) == 3 || ndims(x) == 4)"], "description": "nCh*nFreq*nTime"},
-                    {"name": "f", "kind": "required", "type": ["positive"], "description": "frequency vector (Hz)"},
-                    {"name": "coi", "kind": "required", "type": ["positive"], "description": "cone of influence"}
+                    {"name": "cwtres", "kind": "required", "type": ["@(x) ndims(x) == 3 || ndims(x) == 4"], "description": "(nTrial*)nCh*nFreq*nTime"},
+                    {"name": "f", "kind": "required", "type": ["positive"], "description": "frequency vector (Hz)"}
                 ]
             ]},
             {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
-            {"name": "titleStr", "kind": "ordered", "type": ["@(x) isstring(x) || ischar(x) || isempty(x)"]},
-            {"name": "plotSize", "kind": "ordered", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
-            {"name": "chs", "kind": "ordered", "type": [["numel=1"], ["numel=2"], "integer", "@(x) x >= 0"]},
-            {"name": "visible", "kind": "ordered", "type": ["choices = {'on', 'off'}"]}
+            {"name": "coi", "kind": "namevalue", "type": [["numeric"], ["choices = {'auto'}"]]},
+            {"name": "GridSize", "kind": "namevalue", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
+            {"name": "Channels", "kind": "namevalue", "type": ["numeric"]},
+            {"name": "fLimits", "kind": "namevalue", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)", "positive"]},
+            {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .03, .01, .01]"},
+            {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"}
+        ]
+    },
+
+    "mu_plotWaveArray": {
+        "inputs": [
+            {"name": "chData", "kind": "required", "type": ["@(x) isstruct(x)"]},
+            {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
+            {"name": "GridSize", "kind": "namevalue", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
+            {"name": "Channels", "kind": "namevalue", "type": ["numeric"]},
+            {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .03, .01, .01]"},
+            {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
+            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1.5"}
+        ]
+    },
+
+    "mu_plotWaveEEG": {
+        "inputs": [
+            {"name": "chData", "kind": "required", "type": ["@(x) isstruct(x)"]},
+            {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
+            {"name": "EEGPos", "kind": "required", "type": ["@(x) isstruct(x)"]},
+            {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .03, .01, .01]"},
+            {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
+            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1.5"}
+        ]
+    },
+
+    "mu_topoplotArray": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [],
+                [
+                    {"name": "ax", "kind": "required", "type": ["@(args) isgraphics(args(1), 'axes')"]}
+                ]
+            ]},
+            {"name": "data", "kind": "required", "type": ["numeric"]},
+            {"name": "topoSize", "kind": "ordered", "type": ["numel=2", "positive", "integer"]},
+            {"name": "contourOpt", "kind": "namevalue", "type": ["choices = {'on', 'off'}"]},
+            {"name": "resolution", "kind": "namevalue", "type": ["scalar", "positive", "integer"], "purpose": "default=5"},
+            {"name": "contourVal", "kind": "namevalue", "type": ["vector"]},
+            {"name": "contourTh", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default=0.6"},
+            {"name": "marker", "kind": "namevalue", "type": ["choices = {'o', 'x', 'pentagram', '+', 'none'}"]},
+            {"name": "markerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=36"}
+        ]
+    },
+
+    "mu_topoplotEEG": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [],
+                [
+                    {"name": "ax", "kind": "required", "type": ["@(args) isgraphics(args(1), 'axes')"]}
+                ]
+            ]},
+            {"name": "data", "kind": "required", "type": ["numeric"]},
+            {"name": "EEGPos", "kind": "required", "type": ["@(x) isstruct(x)"]},
+            {"name": "ChannelsMark", "kind": "namevalue", "type": ["numeric", "vector"]},
+            {"name": "MarkerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=15"},
+            {"name": "MarkerSize0", "kind": "namevalue", "type": ["scalar", "@(x) x >= 0"], "purpose": "default=4"}
         ]
     }
 
