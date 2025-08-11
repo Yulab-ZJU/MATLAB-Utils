@@ -86,10 +86,12 @@ if strcmpi(icaOpt, "on") && nargout >= 4
     else
         disp('ICA result does not exist. Performing ICA on data...');
         channels = 1:size(trialsEEG{1}, 1);
-        mu_plotWaveArray(struct("chMean", mu.calchMean(trialsEEG), "chErr", mu.calchStd(trialsEEG)), window);
-        mu.scaleAxes("y", [-20,20], "symOpts", "max");
+        Fig = mu_plotWaveArray(struct("chMean", mu.calchMean(trialsEEG), "chErr", mu.calchStd(trialsEEG)), window);
+        mu.addTitle(Fig, "Original");
+        mu.scaleAxes(Fig, "y", [-20,20], "symOpts", "max");
         bc = validateinput(['Input extra bad channels (besides ', num2str(badChs(:)'), '): '], @(x) isempty(x) || all(fix(x) == x & x > 0));
         badChs = [badChs(:); bc(:)]';
+        close(Fig);
 
         % first trial exclusion
         tIdx = mu_excludeTrials(trialsEEG, 0.4, 20, "userDefineOpt", "off", "badCHs", badChs);

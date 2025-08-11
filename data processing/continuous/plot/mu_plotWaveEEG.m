@@ -13,7 +13,7 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %     EEGPos: EEG position struct. See EEGPos_Neuracle64.m
 %
 %   NAME-VALUE PARAMETERS
-%   - 'LineWidth': General line width setting (default=1.5)
+%   - 'LineWidth': General line width setting (default=1)
 %   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
 %        See `mu.subplot` for detail.
@@ -27,8 +27,8 @@ mIp = inputParser;
 mIp.addRequired("chData", @(x) isstruct(x));
 mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'increasing'}));
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("paddings", [.01, .03, .01, .01], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("LineWidth", 1.5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
+mIp.addParameter("paddings", [.01, .03, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.parse(chData, window, varargin{:});
 
 defaultLineWidth = mIp.Results.LineWidth;
