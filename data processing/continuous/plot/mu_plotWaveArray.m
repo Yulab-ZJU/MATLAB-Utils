@@ -74,7 +74,6 @@ else
         Channels = Channels';
     end
 end
-Channels = Channels(:);
 Channels(Channels > nch) = nan;
 
 % plot
@@ -82,7 +81,7 @@ Fig = figure("WindowState", "maximized");
 for rIndex = 1:GridSize(1)
 
     for cIndex = 1:GridSize(2)
-        ch = Channels((rIndex - 1) * GridSize(2) + cIndex);
+        ch = Channels(rIndex, cIndex);
 
         if isnan(ch)
             continue;

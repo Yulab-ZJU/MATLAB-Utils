@@ -32,9 +32,8 @@ if strcmpi(chs2doICA, 'all')
     chs2doICA = channels;
 else
     validateattributes(chs2doICA, 'numeric', {'vector', 'positive', 'integer'});
-    temp = channels;
-    temp(~ismember(channels, chs2doICA(:))) = [];
-    chs2doICA = arrayfun(@num2str, temp, "UniformOutput", false);
+    chs2doICA = channels;
+    chs2doICA(~ismember(channels, chs2doICA(:))) = [];
 end
 badChs = channels(~ismember(channels, chs2doICA));
 

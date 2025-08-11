@@ -51,7 +51,7 @@ if isempty(locs)
     for rIndex = 1:GridSize(1)
 
         for cIndex = 1:GridSize(2)
-            ch = (rIndex - 1) * GridSize(2) + cIndex;
+            ch = EEGPos.channels((rIndex - 1) * GridSize(2) + cIndex);
 
             if ch > size(chData(1).chMean, 1) || ismember(ch, chsIgnore)
                 continue;

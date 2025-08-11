@@ -1,5 +1,6 @@
 function trialsData = mu_selectWave(data, fs, segTime, window)
-% Epoching time-series data
+% Epoching time-series data (vectorized, safe for logical mask indexing)
+%
 % Inputs:
 %   data      : [nch x ntime] input signal
 %   fs        : Sampling frequency (Hz)
@@ -8,40 +9,47 @@ function trialsData = mu_selectWave(data, fs, segTime, window)
 % Output:
 %   trialsData: {ntrial x 1} cell array of extracted windows
 
-% Convert time values to sample points (round for nearest sample)
+% Convert time values to sample points
 windowSamples = round(window / 1e3 * fs);  % [pre, post] in samples
-segSamples = round(segTime(:) / 1e3 * fs); % Ensure column vector
+segSamples    = round(segTime(:) / 1e3 * fs); % Ensure column vector
 
-% Get dimensions
-nch = size(data, 1);
-winLength = diff(windowSamples) + 1;      % Window length in samples
-ntrial = length(segSamples);
+% Dimensions
+nch       = size(data, 1);
+ntrial    = numel(segSamples);
+winLength = diff(windowSamples) + 1;
 
-% Calculate all window ranges simultaneously
-allStarts = segSamples + windowSamples(1); % [ntrial x 1] start indices
+% Calculate sample indices for all trials
+allStarts     = segSamples + windowSamples(1);
+sampleIndices = allStarts + (0:winLength - 1); % [ntrial × winLength]
 
-% Create full index matrix [ntrial x winLength]
-% Each row contains sample indices for one trial
-sampleIndices = allStarts + (0:winLength - 1);
-
-% Identify valid (in-bounds) samples
+% Identify valid samples
 validMask = sampleIndices >= 1 & sampleIndices <= size(data, 2);
-
-% Warning for out-of-bounds windows
 if any(~validMask(:, 1)) || any(~validMask(:, end))
     warning('Window exceeds data bounds for some segments');
 end
 
-% Preallocate 3D array [nch x winLength x ntrial]
+% Preallocate output
 trialsData = nan(nch, winLength, ntrial, 'like', data);
 
-% Vectorized data extraction (only loop over channels for memory efficiency)
-for ch = 1:nch
-    % Get all valid samples for current channel in one operation
-    trialsData(ch, validMask') = data(ch, sampleIndices(validMask));
-end
+% ===== Vectorized fill =====
+% Expand channel/trial/sample into vectors
+[trialIdx, sampleIdx] = find(validMask); % only valid positions
+chanIdx  = repelem((1:nch).', numel(trialIdx)); % repeat for all channels
 
-% Convert 3D array to cell array (matches original output format)
+% Map to data indices
+srcIdx   = sampleIndices(sub2ind(size(sampleIndices), trialIdx, sampleIdx));
+srcIdx   = repmat(srcIdx, nch, 1);
+
+% Destination indices in trialsData
+dstIdx = sub2ind(size(trialsData), ...
+                 chanIdx, ...
+                 repmat(sampleIdx, nch, 1), ...
+                 repmat(trialIdx, nch, 1));
+
+% Assign in one shot
+trialsData(dstIdx) = data(sub2ind(size(data), chanIdx, srcIdx));
+
+% Convert to cell array [ntrial × 1]
 trialsData = squeeze(mat2cell(trialsData, nch, winLength, ones(ntrial, 1)));
 
 return;
