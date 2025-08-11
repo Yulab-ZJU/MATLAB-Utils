@@ -32,14 +32,13 @@ if any(~validMask(:, 1)) || any(~validMask(:, end))
     warning('Window exceeds data bounds for some segments');
 end
 
-% Preallocate 3D array [nChannels x winLength x ntrial]
+% Preallocate 3D array [nch x winLength x ntrial]
 trialsData = nan(nch, winLength, ntrial, 'like', data);
 
 % Vectorized data extraction (only loop over channels for memory efficiency)
 for ch = 1:nch
     % Get all valid samples for current channel in one operation
-    validIdx = sampleIndices(validMask);
-    trialsData(ch, validMask') = data(ch, validIdx);
+    trialsData(ch, validMask') = data(ch, sampleIndices(validMask));
 end
 
 % Convert 3D array to cell array (matches original output format)

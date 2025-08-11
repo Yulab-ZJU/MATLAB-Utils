@@ -97,7 +97,7 @@ for rIndex = 1:GridSize(1)
             chErr = mu.getor(chData(gIndex), "chErr");
             t = linspace(window(1), window(2), size(chMean, 2));
 
-            color = validatecolor(chData(gIndex));
+            color = validatecolor(chData(gIndex).color);
             hsi = rgb2hsv(color);
             if hsi(2) == 0 % gray or black
                 hsi(3) = min([1.1 * hsi(3), 0.9]);

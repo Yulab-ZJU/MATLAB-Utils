@@ -68,7 +68,7 @@ latency = latency(find(arrayfun(@(x) str2double(x.type), EEG.event) == 1, 1):end
 EEG.data = mu.filter(EEG.data, fs, "fhp", fhp, "flp", flp, "fnotch", 50);
 
 % epoching
-trialsEEG = mu_selectWave(EEG.data, fs, latency / fs, window);
+trialsEEG = mu_selectWave(EEG.data, fs, latency / fs * 1e3, window);
 
 % ICA
 if strcmpi(icaOpt, "on") && nargout >= 4
