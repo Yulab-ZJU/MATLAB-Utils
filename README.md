@@ -58,7 +58,7 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu_topoplotArray` Plots topographic distribution of specified values on an electrode array.
 
-​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.\
+​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.
 
 ​	`mu_plotTFR` Plots multi-channel time-frequency responses.
 
