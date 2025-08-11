@@ -25,15 +25,15 @@ fontSize = mIp.Results.FontSize;
 fontWeight = mIp.Results.FontWeight;
 interpreter = mIp.Results.Interpreter;
 
-mAxes = mu.subplot(Fig, 1, 1, 1);
-T = text(mAxes, pos(1), pos(2), str, ...
+ax = mu.subplot(Fig, 1, 1, 1);
+T = text(ax, pos(1), pos(2), str, ...
     "FontSize", fontSize, ...
     "FontWeight", fontWeight, ...
     "HorizontalAlignment", alignment, ...
     "Interpreter", interpreter);
-uistack(mAxes, "bottom");
-set(mAxes, "Visible", "off");
-mAxes.Toolbar.Visible = "off";
+uistack(ax, "bottom");
+set(ax, "Visible", "off");
+ax.Toolbar.Visible = "off";
 
 return;
 end

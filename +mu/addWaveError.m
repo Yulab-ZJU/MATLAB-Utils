@@ -1,4 +1,5 @@
 function h = addWaveError(varargin)
+% Add shaded area around a curve
 
 if isgraphics(varargin{1}(1), "axes")
     ax = varargin{1}(1);
