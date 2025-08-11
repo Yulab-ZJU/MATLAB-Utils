@@ -1,5 +1,5 @@
 function cm = genColormap(head, tail, n)
-% use white as middle
+% Generate gradient colormap using white as middle
 narginchk(0, 3);
 
 if nargin < 1

@@ -1,8 +1,15 @@
 function locs = findvectorloc(X, pat, direction)
-% Find location of vector [pat] in vector [X].
-% [locs] is column vector of index numbers.
-% [X] and [pat] are either row vectors or column vectors.
-% [direction] specifies [locs] of the first or the last index of [pat].
+% FINDVECTORLOC - Find location of vector [pat] in vector [X].
+%   locs = findvectorloc(X, pat)
+%   locs = findvectorloc(X, pat, direction)
+%
+% INPUTS:
+%   X         - data vector (numeric, char, or string)
+%   pat       - pattern vector (same type as X)
+%   direction - "first" (default) or "last"
+%
+% OUTPUTS:
+%   locs      - indices column vector
 
 narginchk(2, 3);
 
@@ -10,13 +17,28 @@ if nargin < 3
     direction = "first";
 end
 
-% Make [X] and [pat] row vector
-X = X(:)';
-pat = pat(:)';
+% Validate direction input (case-insensitive)
+direction = validatestring(direction, {'first', 'last'});
 
-locs = strfind(X, pat)';
+% Validate inputs are vectors and types match
+validateattributes(X, {'numeric', 'char', 'string'}, {'vector'});
+validateattributes(pat, {'numeric', 'char', 'string'}, {'vector'});
+if ~strcmp(class(pat), class(X))
+    error("Input [X] and [pat] must be the same type (number | char | string).");
+end
 
-if strcmpi(direction, "last")
+% Ensure row vectors for strfind (avoids unnecessary copy if already row)
+if ~isrow(X)
+    X = X.';
+end
+if ~isrow(pat)
+    pat = pat.';
+end
+
+locs = strfind(X, pat).';
+
+% If direction is 'last', adjust indices accordingly
+if direction == "last"
     locs = locs + length(pat) - 1;
 end
 

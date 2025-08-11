@@ -7,12 +7,12 @@ if ~all(cellfun(@iscell, varargin))
     error("Invalid data type.");
 end
 
-% trial data should be nch*sample
+% trial data should be [nch x nsample]
 sz = cellfun(@(x) cellfun(@size, x, "UniformOutput", false), varargin, "UniformOutput", false);
 sz = cellfun(@(x) cat(1, x{:}), sz, "UniformOutput", false);
 
 if ~all(cellfun(@ismatrix, sz))
-    error("Input trial data should be nch*nsample.");
+    error("Input trial data should be [nch x nsample].");
 end
 
 sz = cat(1, sz{:});

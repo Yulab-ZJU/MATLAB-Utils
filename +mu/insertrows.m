@@ -1,32 +1,40 @@
 function res = insertrows(X, rows, val)
-% To insert [val] in 2-D matrix [X] at specified rows.
+% Insert rows filled with [val] into 2-D matrix X at specified row indices.
+%
+% X: input 2D numeric matrix
+% rows: vector of row indices at which to insert new rows
+% val: scalar value to fill the inserted rows (default 0)
 
 narginchk(2, 3);
-
 if nargin < 3
     val = 0;
 end
 
-if ~(isscalar(val) && isnumeric(val))
-    error("[val] should be a numeric scalar");
+validateattributes(val, {'numeric'}, {'scalar'});
+validateattributes(X, {'numeric'}, {'2d'});
+
+rows = unique(rows(:))';  % ensure unique sorted row indices
+nOrigRows = size(X,1);
+nInsert = numel(rows);
+nResRows = nOrigRows + nInsert;
+nCols = size(X, 2);
+
+% Validate insertion positions
+if any(rows < 1) || any(rows > nResRows)
+    error('Row indices to insert must be between 1 and %d.', nResRows);
 end
 
-if ~ismatrix(X)
-    error("Input [X] should be a 2-D matrix");
-end
+res = ones(nResRows, nCols) * val;
 
-nRows = size(X, 1) + numel(rows);
-res = ones(nRows, size(X, 2)) * val;
-rowIdx = 1;
+% Create logical index vector for insertion rows
+insertMask = false(1, nResRows);
+insertMask(rows) = true;
 
-for index = 1:nRows
+% Indices for original rows in output
+origIdx = ~insertMask;
 
-    if ~ismember(index, rows)
-        res(index, :) = X(rowIdx, :);
-        rowIdx = rowIdx + 1;
-    end
-
-end
+% Assign original rows from X to correct positions
+res(origIdx, :) = X;
 
 return;
 end

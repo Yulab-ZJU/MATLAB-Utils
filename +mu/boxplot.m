@@ -148,15 +148,15 @@ mIp.addParameter("CategorySpace", 0.4, @(x) validateattributes(x, 'numeric', {'s
 mIp.addParameter("Colors", []);
 mIp.addParameter("BoxEdgeType", [25, 75]);
 mIp.addParameter("Whisker", 1.5);
-mIp.addParameter("Notch", "off", @(x) any(validatestring(x, {'on', 'off'})));
+mIp.addParameter("Notch", "off");
 mIp.addParameter("BoxParameters", defaultBoxParameters, @iscell);
 mIp.addParameter("CenterLineParameters", defaultCenterLineParameters, @iscell);
 mIp.addParameter("WhiskerParameters", defaultWhiskerParameters, @iscell);
 mIp.addParameter("WhiskerCapParameters", defaultWhiskerCapParameters, @iscell);
-mIp.addParameter("IndividualDataPoint", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
+mIp.addParameter("IndividualDataPoint", "hide");
 mIp.addParameter("SymbolParameters", defaultSymbolParameters, @iscell);
 mIp.addParameter("Jitter", 0.1, @(x) validateattributes(x, 'numeric', {'scalar'}));
-mIp.addParameter("Outlier", "show", @(x) any(validatestring(x, {'show', 'hide'})));
+mIp.addParameter("Outlier", "show");
 mIp.addParameter("OutlierParameters", defaultOutlierParameters, @iscell);
 
 mIp.parse(ax, varargin{:});
@@ -171,16 +171,16 @@ groupLegends = cellstr(mIp.Results.GroupLegends);
 categorySpace = mIp.Results.CategorySpace;
 colors = mIp.Results.Colors;
 boxEdgeType = mIp.Results.BoxEdgeType;
-notchOpt = mIp.Results.Notch;
+notchOpt = validatestring(mIp.Results.Notch, {'on', 'off'});
 boxParameters = getOrCellParameters(mIp.Results.BoxParameters, defaultBoxParameters);
 centerLineParameters = getOrCellParameters(mIp.Results.CenterLineParameters, defaultCenterLineParameters);
 whisker = mIp.Results.Whisker;
 whiskerParameters = getOrCellParameters(mIp.Results.WhiskerParameters, defaultWhiskerParameters);
 whiskerCapParameters = getOrCellParameters(mIp.Results.WhiskerCapParameters, defaultWhiskerCapParameters);
-individualDataPoint = mIp.Results.IndividualDataPoint;
+individualDataPoint = validatestring(mIp.Results.IndividualDataPoint, {'show', 'hide'});
 symbolParameters = getOrCellParameters(mIp.Results.SymbolParameters, defaultSymbolParameters);
 jitterWidth = mIp.Results.Jitter;
-outlierOpt = mIp.Results.Outlier;
+outlierOpt = validatestring(mIp.Results.Outlier, {'show', 'hide'});
 outlierParameters = getOrCellParameters(mIp.Results.OutlierParameters, defaultOutlierParameters);
 
 % Validate

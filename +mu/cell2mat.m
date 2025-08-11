@@ -1,16 +1,31 @@
 function A = cell2mat(C)
-% Elements of C can be cell/string/numeric
+% CELL2MAT Convert cell array to matrix with support for mixed types
+%   Supports cell/string/numeric types in input cells
+%   Optimized version using rowfun for consistent behavior
 
 [a, b] = size(C);
 
-if a == 1 % for row vector
-    A = cat(2, C{:});
-elseif b == 1 % for column vector
-    A = cat(1, C{:});
-else % for 2-D
-    temp = mu.rowfun(@(x) cat(2, x{:}), C, "UniformOutput", false);
+% Convert all elements to uniform type first (string handles char/string/cellstr)
+C = cellfun(@(x) convertToUniformType(x), C, 'UniformOutput', false);
+
+if a == 1 || b == 1 % Handle both row and column vectors
+    A = cat(1 + isrow(C), C{:});
+else % Handle 2-D case using rowfun
+    % Apply row-wise concatenation
+    temp = mu.rowfun(@(x) cat(2, x{:}), C, 'UniformOutput', false);
+    
+    % Vertical concatenation of rows
     A = cat(1, temp{:});
 end
+end
 
-return;
+%% Helper function to ensure uniform output type
+function y = convertToUniformType(x)
+    if ischar(x) || isstring(x)
+        y = string(x);
+    elseif iscell(x)
+        y = convertToUniformType(cell2mat(x)); % Recursive handling of nested cells
+    else
+        y = x;
+    end
 end

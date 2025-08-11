@@ -1,5 +1,5 @@
 function counts = histcounts(data, edges, binSize)
-% HISTCOUNTS  Count number of data points in bins centered at edges with given binSize
+% HISTCOUNTS Count number of data points in bins centered at edges with given bin size
 %
 % counts = mu.histcounts(data, edges, binSize)
 %

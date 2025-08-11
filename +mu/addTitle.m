@@ -11,26 +11,26 @@ end
 mIp = inputParser;
 mIp.addRequired("Fig", @(x) isa(x, "matlab.ui.Figure"));
 mIp.addRequired("str", @(x) isStringScalar(x) || (ischar(x) && isStringScalar(string(x))));
-mIp.addParameter("HorizontalAlignment", 'center', @(x) any(validatestring(x, {'left', 'right', 'center'})));
+mIp.addParameter("HorizontalAlignment", 'center', @(x) ischar(x) || isstring(x));
 mIp.addParameter("Position", [0.5, 1.1], @(x) validateattributes(x, {'numeric'}, {'numel', 2}));
 mIp.addParameter("FontSize", 14, @(x) validateattributes(x, {'numeric'}, {'scalar', 'integer', 'positive'}));
-mIp.addParameter("FontWeight", 'normal', @(x) any(validatestring(x, {'normal', 'bold'})));
-mIp.addParameter("Interpreter", "none", @(x) any(validatestring(x, {'none', 'tex', 'latex'})))
+mIp.addParameter("FontWeight", 'normal', @(x) ischar(x) || isstring(x));
+mIp.addParameter("Interpreter", "none", @(x) ischar(x) || isstring(x));
 mIp.parse(Fig, varargin{:});
 
 str = mIp.Results.str; % title string
-alignment = mIp.Results.HorizontalAlignment; % left | center | right
+alignment = validatestring(mIp.Results.HorizontalAlignment, {'left', 'right', 'center'});
 pos = mIp.Results.Position; % normalized [x, y]
 fontSize = mIp.Results.FontSize;
-fontWeight = mIp.Results.FontWeight;
-interpreter = mIp.Results.Interpreter;
+fontWeight = validatestring(mIp.Results.FontWeight, {'normal', 'bold'});
+interpreter = validatestring(mIp.Results.Interpreter, {'none', 'tex', 'latex'});
 
 ax = mu.subplot(Fig, 1, 1, 1);
 T = text(ax, pos(1), pos(2), str, ...
-    "FontSize", fontSize, ...
-    "FontWeight", fontWeight, ...
-    "HorizontalAlignment", alignment, ...
-    "Interpreter", interpreter);
+         "FontSize", fontSize, ...
+         "FontWeight", fontWeight, ...
+         "HorizontalAlignment", alignment, ...
+         "Interpreter", interpreter);
 uistack(ax, "bottom");
 set(ax, "Visible", "off");
 ax.Toolbar.Visible = "off";

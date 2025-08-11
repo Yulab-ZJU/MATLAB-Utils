@@ -1,41 +1,42 @@
-function res = lcm(A)
-% Return least common multiple of a real array [A]
+function B = lcm(A)
+% Vectorized least common multiple for real vector A with tolerance
+% B satisfies all(abs(A./B - round(A./B)) < 1e-12), minimal positive B
 
-if ~isreal(A) || ~isvector(A)
-    error("Input should be a real vector");
+tol = 1e-12;
+maxDenominator = 1e9;
+
+validateattributes(A, {'numeric'}, {'vector', 'real', 'nonempty'});
+
+[n, d] = arrayfun(@(x) rat_with_limit(x, tol, maxDenominator), A);
+
+L = reduce_lcm(d);
+C = round(n .* (L ./ d));
+M = reduce_lcm(C);
+B = M / L;
+
+% Validate
+ratios = B ./ A;
+diffs = abs(ratios - round(ratios));
+if any(diffs > tol)
+    warning('Computed lcm exceeds tolerance.');
 end
 
-precision = 10 ^ max(arrayfun(@countDeciamlPlaces, A));
-A = round(A * precision, 0);
-
-res = A(1);
-for index = 2:numel(A)
-    res = lcm(res, A(index));
-end
-
-res = res / precision;
 return;
 end
 
-function N = countDeciamlPlaces(x)
-    if ~isfinite(x)
-        N = NaN;
-        return;
+%% 
+function [n, d] = rat_with_limit(x, tol, maxDen)
+    [n, d] = rat(x, tol);
+    if d > maxDen
+        error('Number too irrational to approximate with given tolerance.');
     end
-    
-    str = sprintf('%.8f', x);
-    str = strrep(str, ' ', '');
-    
-    while ~isempty(str) && (endsWith(str, '0') || endsWith(str, '.'))
-        str = str(1:end - 1);
-    end
-    
-    dot_pos = find(str == '.', 1);
-    if isempty(dot_pos)
-        N = 0;
-    else
-        N = length(str) - dot_pos;
-    end
+end
 
-    return;
+function r = reduce_lcm(v)
+    % vectorized lcm using reduce pattern
+    v = v(:);
+    r = v(1);
+    for k = 2:numel(v)
+        r = lcm(r, v(k));
+    end
 end

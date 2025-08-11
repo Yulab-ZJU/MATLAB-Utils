@@ -1,85 +1,97 @@
-function [A, f, Aoi, Phase] = fft(X, fs, varargin)
-% This function computes the single-sided amplitude and phase spectrum of input data X using the Fast Fourier Transform (FFT).
-% 
-% Inputs:
-%   X   - Input data, either a vector or a 2-D matrix.
-%   fs  - Sampling frequency in Hz.
-%   N   - Number of points for FFT (optional, default is the data length).
-%   dim - Dimension along which to perform FFT (optional, default is 2).
-%         For [nSample, nCh] data, use dim=1.
-%         For [nCh, nSample] data, use dim=2.
-%         If X is a vector, dim input is ignored.
-%   foi - Frequency of interest, specified as a one- or two-element vector (optional).
+function [A, f, phase] = fft(X, fs, varargin)
+% FFT Compute single-sided amplitude and phase spectrum of input data
 %
-% Outputs:
-%   A     - Amplitude of the single-sided Fourier spectrum.
-%   f     - Frequency vector for the N-point single-sided FFT.
-%   Aoi   - Amplitude at the frequency of interest (foi).
-%   Phase - Phase of the single-sided Fourier
+%   [A, f, phase] = fft_single(X, fs, N, dim, 'foi', foi)
+%
+% INPUTS:
+%   X   - Input data (vector, matrix, or N-D array)
+%   fs  - Sampling frequency in Hz
+%   N   - FFT length ([] for length, 'nextpow2' for next power of 2)
+%   dim - Dimension to perform FFT along (default: first non-singleton)
+%   foi - Frequency of interest (scalar or [min max])
+%
+% OUTPUTS:
+%   A     - Amplitude spectrum (single-sided)
+%   f     - Frequency vector
+%   phase - Phase spectrum (single-sided)
 
-mIp = inputParser;
-mIp.addRequired("X", @(x) validateattributes(x, 'numeric', {'real', '2d'}));
-mIp.addRequired("fs", @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
-mIp.addOptional("N", [], @(x) isempty(x) || (isscalar(x) && x > 0 && x == mod(x, 1)));
-mIp.addOptional("dim", 2, @(x) ismember(x, [1, 2]));
-mIp.addOptional("foi", [], @(x) validateattributes(x, 'numeric', {'2d', 'increasing', 'positive', "<=", fs/2}));
-mIp.parse(X, fs, varargin{:});
-N = mIp.Results.N;
-dim = mIp.Results.dim;
-foi = mIp.Results.foi;
+% ---- Parse inputs ----
+p = inputParser;
+p.addRequired('X', @(x) validateattributes(x, {'numeric'}, {'real','nonempty'}));
+p.addRequired('fs', @(x) validateattributes(x, {'numeric'}, {'scalar','positive'}));
+p.addOptional('N', []);
+p.addOptional('dim', [], @(x) isempty(x) || (isscalar(x) && x > 0 && mod(x,1) == 0));
+p.addParameter('foi', [], @(x) validateattributes(x, {'numeric'}, {'vector','increasing','positive'}));
+p.parse(X, fs, varargin{:});
 
+N = p.Results.N;
+foi = p.Results.foi;
+userDim = p.Results.dim;
+
+% ---- Determine FFT dimension ----
 if isvector(X)
-    X = X(:)';
-    dim = 2;
+    X = X(:);
+    dim = 1;
 else
-    X = permute(X, [3 - dim, dim]);
-end
-
-if isempty(N)
-    % N = 2 ^ nextpow2(size(X, 2));
-    N = floor(size(X, 2) / 2) * 2;
-end
-
-N = floor(N / 2) * 2;
-Y = fft(X, N, 2);
-A = abs(Y(:, 1:N / 2 + 1) / size(X, 2));
-A(:, 2:end - 1) = 2 * A(:, 2:end - 1);
-f = linspace(0, fs / 2, N / 2 + 1);
-Phase = angle(Y(:, 1:N / 2 + 1));
-
-if nargin < 5
-    Aoi = [];
-else
-
-    if isscalar(foi)
-        [~, idx] = min(abs(f - foi));
-    
-        if f(idx) < foi
-            Aoi = (A(:, idx) + A(:, min(idx + 1, length(f)))) / 2;
-        elseif f(idx) > foi
-            Aoi = (A(:, idx) + A(:, max(idx - 1, 1))) / 2;
-        else
-            Aoi = A(:, idx);
-        end
-
-    elseif numel(foi) == 2
-        idx = find(f > foi(1) & f < foi(2));
-
-        if ~isempty(idx)
-            idx(1) = max([idx(1) - 1, 1]);
-            idx(2) = min([idx(2) + 1, length(f)]);
-            Aoi = mean(A(:, idx), 2);
-        else
-            error("No data matched");
-        end
-
+    if isempty(userDim)
+        dim = find(size(X) > 1, 1);
     else
-        error("Invalid frequency of interest");
+        dim = userDim;
     end
-
 end
 
-A = permute(A, [3 - dim, dim]);
-Phase = permute(Phase, [3 - dim, dim]);
+% ---- Determine FFT length ----
+if isempty(N)
+    N = size(X, dim);
+elseif ischar(N) && strcmpi(N, 'nextpow2')
+    N = 2^nextpow2(size(X, dim));
+elseif ~(isscalar(N) && N > 0 && mod(N,1) == 0)
+    error('Invalid N value');
+end
+
+% ---- Ensure even length ----
+N = floor(N/2)*2;
+
+% ---- Compute FFT ----
+Y = fft(X, N, dim);
+
+% ---- Single-sided ----
+nfft = floor(N/2) + 1;
+idx = repmat({':'}, 1, ndims(X));
+idx{dim} = 1:nfft;
+
+A = abs(Y(idx{:})) / size(X, dim);
+phase = angle(Y(idx{:}));
+
+% Double amplitudes except DC and Nyquist
+multIdx = repmat({':'}, 1, ndims(A));
+multIdx{dim} = 2:(nfft-1);
+A(multIdx{:}) = 2 * A(multIdx{:});
+
+% ---- Frequency vector ----
+f = linspace(0, fs/2, nfft)';
+
+% ---- Frequency of interest ----
+if ~isempty(foi)
+    if any(foi > fs/2)
+        error('foi cannot exceed Nyquist frequency (fs/2)');
+    end
+    if isscalar(foi)
+        freqIdx = dsearchn(f, foi);
+        idx{dim} = freqIdx;
+        A = A(idx{:});
+        phase = phase(idx{:});
+        f = f(freqIdx);
+    elseif numel(foi) == 2
+        freqIdx = find(f >= foi(1) & f <= foi(2));
+        idx{dim} = freqIdx;
+        A = A(idx{:});
+        phase = phase(idx{:});
+        f = f(freqIdx);
+    else
+        error('foi must be scalar or two-element vector');
+    end
+end
+
 return;
 end

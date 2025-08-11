@@ -1,37 +1,45 @@
 function P = getabspath(relativePath)
-% Description: get absolute path from relative path
-% NOTICE: If relative path does not exist, the folder will be created.
+% GETABSPATH  Convert relative path to absolute path without creating folders.
+%   P = mu.getabspath(relativePath) returns the absolute path corresponding to
+%   the input relativePath. Does NOT create any folder.
+%
+% NOTES:
+%   If relativePath is empty, reports an error.
 
-relativePath = char(relativePath);
+arguments
+    relativePath {mustBeTextScalar}  % char or string scalar
+end
 
-if isempty(char(relativePath))
-    currentPath = pwd;
-    evalin("caller", ['cd(''', pwd, ''')']);
+if nargin < 1 || isempty(relativePath)
     P = pwd;
-    cd(currentPath);
     return;
 end
 
-if contains(relativePath, '..') || ~contains(relativePath, ':') % relative path
-    currentPath = pwd;
+relativePath = char(relativePath); % ensure char array
 
-    if ~contains(relativePath, '\') && ~contains(relativePath, '/')
-        % Input is a single file name
-        P = fullfile(pwd, relativePath);
-        return;
-    end
-
-    if ~exist(relativePath, "dir")
-        disp(strcat(relativePath, ' does not exist. Create folder...'));
-        mkdir(relativePath);
-    end
-
-    evalin("caller", ['cd(''', relativePath, ''')']);
-    P = pwd;
-    cd(currentPath);
-else % absolute path
-    P = relativePath;
+% If the input is already an absolute path, just normalize it and return
+if isAbsolutePath(relativePath)
+    P = normalizePath(relativePath);
+    return;
 end
 
+% Input is a relative path or single file/folder name
+% Combine with current folder to get full path
+P = fullfile(pwd, relativePath);
+P = normalizePath(P);
+
 return;
+end
+
+%% 
+function tf = isAbsolutePath(pathStr)
+    if ispc % Windows
+        tf = ~isempty(regexp(pathStr, '^[A-Za-z]:\\', 'once')) || startsWith(pathStr, '\\');
+    else % Unix
+        tf = startsWith(pathStr, '/');
+    end
+end
+
+function p = normalizePath(pathStr)
+    p = char(java.io.File(pathStr).getCanonicalPath());
 end

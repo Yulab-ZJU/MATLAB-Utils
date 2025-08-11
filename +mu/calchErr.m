@@ -1,4 +1,3 @@
-function chErr = calchErr(trialsData)
-chErr = squeeze(mu.se(cat(3, trialsData{:}), 3, "omitnan"));
-return;
-end
+function chErr = calchErr(trialsData, padDir)
+% See mu.calchFunc for more information
+chErr= calchFunc(@mu.se, trialsData, padDir);

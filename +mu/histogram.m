@@ -1,39 +1,47 @@
 function varargout = histogram(varargin)
-% mu.histogram(X)
-% mu.histogram(X, edges)
-% mu.histogram(..., "width", barWidthVal)
-% mu.histogram(..., "LineWidth", barEdgeLineWidthVal)
-% mu.histogram(..., "EdgeColor", colorsCellArray | "none")
-% mu.histogram(..., "FaceColor", colorsCellArray | "none")
-% mu.histogram(..., "DisplayName", legendStrCellArray)
-% mu.histogram(..., "BinWidth", binWidthVal)
-% mu.histogram(..., "BinMethod", methodName)
-% mu.histogram(..., "DistributionCurve", "show")
-% [H, N, edges] = mu.histogram(...)
+% HISTOGRAM  Grouped histogram with flexible inputs and display options
 %
-% Input data X can be a double vector, a double matrix or a cell vector.
-% If X is a matrix, each row of X is a group.
-% If X is a cell vector, each element contains a group of data (a double vector).
-% Colors and legends (in cell vector) can be specified for each group.
+% Usage:
+%   H = mu.histogram(X)
+%   H = mu.histogram(X, edges)
+%   H = mu.histogram(..., 'BinWidth', val, 'FaceColor', {...}, ...)
+%   [H, N, edges] = mu.histogram(...)
 %
-% Output H is a bar array, N is histcount, edges is bin edges.
+% Inputs:
+%   X           - numeric vector, matrix (each row = group), or cell vector of numeric vectors
+%   edges       - optional numeric vector of bin edges
+%
+% Name-Value Pairs:
+%   'width'             - bar width (0 < width <= 1), (default=0.8)
+%   'LineWidth'         - bar edge linewidth, default 0.5
+%   'FaceColor'         - cell array of colors or 'none', per group
+%   'EdgeColor'         - cell array of colors or 'none', per group
+%   'DisplayName'       - cell array of legend strings per group
+%   'BinWidth'          - scalar bin width (overrides BinMethod)
+%   'BinMethod'         - method for automatic binning (default 'auto')
+%   'DistributionCurve' - 'show' or 'hide' (default 'hide')
+%
+% Outputs:
+%   H       - bar handles array
+%   N       - histogram counts matrix (#groups x #bins)
+%   edges   - bin edges
 %
 % Example:
-%     x1 = [2 2 3 4];
-%     x2 = [1 2 6 8];
-%     X = [x1; x2];
-%     % For x1,x2 different in size use X = [{x1}; {x2}}];
-%     [H, N, edges] = mu.histogram(X, "BinWidth", 1, ...
-%                                   "FaceColor", {[1 0 0], [0 0 1]}, ...
-%                                   "DisplayName", {'condition 1', 'condition 2'});
+%   x1 = [2 2 3 4];
+%   x2 = [1 2 6 8];
+%   X = [x1; x2];
+%   % For x1,x2 different in size use X = [{x1}; {x2}}];
+%   [H, N, edges] = mu.histogram(X, "BinWidth", 1, ...
+%                                 "FaceColor", {[1 0 0], [0 0 1]}, ...
+%                                 "DisplayName", {'condition 1', 'condition 2'});
 
 if strcmp(class(varargin{1}), "matlab.graphics.Graphics")
-    mAxe = varargin{1};
+    ax = varargin{1};
     varargin = varargin(2:end);
 else
-    mAxe = gca;
+    ax = gca;
 end
-hold(mAxe, "on");
+hold(ax, "on");
 
 mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, {'numeric', 'cell'}, {'2d'}));
@@ -44,8 +52,8 @@ mIp.addParameter("FaceColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "
 mIp.addParameter("EdgeColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
-mIp.addParameter("BinMethod", "auto", @(x) any(validatestring(x, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'})));
-mIp.addParameter("DistributionCurve", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
+mIp.addParameter("BinMethod", "auto");
+mIp.addParameter("DistributionCurve", "hide");
 mIp.parse(varargin{:});
 
 X = mIp.Results.X;
@@ -56,8 +64,8 @@ FaceColors = mIp.Results.FaceColor;
 EdgeColors = mIp.Results.EdgeColor;
 legendStrs = mIp.Results.DisplayName;
 BinWidth = mIp.Results.BinWidth;
-BinMethod = mIp.Results.BinMethod;
-DistributionCurve = mIp.Results.DistributionCurve;
+BinMethod = validatestring(mIp.Results.BinMethod, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'});
+DistributionCurve = validatestring(mIp.Results.DistributionCurve, {'show', 'hide'});
 
 if isnumeric(X)
     % Convert X to cell vector
@@ -115,14 +123,14 @@ for index = 1:numel(X)
     N(index, :) = histcounts(X{index}, edges);
 end
 
-H = bar(mAxe, edges(1:end - 1) + BinWidth / 2, N, width, "grouped", "LineWidth", LineWidth);
+H = bar(ax, edges(1:end - 1) + BinWidth / 2, N, width, "grouped", "LineWidth", LineWidth);
 
 if strcmpi(DistributionCurve, "show")
 
     for index = 1:length(H)
         pd = fitdist(X{index}(:), "Kernel");
         temp = linspace(min(edges) - std(X{index}(:)), max(edges) + std(X{index}(:)), 1e3);
-        L(index) = plot(mAxe, temp, pdf(pd, temp) * sum(N(index, :)) * BinWidth, "Color", "k", "LineWidth", 1);
+        L(index) = plot(ax, temp, pdf(pd, temp) * sum(N(index, :)) * BinWidth, "Color", "k", "LineWidth", 1);
         mu.setLegendOff(L(index));
     end
 
@@ -148,19 +156,21 @@ for index = 1:length(H)
 end
 
 if ~isempty(legendStrs)
-    legend(mAxe, "Location", "best");
+    legend(ax, "Location", "best");
 end
 
-xlim(mAxe, [min(edges), max(edges)]);
+xlim(ax, [min(edges), max(edges)]);
 
-if nargout == 1
+if nargout > 0
     varargout{1} = H;
-elseif nargout == 2
+end
+
+if nargout > 1
     varargout{2} = N;
-elseif nargout == 3
+end
+
+if nargout > 2
     varargout{3} = edges;
-elseif nargout > 3
-    error("Too many outputs");
 end
 
 return;

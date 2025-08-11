@@ -1,79 +1,68 @@
 function [res, trialsData] = calchFunc(fcn, trialsData, padDir)
-% General function of calchMean/calchErr/calchStd
-% Trial data is nCh*xx*xx*...*nTime matrix.
-%
+% CALCHFUNC Compute function across trials data with padding if needed.
 % Input:
-%   - fcn: function handle to perform on trialsData
+%   - fcn: function handle with signature fcn(data, dim, varargin)
+%   - trialsData: cell array, each cell [nCh x ... x nTime]
+%   - padDir: 'head' or 'tail' (default 'tail')
 %
-% Optional [fcn]: @mean, @SE, @std
-%
-% To customize [fcn], it should receive at least two inputs: [data] and
-% [dim], and also include methods how to process nan-values.
-% e.g., 
-%   fcn = @(x, dim) std(x, [], dim, "omitnan"); % same as @std
-%   fcn = @(x, dim) mFcn(x, dim, "omitnan"); % custom
-%   
-%   function y = mFcn(x, dim, omitnanOpt)
-%       % [x] is N-dim data.
-%       % Compute along dimension [dim] of [x].
-%       % e.g., compute rms
-%   end
-% 
-% For detailed information, see calchMean.m
+% Output:
+%   - res: result after applying fcn along trials dimension
+%   - trialsData: padded trialsData (if padding applied)
 
-narginchk(2, 3);
-
-if nargin < 3
+if nargin < 3 || isempty(padDir)
     padDir = "tail";
 end
 
-% Convert to column vector
-trialsData = trialsData(:);
+trialsData = trialsData(:); % ensure column
 
-% Check data
-dim = cellfun(@ndims, trialsData);
+nDims = cellfun(@ndims, trialsData);
+if ~all(nDims == nDims(1))
+    error("All trial data should have the same number of dimensions.");
+end
+dim = nDims(1);
 
-if ~all(dim == dim(1))
-    error("All trial data should have the same dimension number");
-else
-    dim = dim(1);
-    sz = cellfun(@size, trialsData, "UniformOutput", false);
+sizes = cellfun(@size, trialsData, "UniformOutput", false);
+for d = 1:dim-1
+    sizesDim = cellfun(@(x) x(d), sizes);
+    if ~all(sizesDim == sizesDim(1))
+        error("All trial data must have same size for dimensions except last.");
+    end
+end
 
-    for index = 1:dim - 1
-        temp = cellfun(@(x) x(index), sz);
-
-        if ~all(temp == temp(1))
-            error("All trial data should have the same size for all dimensions except the last dimension");
+nTimes = cellfun(@(x) size(x, dim), trialsData);
+if ~all(nTimes == nTimes(1))
+    nTimeMax = max(nTimes);
+    % Pad with NaNs along time dimension
+    for k = 1:numel(trialsData)
+        sz = size(trialsData{k});
+        padSize = sz;
+        padSize(dim) = nTimeMax - nTimes(k);
+        if padSize(dim) > 0
+            nanPad = nan(padSize, 'like', trialsData{k});
+            if strcmpi(padDir, "head")
+                trialsData{k} = cat(dim, nanPad, trialsData{k});
+            elseif strcmpi(padDir, "tail")
+                trialsData{k} = cat(dim, trialsData{k}, nanPad);
+            else
+                error("padDir must be 'head' or 'tail'.");
+            end
         end
-
     end
-
 end
 
-nTime = cellfun(@(x) size(x, dim), trialsData);
-if ~all(nTime == nTime(1))
-    % not all trial data of the same size: weighted-average
+% Concatenate trials along new dim
+concatDim = dim + 1;
+dataCat = cat(concatDim, trialsData{:});
 
-    nTimeMax = max(nTime);
-    nTime = num2cell(nTime);
-
-    % pad data with NAN
-    if strcmpi(padDir, "head")
-        trialsData = cellfun(@(x, y, z) cat(dim, nan([y(1:end - 1), nTimeMax - z]), x), trialsData, sz, nTime, "UniformOutput", false);
-    elseif strcmpi(padDir, "tail")
-        trialsData = cellfun(@(x, y, z) cat(dim, x, nan([y(1:end - 1), nTimeMax - z])), trialsData, sz, nTime, "UniformOutput", false);
-    else
-        error("Invalid input of [padDir]. It should be either 'head' or 'tail'.");
-    end
-
-end
-
+% Decide how to call fcn (try to call with "omitnan" if supported)
 if isequal(fcn, @std)
-    res = std(cat(dim + 1, trialsData{:}), [], dim + 1, "omitnan");
-elseif isequal(fcn, @mean) || isequal(fcn, @mu.se)
-    res = fcn(cat(dim + 1, trialsData{:}), dim + 1, "omitnan");
+    res = std(dataCat, [], concatDim, "omitnan");
 else
-    res = fcn(cat(dim + 1, trialsData{:}), dim + 1);
+    try
+        res = fcn(dataCat, concatDim, "omitnan");
+    catch
+        res = fcn(dataCat, concatDim);
+    end
 end
 
 return;

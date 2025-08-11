@@ -1,4 +1,3 @@
-function chStd = calchStd(trialsData)
-chStd = squeeze(std(cat(3, trialsData{:}), [], 3, "omitnan"));
-return;
-end
+function chStd = calchStd(trialsData, padDir)
+% See mu.calchFunc for more information
+chStd= calchFunc(@std, trialsData, padDir);

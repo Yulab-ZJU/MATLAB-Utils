@@ -1,32 +1,44 @@
 function fcn = path2func(P)
-% Description: get function handle from full path of an M file
+% PATH2FUNC Get function handle from full path or name of an M-file.
+%   FCN = mu.path2func(P) returns a function handle given the full path
+%   of an .m file or the name of a built-in function.
 
-if ~(isStringScalar(P) || (ischar(P) && isStringScalar(string(P))))
-    error("mu.path2func(): input should be full path of a M function file");
+arguments
+    P {mustBeFile}
 end
 
-currentPath = pwd;
+% Convert to absolute path
+P = mu.getabspath(P);
 
-% In case that P=which("fcn") is used
-if startsWith(P, 'built-in (') % for built-in function
-    P = [P(11:end - 1), '.m'];
+[folder, name, ext] = fileparts(P);
+if ~strcmpi(ext, '.m')
+    error("path2func:NotMFile", ...
+        "Input should be the full path of a .m file.");
 end
 
-[FILEPATH, NAME, EXT] = fileparts(P);
+% Check if under +package folder
+parts = strsplit(folder, filesep);
+pkgIdx = find(startsWith(parts, '+'), 1, 'first');
 
-if strcmp(EXT, '.m')
-
-    if strcmp(FILEPATH, '') % current path
-        fcn = str2func(NAME);
-    else
-        cd(FILEPATH);
-        fcn = str2func(NAME);
-        cd(currentPath);
-    end
-
+if ~isempty(pkgIdx)
+    % Get package name
+    pkgParts = cellfun(@(x) x(2:end), parts(pkgIdx:end), 'UniformOutput', false);
+    funcName = strjoin([pkgParts, {name}], '.');
+    addFolder = strjoin(parts(1:pkgIdx-1), filesep);
 else
-    error("mu.path2func(): Input should be full path of *.m");
+    funcName = name;
+    addFolder = folder;
 end
+
+% add to path
+if ~isempty(addFolder) && ~contains(path, addFolder)
+    addpath(addFolder);
+    % remove path at the end of this function
+    cleanupObj = onCleanup(@() rmpath(addFolder));
+end
+
+% Create function handle
+fcn = str2func(funcName);
 
 return;
 end

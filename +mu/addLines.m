@@ -43,13 +43,13 @@ mIp = inputParser;
 mIp.addRequired("FigsOrAxes", @(x) all(isgraphics(x)));
 mIp.addOptional("lines", [], @(x) isempty(x) || isstruct(x));
 mIp.addParameter("ConstantLine", true, @(x) islogical(x) && isscalar(x));
-mIp.addParameter("Layer", "top", @(x) any(validatestring(x, {'top', 'bottom'})));
+mIp.addParameter("Layer", "top", @(x) ischar(x) || isstring(x));
 mIp.addParameter("ignoreInvisible", true, @(x) isscalar(x) && islogical(x));
 mIp.parse(FigsOrAxes, varargin{:});
 
 lines = mIp.Results.lines;
 ConstantLineOpt = mIp.Results.ConstantLine;
-Layer = mIp.Results.Layer;
+Layer = validatestring(mIp.Results.Layer, {'top', 'bottom'});
 ignoreInvisible = mIp.Results.ignoreInvisible;
 
 if isempty(lines)

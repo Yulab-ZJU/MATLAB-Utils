@@ -1,35 +1,45 @@
 function [res, folderNames, path_Nth] = getlastpath(P, N)
-% [res] returns the last end-N+1:end folder path of path P
-% [folderNames] returns all folder names in [res] (from upper to lower)
-% [path_Nth] returns the last N-th folder name
+% GETLASTPATH  Get last N folder levels from path P
+%
+%   [res, folderNames, path_Nth] = mu.getlastpath(P, N)
+%
+% Inputs:
+%   P - input path string (file or folder), char or string
+%   N - positive integer number of folder levels to extract from the end
+%
+% Outputs:
+%   res         - reconstructed path string with last N folders (fullfile format)
+%   folderNames - cell array of folder names (from higher to lower level)
+%   path_Nth    - last N-th folder name (highest in the extracted segment)
 
-if N <= 0
-    error("Input N should be a positive integer");
+arguments
+    P {mustBeTextScalar}  % char or string scalar
+    N (1,1) {mustBePositive, mustBeInteger}
 end
 
-[FILEPATH, ~, EXT] = fileparts(P);
-
-% In case of being shadowed by other toolboxes
-if ~strcmp(which('split'), fullfile(matlabroot, 'toolbox/matlab/strfun/split.m'))
-    split = mu.path2func(fullfile(matlabroot, 'toolbox/matlab/strfun/split.m'));
-else
-    split = @split;
+% Get absolute path
+P = mu.getabspath(P);
+if ~isfolder(P)
+    P = fileparts(P);
 end
 
-if isempty(EXT) % P is folder path
+% Divide
+parts = strsplit(P, filesep);
 
-    if endsWith(P, '\')
-        P = char(P);
-        P = P(1:end - 1);
-    end
-
-    temp = split(P, '\');
-else % P is full path of a file
-    temp = split(FILEPATH, '\');
+if isempty(parts{1})
+    parts{1} = filesep; % unix root
 end
 
-res = fullfile(temp{end - N + 1:end});
-folderNames = temp(end - N + 1:end);
-path_Nth = temp{end - N + 1};
+nParts = numel(parts);
+
+if N > nParts
+    warning('Requested N=%d is larger than number of path parts (%d). Returning full path.', N, nParts);
+    N = nParts;
+end
+
+folderNames = parts(end - N + 1:end);
+res = fullfile(folderNames{:});
+path_Nth = folderNames{1};
+
 return;
 end
