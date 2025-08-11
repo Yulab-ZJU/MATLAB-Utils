@@ -1,12 +1,12 @@
 function varargout = addBars(varargin)
-%ADDBARS adds significant areas to axes (vertical bars).
+% ADDBARS adds significant areas to axes (vertical bars).
 % Input:
-%     - ax: target axes (default: gca)
-%     - xval: X values, real vector
-%     - color: color of bars (default: "k")
-%     - alpha: Face alpha value of bars (default: 0.1)
+%   - ax: target axes (default: gca)
+%   - xval: X values, real vector
+%   - color: color of bars (default: "k")
+%   - alpha: Face alpha value of bars (default: 0.1)
 % Output:
-%     - h: bar object
+%   - h: bar object
 
 if isgraphics(varargin{1}, "axes")
     ax = varargin{1};

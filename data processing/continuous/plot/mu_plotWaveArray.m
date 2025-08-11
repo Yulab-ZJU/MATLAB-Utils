@@ -43,7 +43,7 @@ mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, '
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("paddings", [.01, .03, .01, .01], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("paddings", [.01, .03, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1.5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.parse(chData, window, varargin{:});
 
@@ -74,7 +74,6 @@ else
         Channels = Channels';
     end
 end
-Channels = Channels(:);
 Channels(Channels > nch) = nan;
 
 % plot
@@ -82,7 +81,7 @@ Fig = figure("WindowState", "maximized");
 for rIndex = 1:GridSize(1)
 
     for cIndex = 1:GridSize(2)
-        ch = Channels((rIndex - 1) * GridSize(2) + cIndex);
+        ch = Channels(rIndex, cIndex);
 
         if isnan(ch)
             continue;
@@ -97,7 +96,7 @@ for rIndex = 1:GridSize(1)
             chErr = mu.getor(chData(gIndex), "chErr");
             t = linspace(window(1), window(2), size(chMean, 2));
 
-            color = validatecolor(chData(gIndex));
+            color = validatecolor(chData(gIndex).color);
             hsi = rgb2hsv(color);
             if hsi(2) == 0 % gray or black
                 hsi(3) = min([1.1 * hsi(3), 0.9]);

@@ -65,7 +65,7 @@ for bIndex = 1:nBlocks
     startIdx = (bIndex - 1) * blockSize + 1;
     endIdx = min(bIndex * blockSize, nDimSize);
     idx = startIdx:endIdx;
-    slicedInputs = cellfun(@(a) slice_N_dim(a, idx, dim), Ainputs, 'UniformOutput', false);
+    slicedInputs = cellfun(@(a) mu.slicemat(a, idx, dim), Ainputs, 'UniformOutput', false);
 
     % Apply function
     if ~isempty(errorHandler)

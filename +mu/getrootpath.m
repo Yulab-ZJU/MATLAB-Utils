@@ -1,32 +1,44 @@
 function ROOTPATH = getrootpath(P, N)
-% If [N] is set non-zero, return N-backward root path of path [P].
+% GETROOTPATH Return the root path N levels up from path P
 %
-% e.g.
-%     currentPath = fileparts(mfilename("fullpath"))
-%     >> currentPath = 'D:\Education\Lab\MATLAB Utils\file'
+%   ROOTPATH = mu.getrootpath(P, N)
 %
-%     ROOTPATH = mu.getrootpath(currentPath, 1)
-%     >> ROOTPATH = 'D:\Education\Lab\MATLAB Utils\'
+% Inputs:
+%   P      - input path (file or folder), char or string scalar
+%   N      - positive integer, how many folder levels to go up
+%
+% Output:
+%   ROOTPATH - root path N levels above P
 
-if N <= 0
-    error('N should be positive.');
+arguments
+    P {mustBeTextScalar}
+    N (1,1) {mustBePositive, mustBeInteger}
 end
 
-split = mu.path2func(fullfile(matlabroot, 'toolbox/matlab/strfun/split.m'));
-
-P = char(P);
-
-if endsWith(P, '\')
-    P = P(1:end - 1);
+% Get absolute path
+P = mu.getabspath(P);
+if ~isfolder(P)
+    P = fileparts(P);
 end
 
-temp = split(P, '\')';
+% Divide
+parts = split(P, filesep);
 
-if length(temp) <= N
-    error('Could not backward any more.');
+if isempty(parts{1})
+    parts{1} = filesep; % unix root
 end
 
-ROOTPATH = [fullfile(temp{1:end - N}), '\'];
+if N >= numel(parts)
+    error('Cannot go up %d levels from path %s (only %d levels available).', N, P, numel(parts));
+end
+
+rootParts = parts(1:end - N);
+
+if ispc || ~strcmp(rootParts{1}, filesep) % Windows
+    ROOTPATH = fullfile(rootParts{:});
+else % Unix
+    ROOTPATH = fullfile(filesep, fullfile(rootParts{2:end}));
+end
 
 return;
 end

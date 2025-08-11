@@ -39,11 +39,11 @@
 
     "mu.fft": {
         "inputs": [
-            {"name": "X", "kind": "required", "type": ["numeric", "2d"], "purpose": "data"},
-            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate"},
-            {"name": "N", "kind": "ordered", "type": ["numeric"], "purpose": "N-point fft"},
-            {"name": "dim", "kind": "ordered", "type": ["numeric", "choices={2, 1}"]},
-            {"name": "foi", "kind": "ordered", "type": ["numeric", "2d"], "purpose": "frequency of interest"}
+            {"name": "X", "kind": "required", "type": ["numeric"], "purpose": "data"},
+            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate (Hz)"},
+            {"name": "N", "kind": "ordered", "type": [["numeric"], ["choices = {'nextpow2'}"]], "purpose": "N-point fft (default:[])"},
+            {"name": "dim", "kind": "ordered", "type": ["scalar", "positive", "integer"]},
+            {"name": "foi", "kind": "namevalue", "type": ["numeric", "2d"], "purpose": "frequency of interest"}
         ],
         "description": "FFT: single-sided amplitude and phase spectrum"
     },
@@ -63,16 +63,32 @@
     "mu.calchMean": {
         "inputs": [
             {"name": "trialsData", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"]}
+            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
         ],
         "description": "Calculate the mean of trial data with padding direction"
     },
 
+    "mu.calchErr": {
+        "inputs": [
+            {"name": "trialsData", "kind": "required", "type": ["cell"]},
+            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+        ],
+        "description": "Calculate the standard error of the mean of trial data with padding direction"
+    },
+
+    "mu.calchStd": {
+        "inputs": [
+            {"name": "trialsData", "kind": "required", "type": ["cell"]},
+            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+        ],
+        "description": "Calculate the standard deviation of trial data with padding direction"
+    },
+
     "mu.calchFunc": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle"]},
+            {"name": "fcn", "kind": "required", "type": ["function_handle"], "purpose": "function handle with signature fcn(data,dim,varargin)"},
             {"name": "trialsDatFunca", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"]}
+            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
         ],
         "description": "Calculate a function over trial data with padding direction"
     },
@@ -216,21 +232,21 @@
 
     "mu.getabspath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"]], "purpose": "path to a folder or file"}
+            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
         ],
         "description": "Get absolute path of a folder or file"
     },
 
     "mu.getlastpath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"]], "purpose": "path to a folder or file"}
+            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
         ],
         "description": "Get last path component of a folder or file"
     },
 
     "mu.getrootpath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"]], "purpose": "path to a folder or file"}
+            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
         ],
         "description": "Get first path component of a folder or file"
     },
@@ -467,7 +483,7 @@
             ]},
             {"name": "Location", "kind": "namevalue", "type": ["choices = {'northoutside', 'southoutside', 'eastoutside', 'westoutside'}"]},
             {"name": "Interval", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default:0.01"},
-            {"name": "Width", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default:0.05"},
+            {"name": "Width", "kind": "namevalue", "type": ["scalar", "numeric"]},
             {"name": "Label", "kind": "namevalue", "type": [["string"], ["char"]]}
         ],
         "description": "Add a colorbar to a figure with specified location and properties"
@@ -661,21 +677,6 @@
             {"name": "UI", "kind": "namevalue", "type": "choices = {'on', 'off'}"}
         ],
         "description": "Validate user input with a prompt and optional validation function"
-    },
-
-    "mu.msgbox": {
-        "inputs": [
-            {"name": "content", "kind": "required", "type": [["string", "char"], ["cell"]]},
-            {"name": "title", "kind": "ordered", "type": ["string", "char"]},
-            {"name": "alignment", "kind": "ordered", "type": ["choices = {'center', 'left-top', 'right-top', 'center-top', 'left-center', 'right-center', 'left-bottom', 'right-bottom', 'center-bottom'}"]},
-            {"name": "Alignment", "kind": "namevalue", "type": ["choices = {'center', 'left-top', 'right-top', 'center-top', 'left-center', 'right-center', 'left-bottom', 'right-bottom', 'center-bottom'}"]},
-            {"name": "TitleColor", "kind": "namevalue"},
-            {"name": "ContentColor", "kind": "namevalue"},
-            {"name": "TitleFontSize", "kind": "namevalue", "type": ["scalar", "positive"]},
-            {"name": "ContentFontSize", "kind": "namevalue", "type": ["scalar", "positive"]},
-            {"name": "BackgroundColor", "kind": "namevalue"}
-        ],
-        "description": "Display a message box with customizable content, title, and appearance"
     }
     
 }

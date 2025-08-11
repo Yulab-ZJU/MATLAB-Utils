@@ -8,7 +8,12 @@ paddings = [0.01, 0.03, 0.01, 0.01];
 for rIndex = 1:pltsz(1)
 
     for cIndex = 1:pltsz(2)
-        ICNum = sub2ind(pltsz, cIndex, rIndex);
+        ICNum = sub2ind(flip(pltsz), cIndex, rIndex);
+
+        if ICNum > size(topo, 2)
+            continue;
+        end
+
         ax = mu.subplot(Fig, pltsz(1), pltsz(2), ICNum, "shape", "square-min", "margins", margins, "paddings", paddings);
         topoplot(topo(:, ICNum), EEGPos.locs);
         title(ax, ['IC ', num2str(ICNum)]);

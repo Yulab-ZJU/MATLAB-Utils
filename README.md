@@ -2,6 +2,12 @@
 
 To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSignatures.json` to `/resources/`.
 
+To stay up-to-date with the latest version, please use Git for version management.:
+
+```shell
+git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
+```
+
 # Functions
 
 '\*' marks the most widely-used functions.
@@ -112,7 +118,7 @@ To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSig
 
 ​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
 
-​	`mu.slicedata` Returns sliced `A(:,...,idx,...,:)` at specified dimension.
+​	`mu.slicemat` Returns sliced `A(:,...,idx,...,:)` at specified dimension.
 
 #### 2.4 string/char
 

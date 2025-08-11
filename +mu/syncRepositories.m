@@ -4,18 +4,15 @@ function syncRepositories(logstr, varargin)
 %              Your local changes will be committed and remote changes will be pulled.
 %
 % To push local changes to remote, set [SyncOption] as true. (default: false)
-% e.g.       sycnRepositories("add new functions", "SyncOption", true);
+% e.g.  mu.sycnRepositories("add new functions", "SyncOption", true);
 %
 % If [RepositoryPaths] is not specified (default: []), [RepositoryPaths] will
 % be all repository paths under [RepositoriesRootPath] (default: root path of this M file).
-% e.g.       % Search all repositories under path 'D:\'
-%            sycnRepositories(logstr, ...
-%                             "RepositoriesRootPath", 'D:\');
+% e.g.  % Search all repositories under path 'D:\'
+%       mu.sycnRepositories(logstr, "RepositoriesRootPath", 'D:\');
 %
 % You can also specify repository paths to update.
-% e.g.       sycnRepositories(logstr, ...
-%                             "RepositoryPaths", ["D:\repos1\", ...
-%                                                 "D:\Project2\repos2\"]);
+% e.g.  mu.sycnRepositories(logstr, "RepositoryPaths", ["D:\repos1\", "D:\Project2\repos2\"]);
 
 mIp = inputParser;
 mIp.addRequired("logstr", @(x) isempty(x) || isStringScalar(x) || (ischar(x) && isStringScalar(string(x))));

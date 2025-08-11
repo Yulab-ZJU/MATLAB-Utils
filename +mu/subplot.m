@@ -7,26 +7,30 @@ function varargout = subplot(varargin)
 %     % div1
 %     mu.subplot(1, 2, 1, "paddings", [1/9, 1/18, 2/9, 1/9], ...
 %                         "shape", "fill");
+%     text(0.05, 0.95, 'div1', 'Color', 'r');
 %     % axes1
 %     mu.subplot(1, 2, 1, "paddings", [1/9, 1/18, 2/9, 1/9], ...
 %                         "margins", [1/5, 1/2, 1/6, 1/6]);
+%     text(0.05, 0.95, 'ax1', 'Color', 'r');
 %     % div2
 %     mu.subplot(1, 2, 2, "paddings", [1/9, 1/18, 2/9, 1/9], ...
 %                         "shape", "fill");
+%     text(0.05, 0.95, 'div2', 'Color', 'r');
 %     % axes2
 %     mu.subplot(1, 2, 2, "paddings", [1/9, 1/18, 2/9, 1/9], ...
 %                         "margins", zeros(1, 4), ...
 %                         "nSize", [1/4, 1/2], ...
 %                         "alignment", "left-bottom");
+%     text(0.05, 0.95, 'ax2', 'Color', 'r');
 %     set(0, "DefaultAxesBox", "factory");
 %
 %  ____________________________________________________________________
 % |figure _________________________________________________________    |
 % |      |div1  _______               |div2                        |   |
 % |      |     |       |              |                            |   |
-% |      |     | axes1 |←------------→|_______                     |   |
+% |      |     | ax1   |←------------→|_______                     |   |
 % |      |     |       | margin_right |       |                    |   |
-% |      |     |_______|              | axes2 |                    |   |
+% |      |     |_______|              | ax2   |                    |   |
 % |←----→|____________________________|_______|____________________|   |
 % |padding_left      ↑ padding_bottom                                  |
 % |__________________↓_________________________________________________|
@@ -35,7 +39,7 @@ function varargout = subplot(varargin)
 % Note: All parameters here are normalized.
 %       Your figure should be maximized before using mu.subplot to create axes.
 % Input:
-%     Fig: figure to place subplot
+%     Fig: figure handle (default=gcf)
 %     row/col/index: same usage of function subplot
 %     nSize: [nX, nY] specifies size of subplot (default: [1, 1]).
 %            [nSize] is relative to axes.
@@ -70,10 +74,12 @@ function varargout = subplot(varargin)
 %                - 'right-bottom'
 %                - 'right-center'
 %                - 'right-top'
-%                You can also specify [alignment_horizontal] and
-%                [alignment_vertical] separately (prior to [alignment]).
+%                You can also specify 'alignment_horizontal' and
+%                'alignment_vertical' separately (prior to 'alignment').
 % Output:
-%     mAxe: subplot axes object
+%     ax: subplot axes object
+%     opts: subplot options
+%
 
 if strcmp(class(varargin{1}), "matlab.ui.Figure")
     Fig = varargin{1};

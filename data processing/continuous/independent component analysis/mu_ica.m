@@ -34,7 +34,7 @@ else
     validateattributes(chs2doICA, 'numeric', {'vector', 'positive', 'integer'});
     temp = channels;
     temp(~ismember(channels, chs2doICA(:))) = [];
-    chs2doICA = arrayfun(@num2str, temp, "UniformOutput", false);
+    chs2doICA = temp;
 end
 badChs = channels(~ismember(channels, chs2doICA));
 
@@ -42,29 +42,34 @@ badChs = channels(~ismember(channels, chs2doICA));
 comp = mu_ica_impl(trialsData, windowICA, fs, varargin{:});
 
 %% Plot ICA result
-% IC Wave & distribution
+% IC Wave
+mu_plotWaveArray(struct("chMean", mu.calchMean(comp.trial), "chErr", mu.calchStd(comp.trial)), windowICA);
+mu.addTitle("IC");
+mu.scaleAxes("y", "on", "symOpt", "max", "autoTh", [0, 1], "cutoffRange", [-50, 50]);
+
+% IC distribution
 if isstruct(topo)
     % EEG
     EEGPos = topo;
     neighbours = EEGPos.neighbours;
-    FigIC = mu_plotWaveEEG(struct("chMean", mu.calchMean(comp.trial), "chErr", mu.calchStd(comp.trial)), windowICA, EEGPos);
     mu_ica_topoplotEEG(mu.insertrows(comp.topo, badChs), EEGPos);
     trialsDataInterp = mu_interpolateBadChannels(trialsData, badChs, neighbours);
 else
     % Electrode Array
     topoSize = topo;
     neighbours = mu_prepareNeighboursArray(channels, topoSize, "orthogonal");
-    FigIC = mu_plotWaveArray(struct("chMean", mu.calchMean(comp.trial), "chErr", mu.calchStd(comp.trial)), windowICA);
     mu_ica_topoplotArray(mu.insertrows(comp.topo, badChs), topoSize);
     trialsDataInterp = mu_interpolateBadChannels(trialsData, badChs, neighbours);
 end
-mu.addTitle(FigIC, "IC");
-mu.scaleAxes(FigIC, "y", "on", "symOpt", "max", "autoTh", [0.01, 0.99], "cutoffRange", [-50, 50], "uiOpt", "show");
 
 % Origin raw wave
-mu_plotWaveArray(struct("chMean", mu.calchMean(trialsDataInterp), "chErr", mu.calchStd(trialsDataInterp)), windowICA);
-mu.addTitle("Origin");
-mu.scaleAxes("y", "cutoffRange", [-100, 100], "symOpts", "max");
+if isstruct(topo)
+    mu_plotWaveEEG(struct("chMean", mu.calchMean(trialsDataInterp), "chErr", mu.calchStd(trialsDataInterp)), windowICA, EEGPos);
+else
+    mu_plotWaveArray(struct("chMean", mu.calchMean(trialsDataInterp), "chErr", mu.calchStd(trialsDataInterp)), windowICA, "GridSize", topoSize);
+end
+mu.addTitle("Original");
+mu.scaleAxes("y", "on", "symOpts", "max", "autoTh", [0, 1], "cutoffRange", [-50, 50]);
 
 % Remove bad channels in trialsData
 trialsData = cellfun(@(x) x(chs2doICA, :), trialsData, "UniformOutput", false);
@@ -86,9 +91,13 @@ while ~any(strcmpi(k, {'y', ''}))
     temp = cellfun(@(x) mu.insertrows(x, badChs), temp, "UniformOutput", false);
     temp = mu_interpolateBadChannels(temp, badChs, neighbours);
     
-    FigWave = mu_plotWaveArray(struct("chMean", mu.calchMean(temp), "chErr", mu.calchStd(temp)), windowICA);
+    if isstruct(topo)
+        FigWave = mu_plotWaveEEG(struct("chMean", mu.calchMean(temp), "chErr", mu.calchStd(temp)), windowICA, EEGPos);
+    else
+        FigWave = mu_plotWaveArray(struct("chMean", mu.calchMean(temp), "chErr", mu.calchStd(temp)), windowICA, "GridSize", topoSize);
+    end
     mu.addTitle(FigWave, "reconstruct");
-    mu.scaleAxes(FigWave, "y", "on", "symOpts", "max");
+    mu.scaleAxes(FigWave, "y", "on", "symOpts", "max", "autoTh", [0, 1]);
 
     k = validateinput('Press Y or Enter to continue or N to reselect ICs: ', @(x) isempty(x) || any(validatestring(x, {'y', 'n', 'N', 'Y', ''})), 's');
 end

@@ -1,18 +1,17 @@
 function [B, I] = shuffledata(A, dim)
 % SHUFFLEDATA Randomly shuffle data along a specified dimension.
-%   B = SHUFFLEDATA(A) shuffles vector A or, for N-D array, shuffles along
+%   B = mu.shuffledata(A) shuffles vector A or, for N-D array, shuffles along
 %   the first dimension by default. Each slice along other dimensions is
 %   independently shuffled.
 %
-%   B = SHUFFLEDATA(A, DIM) shuffles A along dimension DIM.
+%   B = mu.shuffledata(A, DIM) shuffles A along dimension DIM.
 %
-%   [B, I] = SHUFFLEDATA(...) also returns the index map I such that:
-%       B = A(I)
+%   [B, I] = SHUFFLEDATA(...) also returns the index map I such that: B = A(I)
 %
 %   Examples:
-%       shuffledata([1 2 3 4])        % shuffles a vector
-%       shuffledata(rand(5, 10), 1)   % shuffles each column
-%       shuffledata(rand(5, 10), 2)   % shuffles each row
+%     mu.shuffledata([1 2 3 4])        % shuffles a vector
+%     mu.shuffledata(rand(5, 10), 1)   % shuffles each column
+%     mu.shuffledata(rand(5, 10), 2)   % shuffles each row
 
 % Check input
 if ~isnumeric(A)

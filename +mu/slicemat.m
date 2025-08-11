@@ -1,4 +1,4 @@
-function A = slicedata(A, dim, idx)
+function A = slicemat(A, dim, idx)
 % Create dynamic indexing: A(:, ..., idx, :, :, ..., :)
 s = repmat({':'}, 1, ndims(A));
 s{dim} = idx;

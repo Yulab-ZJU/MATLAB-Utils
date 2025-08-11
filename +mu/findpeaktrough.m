@@ -1,77 +1,59 @@
-function [peakIdx, troughIdx] = findpeaktrough(data, varargin)
-% Description: find indices (in logical) of peak and trough of waves
-% Input:
-%     data: a vector or 2-D matrix
-%     dim: 1 for data of [nSample, nCh], 2 for data of [nCh, nSample] (default: 2)
-% Output:
-%     peakIdx/troughIdx: logical [nCh, nSample]
+function [peakIdx, troughIdx] = findpeaktrough(data, dim)
+% FINDPEAKTROUGH - Find logical indices of peaks and troughs in signals
+% INPUT:
+%   data - [nsample, nch] or [nch, nsample]
+%   dim  - Dimension along which to find peaks/troughs (default: 2)
+% OUTPUT:
+%   peakIdx, troughIdx - logical matrix same size as data
 
-mIp = inputParser;
-mIp.addRequired("data", @(x) validateattributes(x, {'numeric'}, {'2d'}));
-mIp.addOptional("dim", 2, @(x) ismember(x, [1, 2]));
-mIp.parse(data, varargin{:});
+if nargin < 2, dim = 2; end
+validateattributes(data, {'numeric'}, {'2d'});
+assert(ismember(dim, [1, 2]), 'dim must be 1 or 2.');
 
-dim = mIp.Results.dim;
-
-if isvector(data)
-    data = reshape(data, [1, numel(data)]);
-else
-    data = permute(data, [3 - dim, dim]);
+% Bring target dimension to columns
+if dim == 1
+    data = data.';
 end
+[nch, nsample] = size(data);
 
-peakIdx = cell2mat(mu.rowfun(@ispeak, data, "UniformOutput", false));
-troughIdx = cell2mat(mu.rowfun(@istrough, data, "UniformOutput", false));
-return;
-end
+% Preallocate
+peakIdx   = false(nch, nsample);
+troughIdx = false(nch, nsample);
 
-%%
-function y = ispeak(data)
-y = false(1, length(data));
-y(find(diff(sign(diff(data))) == -2) + 1) = true;
-% 遍历数据，寻找连续相等的序列
-i = 2;
-while i < length(data)
-    if data(i) == data(i-1)
-        % 找到连续相等值的开始和结束索引
-        start = i-1;
-        while i <= length(data) && data(i) == data(i-1)
-            i = i + 1;
+% First derivative
+d1 = diff(data, 1, 2);
+% Sign of derivative
+s1 = sign(d1);
+% Second derivative sign changes
+s2 = diff(s1, 1, 2);
+
+% Peaks: slope changes from + to -
+peakIdx(:, 2:end-1) = (s2 == -2);
+% Troughs: slope changes from - to +
+troughIdx(:, 2:end-1) = (s2 == 2);
+
+% Handle flat regions (equal consecutive values)
+flatMask = (d1 == 0);
+for ch = 1:nch
+    eqStarts = find(diff([false, flatMask(ch,:), false]) == 1);
+    eqEnds   = find(diff([flatMask(ch,:), false]) == -1);
+    for k = 1:numel(eqStarts)
+        st = eqStarts(k);
+        en = eqEnds(k);
+        if (st == 1 || data(ch, st-1) < data(ch, st)) && ...
+                (en == nsample || data(ch, en+1) < data(ch, en))
+            peakIdx(ch, st) = true;
+        elseif (st == 1 || data(ch, st-1) > data(ch, st)) && ...
+                (en == nsample || data(ch, en+1) > data(ch, en))
+            troughIdx(ch, st) = true;
         end
-        finish = i - 1;
-
-        % 检查序列前后的值，判断是否为峰值
-        if (start == 1 || data(start-1) < data(start)) && (finish == length(data) || data(finish+1) < data(finish))
-            y(start) = true;
-        end
-    else
-        i = i + 1;
     end
 end
-return;
-end
 
-function y = istrough(data)
-y = false(1, length(data));
-y(find(diff(sign(diff(data))) == 2) + 1) = true;
-
-% 遍历数据，寻找连续相等的序列
-i = 2;
-while i < length(data)
-    if data(i) == data(i-1)
-        % 找到连续相等值的开始和结束索引
-        start = i-1;
-        while i <= length(data) && data(i) == data(i-1)
-            i = i + 1;
-        end
-        finish = i - 1;
-
-        % 检查序列前后的值，判断是否为波谷
-        if (start == 1 || data(start-1) > data(start)) && (finish == length(data) || data(finish+1) > data(finish))
-            y(start) = true;
-        end
-    else
-        i = i + 1;
-    end
+% Restore original orientation
+if dim == 1
+    peakIdx   = peakIdx.';
+    troughIdx = troughIdx.';
 end
 
 return;

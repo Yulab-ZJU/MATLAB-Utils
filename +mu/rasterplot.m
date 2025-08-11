@@ -1,7 +1,7 @@
 function ax = rasterplot(varargin)
 % Description: plot raster
 % Input:
-%     mAxe: axes target (If ignored, default = gca)
+%     ax: axes target (If ignored, default = gca)
 %     rasterData: raster dataset, struct vector
 %         - X: x data, cell vector
 %         - Y: y data (If not specified, plot trial by trial)
@@ -25,7 +25,7 @@ else
 end
 
 mIp = inputParser;
-mIp.addRequired("mAxe", @(x) isgraphics(x, "axes"));
+mIp.addRequired("ax", @(x) isgraphics(x, "axes"));
 mIp.addRequired("rasterData", @isstruct);
 mIp.addOptional("sz", 40, @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive', 'integer'}));
 mIp.addParameter("border", false, @(x) isscalar(x) && islogical(x));

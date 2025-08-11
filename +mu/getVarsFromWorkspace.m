@@ -1,37 +1,49 @@
 function res = getVarsFromWorkspace(varargin)
-% Description: Search variable in workspace using regexp.
-% Output: res.(Name) = Val;
+% GETVARSFROMWORKSPACE Search variables in caller workspace matching regex patterns
+%
+% Usage:
+%   res = mu.getVarsFromWorkspace(pattern1, pattern2, ...)
+%
+% Input:
+%   varargin - 0 or more regexp pattern strings (char or string)
+%
+% Output:
+%   res - struct with fields named by matched variables and values from caller workspace
+%
 % Example:
-%     % To save all variables with names starting with "result_" or "output_"
-%     varNames = fieldnames(mu.getVarsFromWorkspace("result_\W*", "output_\W*"));
-%     save("data.mat", varNames{:});
+%   vars = fieldnames(mu.getVarsFromWorkspace('^result_', '^output_'));
+%   save('data.mat', vars{:});
 
-if nargin < 1
-    str = 'who;';
+% return all variables for empty input
+if nargin == 0
+    varNames = evalin('caller', 'who;');
 else
-
-    if ~any(cellfun(@(x) isempty(x) || isStringScalar(x) || (ischar(x) && isStringScalar(string(x))), varargin))
-        error("getVarsFromWorkspace(): Invalid regexp input");
+    % validate inputs
+    for k = 1:nargin
+        if ~(ischar(varargin{k}) || isStringScalar(varargin{k}))
+            error('All inputs must be character vectors or string scalars.');
+        end
+        if strlength(varargin{k}) == 0
+            error('Empty regexp pattern is not allowed.');
+        end
     end
 
-    regexpstrs = cellfun(@(x) ['''', char(x), ''''], varargin, "UniformOutput", false);
-    regexpstrs = join(regexpstrs, ',');
-    regexpstrs = cat(1, regexpstrs{:});
-
-    str = strcat('who("-regexp", ', regexpstrs, ');');
+    % use joint regexp
+    combinedRegexp = strjoin(cellfun(@char, varargin, 'UniformOutput', false), '|');
+    varNames = evalin('caller', ['who(''-regexp'', ''', combinedRegexp, ''');']);
 end
 
-varNames = evalin("caller", str);
-
 if isempty(varNames)
-    res = [];
-    disp("No variables in workspace found.");
+    % not found
+    res = struct();
+    warning('No variables matching given pattern(s) found in workspace.');
     return;
 end
 
-for index = 1:length(varNames)
-    res.(varNames{index}) = evalin("caller", varNames{index});
-end
+% 使用一次性evalin获取所有变量，避免循环evalin性能瓶颈
+% 拼接成结构体构造字符串，如: 'struct(''var1'', val1, ''var2'', val2, ...)'
+varsExpr = strcat("struct(", strjoin(cellfun(@(v) ['''' v ''', evalin(''caller'', ''' v ''')'], varNames, 'UniformOutput', false), ', '), ")");
+res = evalin("caller", varsExpr);
 
 return;
 end

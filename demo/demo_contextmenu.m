@@ -45,7 +45,7 @@ function mBtnDownFcn(handle, eventdata)
     if eventdata.Button == 1
         if ~isempty(lastClick) && (now - lastClick) * 24 * 3600 <= 0.5
             info = get(handle, "UserData");
-            mu.msgbox(info.block);
+            msgbox(info.block);
         else
             lastClick = now;
         end

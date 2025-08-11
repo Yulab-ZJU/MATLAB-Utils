@@ -1,4 +1,6 @@
 function plotSize = autoplotsize(num)
+% Determine [nrow,ncol] by totol subplot number
+
 F = figure("visible", "off");
 t = tiledlayout("flow");
 for i = 1:num

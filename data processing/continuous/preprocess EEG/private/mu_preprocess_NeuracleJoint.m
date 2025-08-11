@@ -72,7 +72,7 @@ for dataIndex = 1:length(ROOTPATHs)
     EEG.data = mu.filter(EEG.data, fs, "fhp", fhp, "flp", flp, "fnotch", 50);
     
     % epoching
-    trialsEEG = [trialsEEG; mu_selectWave(EEG.data, fs, latency_temp / fs, window)];
+    trialsEEG = [trialsEEG; mu_selectWave(EEG.data, fs, latency_temp / fs * 1e3, window)];
 end
 
 % ICA

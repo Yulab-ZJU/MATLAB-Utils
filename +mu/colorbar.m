@@ -1,81 +1,73 @@
 function cb = colorbar(varargin)
-% Create a colorbar outside the tightPosition("IncludeLabels", true)
+% COLORBAR Create colorbar outside tightPosition (IncludeLabels true).
+% SYNTAX:
+%   cb = colorbar(ax, 'Location', loc, 'Interval', interval, 'Width', width, 'Label', label, ...)
+%   If ax omitted, defaults to gca.
 
-% Find "location"/"interval"/"width" input
-if isempty(varargin)
-    locIdx = [];
-    intervalIdx = [];
-    widthIdx = [];
-    labelIdx = [];
-    ax = gca;
-else
-    locIdx = find(cellfun(@(x) (ischar(x) || isStringScalar(x)) && strcmpi(x, "Location"), varargin), 1);
-    intervalIdx = find(cellfun(@(x) (ischar(x) || isStringScalar(x)) && strcmpi(x, "Interval"), varargin), 1);
-    widthIdx = find(cellfun(@(x) (ischar(x) || isStringScalar(x)) && strcmpi(x, "Width"), varargin), 1);
-    labelIdx = find(cellfun(@(x) (ischar(x) || isStringScalar(x)) && strcmpi(x, "Label"), varargin), 1);
-    
-    if strcmp(class(varargin{1}), "matlab.graphics.axis.Axes")
-        ax = varargin{1};
-    else
-        ax = gca;
-    end
-    
-end
+mIp = inputParser;
+mIp.KeepUnmatched = true;
+mIp.addOptional('ax', gca, @(x) isa(x, 'matlab.graphics.axis.Axes'));
+mIp.addParameter('Location', 'eastoutside', @(x) ischar(x) || isStringScalar(x));
+mIp.addParameter('Interval', 0.01, @(x) isnumeric(x) && isscalar(x));
+mIp.addParameter('Width', [], @(x) isnumeric(x) && isscalar(x));
+mIp.addParameter('Label', [], @(x) isempty(x) || ischar(x) || isStringScalar(x));
+mIp.parse(varargin{:});
 
-if ~isempty(locIdx)
-    loc = varargin{locIdx + 1};
-else
-    loc = "eastoutside";
-end
-
-if ~isempty(intervalIdx)
-    interval = varargin{intervalIdx + 1};
-else
-    interval = 0.01;
-end
-
-if ~isempty(widthIdx)
-    width = varargin{widthIdx+ 1};
-else
-    width = 0.05; % in percentage/100
-end
-
-if ~isempty(labelIdx)
-    label = varargin{labelIdx+ 1};
-else
-    label = [];
-end
-
-varargin([locIdx:locIdx + 1, ...
-          intervalIdx:intervalIdx + 1, ...
-          widthIdx:widthIdx + 1, ...
-          labelIdx:labelIdx + 1]) = [];
+ax = mIp.Results.ax;
+loc = lower(string(mIp.Results.Location));
+interval = mIp.Results.Interval;
+label = mIp.Results.Label;
 
 pos0 = ax.tightPosition("IncludeLabels", true);
-pos = get(ax, "Position"); % axes size
+pos = ax.Position;
+
+if isempty(mIp.Results.Width)
+    tempCB = colorbar(ax, 'Location', loc);
+    tempPos = tempCB.Position;
+    switch loc
+        case {'northoutside', 'southoutside'}
+            width = tempPos(4);
+        case {'eastoutside', 'westoutside'}
+            width = tempPos(3);
+        otherwise
+            error('Unsupported Location option.');
+    end
+    delete(tempCB);
+else
+    width = mIp.Results.Width;
+end
 
 switch loc
-    case "northoutside"
-        width = min(width * pos(4), 0.015);
-        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) + pos0(4) + interval * pos(4), pos(3), width], "Location", "northoutside");
-        cb.TickLength = width / 5;
-    case "southoutside"
-        width = min(width * pos(4), 0.015);
-        cb = colorbar(varargin{:}, "Position", [pos(1), pos0(2) - interval * pos(4), pos(3), width], "Location", "southoutside");
-        cb.TickLength = width / 5;
-    case "eastoutside"
-        width = min(width * pos(3), 0.01);
-        cb = colorbar(varargin{:}, "Position", [pos0(1) + pos0(3) + interval * pos(3), pos(2), width, pos(4)], "Location", "eastoutside");
-    case "westoutside"
-        width = min(width * pos(3), 0.01);
-        cb = colorbar(varargin{:}, "Position", [pos0(1) - interval * pos(3), pos(2), width, pos(4)], "Location", "westoutside");
+    case 'northoutside'
+        cbPos = [pos(1), pos0(2) + pos0(4) + interval * pos(4), pos(3), width];
+    case 'southoutside'
+        cbPos = [pos(1), pos0(2) - interval * pos(4), pos(3), width];
+    case 'eastoutside'
+        cbPos = [pos0(1) + pos0(3) + interval * pos(3), pos(2), width, pos(4)];
+    case 'westoutside'
+        cbPos = [pos0(1) - interval * pos(3), pos(2), width, pos(4)];
+    otherwise
+        error('Unsupported Location option.');
 end
+
+args = namedargs2cell(mIp.Unmatched);
+cb = colorbar(ax, args{:});
+cb.Location = loc;
+cb.Position = cbPos;
 
 if ~isempty(label)
     cb.Label.String = label;
-    if strcmpi(loc, "eastoutside")
+    if strcmpi(loc, 'eastoutside')
         cb.Label.Rotation = -90;
+        cb.Label.VerticalAlignment = "baseline";
+    elseif strcmpi(loc, 'westoutside')
+        cb.Label.Rotation = 90;
+        cb.Label.VerticalAlignment = "baseline";
     end
+end
+
+if strcmpi(loc, 'northoutside') || strcmpi(loc, 'southoutside')
+    cb.TickLength = width / 5;
 end
 
 return;

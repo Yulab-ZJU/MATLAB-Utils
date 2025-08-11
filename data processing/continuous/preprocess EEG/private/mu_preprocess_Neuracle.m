@@ -68,7 +68,7 @@ latency = latency(find(arrayfun(@(x) str2double(x.type), EEG.event) == 1, 1):end
 EEG.data = mu.filter(EEG.data, fs, "fhp", fhp, "flp", flp, "fnotch", 50);
 
 % epoching
-trialsEEG = mu_selectWave(EEG.data, fs, latency / fs, window);
+trialsEEG = mu_selectWave(EEG.data, fs, latency / fs * 1e3, window);
 
 % ICA
 if strcmpi(icaOpt, "on") && nargout >= 4
@@ -86,10 +86,12 @@ if strcmpi(icaOpt, "on") && nargout >= 4
     else
         disp('ICA result does not exist. Performing ICA on data...');
         channels = 1:size(trialsEEG{1}, 1);
-        mu_plotWaveArray(struct("chMean", mu.calchMean(trialsEEG), "chErr", mu.calchStd(trialsEEG)), window);
-        mu.scaleAxes("y", [-20,20], "symOpts", "max");
+        Fig = mu_plotWaveArray(struct("chMean", mu.calchMean(trialsEEG), "chErr", mu.calchStd(trialsEEG)), window);
+        mu.addTitle(Fig, "Original");
+        mu.scaleAxes(Fig, "y", [-20,20], "symOpts", "max");
         bc = validateinput(['Input extra bad channels (besides ', num2str(badChs(:)'), '): '], @(x) isempty(x) || all(fix(x) == x & x > 0));
         badChs = [badChs(:); bc(:)]';
+        close(Fig);
 
         % first trial exclusion
         tIdx = mu_excludeTrials(trialsEEG, 0.4, 20, "userDefineOpt", "off", "badCHs", badChs);

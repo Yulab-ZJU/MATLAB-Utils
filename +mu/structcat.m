@@ -15,7 +15,7 @@ function S = structcat(varargin)
 S = varargin;
 
 if ~any(cellfun(@(x) isvector(x) && isstruct(x), S))
-    error("structcat(): input should be struct array");
+    error("Input should be struct array");
 end
 
 % Make sure all [S] are column vector
