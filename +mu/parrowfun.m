@@ -64,7 +64,7 @@ parfor bIndex = 1:nBlocks
     startIdx = (bIndex - 1) * blockSize + 1;
     endIdx = min(bIndex * blockSize, nRows);
     idx = startIdx:endIdx;
-    slicedInputs = cellfun(@(a) slice_N_dim(a, idx, 1), Ainputs, 'UniformOutput', false);
+    slicedInputs = cellfun(@(a) mu.slicemat(a, idx, 1), Ainputs, 'UniformOutput', false);
 
     % Apply function
     if ~isempty(errorHandler)

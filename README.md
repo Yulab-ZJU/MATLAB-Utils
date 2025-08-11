@@ -118,7 +118,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
 
-​	`mu.slicedata` Returns sliced `A(:,...,idx,...,:)` at specified dimension.
+​	`mu.slicemat` Returns sliced `A(:,...,idx,...,:)` at specified dimension.
 
 #### 2.4 string/char
 

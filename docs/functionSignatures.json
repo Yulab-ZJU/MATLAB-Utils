@@ -661,21 +661,6 @@
             {"name": "UI", "kind": "namevalue", "type": "choices = {'on', 'off'}"}
         ],
         "description": "Validate user input with a prompt and optional validation function"
-    },
-
-    "mu.msgbox": {
-        "inputs": [
-            {"name": "content", "kind": "required", "type": [["string", "char"], ["cell"]]},
-            {"name": "title", "kind": "ordered", "type": ["string", "char"]},
-            {"name": "alignment", "kind": "ordered", "type": ["choices = {'center', 'left-top', 'right-top', 'center-top', 'left-center', 'right-center', 'left-bottom', 'right-bottom', 'center-bottom'}"]},
-            {"name": "Alignment", "kind": "namevalue", "type": ["choices = {'center', 'left-top', 'right-top', 'center-top', 'left-center', 'right-center', 'left-bottom', 'right-bottom', 'center-bottom'}"]},
-            {"name": "TitleColor", "kind": "namevalue"},
-            {"name": "ContentColor", "kind": "namevalue"},
-            {"name": "TitleFontSize", "kind": "namevalue", "type": ["scalar", "positive"]},
-            {"name": "ContentFontSize", "kind": "namevalue", "type": ["scalar", "positive"]},
-            {"name": "BackgroundColor", "kind": "namevalue"}
-        ],
-        "description": "Display a message box with customizable content, title, and appearance"
     }
     
 }
