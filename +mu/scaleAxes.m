@@ -133,8 +133,8 @@ if strcmpi(autoScale, "on")
             children = {children};
         end
         
-        tempX = cellfun(@(x) arrayfun(@(y) get(y, "XData"), x, "UniformOutput", false, "ErrorHandler", @errorHandlerFcnNAN), children, "UniformOutput", false);
-        tempY = cellfun(@(x) arrayfun(@(y) get(y, "YData"), x, "UniformOutput", false, "ErrorHandler", @errorHandlerFcnNAN), children, "UniformOutput", false);
+        tempX = cellfun(@(x) arrayfun(@(y) get(y, "XData"), x, "UniformOutput", false, "ErrorHandler", @errNAN), children, "UniformOutput", false);
+        tempY = cellfun(@(x) arrayfun(@(y) get(y, "YData"), x, "UniformOutput", false, "ErrorHandler", @errNAN), children, "UniformOutput", false);
         tempX = cat(1, tempX{:});
         tempY = cat(1, tempY{:});
         tempX = cellfun(@(x) x(:), tempX, "UniformOutput", false);

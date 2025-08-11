@@ -131,15 +131,12 @@ else % parallel
         if ~exist(['cwtMulti', num2str(nTime), 'x', num2str(segNum), '_mex.mexw64'], 'file')
             disp("MEX file is missing. Generating MEX file...");
             currentPath = pwd;
-            cd(fileparts(mfilename("fullpath")));
+            cd(fullfile(fileparts(mfilename("fullpath")), "private"));
             ft_removepaths;
             cfg = coder.gpuConfig('mex');
             str = ['codegen cwtMulti -config cfg -args {coder.typeof(gpuArray(0),[', num2str(nTime), ' ', num2str(segNum), ']),coder.typeof(0)}'];
             eval(str);
-            if ~exist(fullfile(fileparts(mfilename("fullpath")), 'private'), "dir")
-                mkdir('private');
-            end
-            movefile('cwtMulti_mex.mexw64', ['private\cwtMulti', num2str(nTime), 'x', num2str(segNum), '_mex.mexw64']);
+            movefile('cwtMulti_mex.mexw64', ['cwtMulti', num2str(nTime), 'x', num2str(segNum), '_mex.mexw64']);
             cd(currentPath);
             ft_defaults;
         end

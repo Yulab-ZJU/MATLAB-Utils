@@ -1,5 +1,5 @@
 function res = insertrows(X, rows, val)
-% To insert [val] in [X] at specified rows.
+% To insert [val] in 2-D matrix [X] at specified rows.
 
 narginchk(2, 3);
 
@@ -9,6 +9,10 @@ end
 
 if ~(isscalar(val) && isnumeric(val))
     error("[val] should be a numeric scalar");
+end
+
+if ~ismatrix(X)
+    error("Input [X] should be a 2-D matrix");
 end
 
 nRows = size(X, 1) + numel(rows);
