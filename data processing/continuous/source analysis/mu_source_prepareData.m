@@ -38,8 +38,6 @@ data.label = channelNames;
 data.fsample = fs;
 data.trialinfo = ones(length(trialsData), 1);
 data = ft_selectdata(cfg, data);
-% cfg.keeptrials = 'yes';
-% data = ft_timelockanalysis(cfg, data);
 
 % ERP
 cfg = [];

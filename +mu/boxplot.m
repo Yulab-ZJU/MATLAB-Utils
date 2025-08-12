@@ -45,7 +45,7 @@ function varargout = boxplot(varargin)
 %   'IndividualDataPoint': 'show' or 'hide' (default: 'hide')
 %   'SymbolParameters'    : Scatter properties for individual data points
 %   'Jitter'              : Scalar jitter width in X (default: 0.1)
-%   'Outlier'             : 'show' or 'hide' (default: 'hide')
+%   'Outlier'             : 'show' or 'hide' (default: 'show')
 %   'OutlierParameters'   : Scatter properties for outliers
 %
 % ════════════════════════════════════════════════════════════════════════

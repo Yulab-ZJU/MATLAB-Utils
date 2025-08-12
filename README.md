@@ -214,8 +214,6 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu.fisherstat` Calculates joint p-value with Fisher's method.
 
-​	`mu.calDP` Calculates detection probability.
-
 ​	`mu.se`  Calculates standard error of [x] along [dim].
 
 #### 3.5 ICA
@@ -245,8 +243,6 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 #### 3.8 permutation test
 
 ​	`mu_cbpt` Performs cluster-based permutation test on trial data.
-
-​	`mu_cbpt_GFP` Performs cluster-based permutation test on global field power (GFP) data, shuffling at trial level. Use `mu_GFP` to compute GFP with trial data.
 
 ------
 

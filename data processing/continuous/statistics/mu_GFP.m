@@ -1,21 +1,37 @@
-function gfp = mu_GFP(trialsData, chs2Ignore)
+function gfp = mu_GFP(data, chs2Ignore)
+% Compute global field power for multi-channel data.
+% If [data] is a [nch x nsample] matrix (ERP), return [1 x nsample] GFP.
+% If [data] is trial data ([ntrial x 1] cell with [nch x nsample] data), 
+% return [ntrial x nsample] GFP.
+% Optional input [chs2Ignore] specifies channel numbers excluded from 
+% GFP computation.
+
 narginchk(1, 2);
 
 if nargin < 2
     chs2Ignore = [];
 end
 
-switch class(trialsData)
-    case "cell"
-        channels = 1:size(trialsData{1}, 1);
-        trialsData = cellfun(@(x) x(~ismember(channels, chs2Ignore), :), trialsData, "UniformOutput", false);
-        gfp = cellfun(@(x) sqrt(sum((x - mean(x, 1)) .^ 2, 1) / size(x, 1)), trialsData, "UniformOutput", false);
-    case "double"
-        channels = 1:size(trialsData, 1);
-        trialsData = trialsData(~ismember(channels, chs2Ignore), :);
-        gfp = sqrt(sum((trialsData - mean(trialsData, 1)) .^ 2, 1) / size(trialsData, 1));
+switch class(data)
+    case 'cell' % compute GFP for each trial
+        [nch, ~] = mu.checkdata(data);
+        data = cat(3, data{:}); % [nch x nsample x ntrial]
+
+        channels = setdiff(1:nch, chs2Ignore);
+        nchValid = numel(channels);
+        data = data(channels, :, :);
+
+        gfp = squeeze(sqrt(sum((data - mean(data, 1)) .^ 2, 1) / nchValid))'; % [ntrial × nsample]
+
+    case {'double', 'single'} % compute GFP for ERP
+        nch = size(data, 1);
+        channels = setdiff(1:nch, chs2Ignore);
+        nchValid = numel(channels);
+        data = data(channels, :);
+        gfp = sqrt(sum((data - mean(data, 1)) .^ 2, 1) / nchValid); % [1 x nsample]
+
     otherwise
-        error("Invalid data type");
+        error("mu_GFP:InvalidDataType", "Invalid data type. Must be cell array or numeric matrix.");
 end
 
 return;
