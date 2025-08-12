@@ -23,6 +23,10 @@ ChannelsMark = mIp.Results.ChannelsMark;
 MarkerSize0 = mIp.Results.MarkerSize0;
 MarkerSize = mIp.Results.MarkerSize;
 
+Fig = get(ax, "Parent");
+fontSize = get(Fig, "DefaultAxesFontSize");
+titleFontSize = get(Fig, "DefaultAxesTitleFontSize");
+
 chs2Plot = EEGPos.channels(~ismember(EEGPos.channels, EEGPos.ignore))';
 
 if MarkerSize0 ~= 0
@@ -67,6 +71,10 @@ end
 axes(ax); % set as current axes
 topoplot(data, EEGPos.locs, params{:});
 % set(findobj(ax, "Type", "Patch"), "FaceColor", "w");
+
+% reset fontsize
+set(0, "DefaultAxesFontSize", fontSize);
+set(0, "DefaultAxesTitleFontSize", titleFontSize);
 
 return;
 end

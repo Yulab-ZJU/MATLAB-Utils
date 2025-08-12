@@ -1,7 +1,7 @@
 function [A, f, phase] = fft(X, fs, varargin)
 % FFT Compute single-sided amplitude and phase spectrum of input data
 %
-%   [A, f, phase] = fft_single(X, fs, N, dim, 'foi', foi)
+%   [A, f, phase] = mu.fft(X, fs, N, dim, 'foi', foi)
 %
 % INPUTS:
 %   X   - Input data (vector, matrix, or N-D array)

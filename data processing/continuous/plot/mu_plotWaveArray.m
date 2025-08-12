@@ -26,7 +26,7 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %        numel(Channels)<prod(GridSize) is okay. The last several subplots
 %        are hided. numel(Channels)>prod(GridSize) reports an error.
 %
-%   - 'LineWidth': General line width setting (default=1.5)
+%   - 'LineWidth': General line width setting (default=1)
 %
 %   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
@@ -44,7 +44,7 @@ mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel',
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("paddings", [.01, .03, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("LineWidth", 1.5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
+mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.parse(chData, window, varargin{:});
 
 GridSize = mIp.Results.GridSize;

@@ -35,7 +35,7 @@
             {"name": "Channels", "kind": "namevalue", "type": ["numeric"]},
             {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .03, .01, .05]"},
             {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1.5"}
+            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1"}
         ]
     },
 

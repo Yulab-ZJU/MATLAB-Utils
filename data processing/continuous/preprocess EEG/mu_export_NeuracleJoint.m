@@ -98,6 +98,7 @@ opts.EEGPos = EEGPos_Neuracle64();
 %% Preprocess and save
 % Batch
 for sIndex = 1:length(SUBJECTs)
+    disp(['Current subject: ', SUBJECTs{sIndex}]);
     DATAPATHsTemp = DATAPATHs(strcmp(SUBJECTsAll, SUBJECTs{sIndex}));
     [~, ~, pID_temp] = cellfun(@(x) mu.getlastpath(x, 1), DATAPATHsTemp, "UniformOutput", false);
 
