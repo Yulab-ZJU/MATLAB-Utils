@@ -248,8 +248,6 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu_cbpt_GFP` Performs cluster-based permutation test on global field power (GFP) data, shuffling at trial level. Use `mu_GFP` to compute GFP with trial data.
 
-#### 3.9
-
 ------
 
 ### 4. stimulus generation
@@ -284,7 +282,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`validateinput` Loops input until validation passes.
 
-​	`mu.msgbox` Creates a message box.
+
 
 ​	`colorpicker` Picks color from screen.
 
