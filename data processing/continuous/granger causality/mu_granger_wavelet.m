@@ -54,7 +54,7 @@ if nperm > 1
         % Delete this file for randomized permutation order
         load(fullfile(fileparts(mfilename("fullpath")), "private", "randord.mat"), "randord");
         if size(randord, 1) ~= nperm || size(randord, 2) ~= nTrial
-            ME = MException('mGrangerWavelet:SizeNotMatch', ...
+            ME = MException('mu_granger_wavelet:SizeNotMatch', ...
                             'Size of random order matrix does not match size of data');
             throw(ME);
         end
