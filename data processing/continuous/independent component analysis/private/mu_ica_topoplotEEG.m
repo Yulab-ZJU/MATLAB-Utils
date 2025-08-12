@@ -19,7 +19,7 @@ for rIndex = 1:pltsz(1)
 
         ax = mu.subplot(Fig, pltsz(1), pltsz(2), ICNum, "shape", "square-min", "margins", margins, "paddings", paddings);
         topoplot(topo(:, ICNum), EEGPos.locs);
-        title(ax, ['IC ', num2str(ICNum)], "FontSize", titleFontSize, "FontWeight", "bold");
+        title(ax, ['IC ', num2str(ICNum)], "FontSize", fontSize * titleFontSize, "FontWeight", "bold");
         colorbar;
     end
 
