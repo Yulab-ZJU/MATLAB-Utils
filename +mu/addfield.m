@@ -9,7 +9,7 @@ function s = addfield(s, fName, fVal)
 % For numeric matrix fVal: assign row-wise to each struct.
 
 arguments
-    s (1,:) struct
+    s struct {mustBeVector}
     fName {mustBeTextScalar}
     fVal {mustBeNonempty}
 end
@@ -27,7 +27,7 @@ end
 if iscell(fVal)
     assert(numel(fVal) == n, 'Length of cell fVal must equal number of structs.');
 elseif isnumeric(fVal)
-    assert(size(fVal,1) == n, 'Row count of numeric fVal must equal number of structs.');
+    assert(size(fVal, 1) == n, 'Row count of numeric fVal must equal number of structs.');
 else
     error('fVal must be a cell array or numeric matrix.');
 end
@@ -37,7 +37,7 @@ if iscell(fVal)
     [s.(fName)] = fVal{:};
 else
     % Split numeric matrix rows into comma separated list
-    valCell = mat2cell(fVal, ones(1,n), size(fVal,2));
+    valCell = mat2cell(fVal, ones(n, 1), size(fVal, 2));
     [s.(fName)] = valCell{:};
 end
 

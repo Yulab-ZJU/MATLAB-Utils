@@ -96,7 +96,7 @@ while ~any(strcmpi(k, {'y', ''}))
     else
         FigWave = mu_plotWaveArray(struct("chMean", mu.calchMean(temp), "chErr", mu.calchStd(temp)), windowICA, "GridSize", topoSize);
     end
-    mu.addTitle(FigWave, "reconstruct");
+    mu.addTitle(FigWave, "Reconstruct");
     mu.scaleAxes(FigWave, "y", "on", "symOpts", "max", "autoTh", [0, 1]);
 
     k = validateinput('Press Y or Enter to continue or N to reselect ICs: ', @(x) isempty(x) || any(validatestring(x, {'y', 'n', 'N', 'Y', ''})), 's');
