@@ -43,7 +43,7 @@ mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, '
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("paddings", [.01, .03, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("paddings", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.parse(chData, window, varargin{:});
 
@@ -53,11 +53,11 @@ defaultLineWidth = mIp.Results.LineWidth;
 margins = mIp.Results.margins;
 paddings = mIp.Results.paddings;
 
+% validate
 chData = chData(:);
-if ~isfield(chData, "color")
-    chData = mu.addfield(chData, "color", num2cell(lines(numel(chData)), 2));
-end
-nch = size(chData(1).chMean, 1);
+ngroup = numel(chData);
+[nch, nsample] = mu.checkdata({chData.chMean});
+t = linspace(window(1), window(2), nsample);
 
 % grid size and channel map
 if isempty(GridSize)
@@ -75,6 +75,25 @@ else
     end
 end
 Channels(Channels > nch) = nan;
+
+% colors
+if ~isfield(chData, "color")
+    chData = mu.addfield(chData, "color", num2cell(lines(ngroup), 2));
+end
+[errColor, errAlpha] = deal(cell(ngroup, 1));
+for gIndex = 1:ngroup
+    color = validatecolor(chData(gIndex).color);
+    hsi = rgb2hsv(color);
+    if hsi(2) == 0 % gray or black
+        hsi(3) = min([1.1 * hsi(3), 0.9]);
+    else
+        hsi(2) = 0.7 * hsi(2);
+    end
+    errColor{gIndex} = mu.getor(chData(gIndex), "errColor", hsv2rgb(hsi));
+    errAlpha{gIndex} = mu.getor(chData(gIndex), "errAlpha", 0.5);
+end
+chData = mu.addfield(chData, "errColor", errColor);
+chData = mu.addfield(chData, "errAlpha", errAlpha);
 
 % plot
 Fig = figure("WindowState", "maximized");
@@ -94,51 +113,24 @@ for rIndex = 1:GridSize(1)
         for gIndex = 1:length(chData)
             chMean = chData(gIndex).chMean;
             chErr = mu.getor(chData(gIndex), "chErr");
-            t = linspace(window(1), window(2), size(chMean, 2));
 
             color = validatecolor(chData(gIndex).color);
-            hsi = rgb2hsv(color);
-            if hsi(2) == 0 % gray or black
-                hsi(3) = min([1.1 * hsi(3), 0.9]);
-            else
-                hsi(2) = 0.7 * hsi(2);
-            end
-            errColor = mu.getor(chData(gIndex), "errColor", hsv2rgb(hsi));
-            errAlpha = mu.getor(chData(gIndex), "errAlpha", 0.5);
+            errColor = chData(gIndex).errColor;
+            errAlpha = chData(gIndex).errAlpha;
 
             if ~isempty(chErr)
                 y1 = chMean(ch, :) + chErr(ch, :);
                 y2 = chMean(ch, :) - chErr(ch, :);
-                eb = fill(ax, [t fliplr(t)], [y1 fliplr(y2)], errColor, 'edgealpha', 0, 'facealpha', errAlpha);
-                mu.setLegendOff(eb);
+                fill(ax, [t, fliplr(t)], [y1, fliplr(y2)], errColor, 'edgealpha', 0, 'facealpha', errAlpha);
             end
 
-            chData(gIndex).legend = string(mu.getor(chData(gIndex), "legend", []));
-            LineWidth = mu.getor(chData(gIndex), "lineWidth", defaultLineWidth);
-            if ~isempty(chData(gIndex).legend)
-                ltemp = plot(ax, t, chMean(ch, :), "Color", color, "LineWidth", LineWidth, "DisplayName", chData(gIndex).legend);
-            else
-                ltemp = plot(ax, t, chMean(ch, :), "Color", color, "LineWidth", LineWidth);
-            end
-
+            plot(ax, t, chMean(ch, :), "Color", color, "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
         end
 
         xlim(ax, window);
         title(ax, ['CH ', num2str(ch)]);
 
-        if (rIndex == 1 && cIndex == 1) && ~isempty([chData.legend])
-            legend(ax, "show");
-
-            if isempty(chData(gIndex).legend)
-                mu.setLegendOff(ltemp);
-            end
-
-        else
-            legend(ax, "hide");
-        end
-
         if ~mod(((rIndex - 1) * GridSize(2) + cIndex - 1), GridSize(2)) == 0
-            yticks(ax, []);
             yticklabels(ax, '');
         end
 
@@ -150,7 +142,23 @@ for rIndex = 1:GridSize(1)
 
 end
 
-mu.scaleAxes(Fig, "y", "on", "autoTh", [0, 1]);
+mu.scaleAxes(Fig, "y");
+
+% legends
+if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
+    ax = mu.subplot(1, 1, 1, "paddings", zeros(1, 4), "margins", zeros(1, 4));
+    for gIndex = 1:ngroup
+        if isempty(chData(gIndex).legend)
+            continue;
+        end
+        legendHandles(gIndex) = line(ax, nan, nan, ...
+                                     "Color", chData(gIndex).color, ...
+                                     "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
+    end
+    idx = isgraphics(legendHandles);
+    legend(ax, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');
+    set(ax, "Visible", "off");
+end
 
 if nargout == 1
     varargout{1} = Fig;

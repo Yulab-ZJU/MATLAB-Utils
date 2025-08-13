@@ -20,7 +20,7 @@ function varargout = scaleAxes(varargin)
 %                  replaced by cutoffRange.
 %     symOpt: symmetrical option - "min" or "max"
 %     uiOpt: "show" or "hide", call a UI control for scaling (default="hide")
-%     ignoreInvisible: if set true, invisible axes in the target figure
+%     IgnoreInvisible: if set true, invisible axes in the target figure
 %                      will be excluded from scaling (default=true)
 %     autoTh: quantiles of range for auto scaling (default=[0.01,0.99] for 
 %             "c" scaling and [0,1] for "y" scaling)
@@ -54,7 +54,7 @@ mIp.addOptional("symOpts0", [], @(x) any(validatestring(x, {'none', 'min', 'max'
 mIp.addParameter("cutoffRange", [], @(x) validateattributes(x, 'numeric', {'2d', 'increasing'}));
 mIp.addParameter("symOpt", [], @(x) any(validatestring(x, {'none', 'min', 'max', 'positive', 'negative'})));
 mIp.addParameter("uiOpt", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
-mIp.addParameter("ignoreInvisible", true, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("IgnoreInvisible", true, @(x) isscalar(x) && islogical(x));
 mIp.addParameter("autoTh", [], @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'real', '<=' 1, '>=', 0}));
 mIp.parse(FigsOrAxes, varargin{:});
 
@@ -63,7 +63,7 @@ axisRange = mIp.Results.axisRange;
 cutoffRange = mu.getor(mIp.Results, "cutoffRange0", mIp.Results.cutoffRange, true);
 symOpt = mu.getor(mIp.Results, "symOpts0", mIp.Results.symOpt, true);
 uiOpt = mIp.Results.uiOpt;
-ignoreInvisible = mIp.Results.ignoreInvisible;
+IgnoreInvisible = mIp.Results.IgnoreInvisible;
 autoTh = mIp.Results.autoTh;
 
 if strcmpi(axisName, "x")
@@ -94,12 +94,12 @@ else
     allAxes = FigsOrAxes(:);
 end
 
-if ignoreInvisible
+if IgnoreInvisible
     % exclude invisible axes
     allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
 
     if isempty(allAxes)
-        error("No visible axes found. Please set [ignoreInvisible] to false");
+        error("No visible axes found. Please set [IgnoreInvisible] to false");
     end
 end
 
@@ -245,14 +245,10 @@ if ~isempty(symOpt) && ~strcmpi(symOpt, "none")
 end
 
 %% Set axis range
-for aIndex = 1:length(allAxes)
-
-    if length(unique(axisRange)) > 1
-        set(allAxes(aIndex), axisLimStr, axisRange);
-    else
-        warning('No suitable range found.');
-    end
-
+if length(unique(axisRange)) > 1
+    set(allAxes, axisLimStr, axisRange);
+else
+    warning('No suitable range found.');
 end
 
 %% Call scaleAxes UI
