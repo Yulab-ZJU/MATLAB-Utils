@@ -33,22 +33,22 @@ mIp = inputParser;
 mIp.addRequired("ax", @(x) isgraphics(x, "axes"));
 mIp.addRequired("data", @(x) isnumeric(x) && isvector(x));
 mIp.addRequired("topoSize", @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive', 'integer'}));
-mIp.addParameter("contourOpt", "on", @(x) any(validatestring(x, {'on', 'off'})));
-mIp.addParameter("resolution", 5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
-mIp.addParameter("contourVal", [], @(x) validateattributes(x, {'numeric', 'logical'}, {'vector'}));
-mIp.addParameter("contourTh", 0.6, @(x) validateattributes(x, {'numeric'}, {'scalar', 'real'}));
-mIp.addParameter("marker", "none", @(x) true);
-mIp.addParameter("markerSize", 36, @(x) validateattributes(x, {'numeric'}, {'positive', 'scalar', 'real'}));
+mIp.addParameter("ContourOpt", "on");
+mIp.addParameter("Resolution", 5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
+mIp.addParameter("ContourVal", [], @(x) validateattributes(x, {'numeric', 'logical'}, {'vector'}));
+mIp.addParameter("ContourTh", 0.6, @(x) validateattributes(x, {'numeric'}, {'scalar', 'real'}));
+mIp.addParameter("Marker", "none");
+mIp.addParameter("MarkerSize", 36, @(x) validateattributes(x, {'numeric'}, {'positive', 'scalar', 'real'}));
 mIp.parse(ax, varargin{:})
 
 data = mIp.Results.data;
 topoSize = mIp.Results.topoSize;
-contourOpt = mIp.Results.contourOpt;
-N = mIp.Results.resolution;
-contourVal = mIp.Results.contourVal;
-contourTh = mIp.Results.contourTh;
-marker = mIp.Results.marker;
-markerSize = mIp.Results.markerSize;
+ContourOpt = validatestring(mIp.Results.ContourOpt, {'on', 'off'});
+N = mIp.Results.Resolution;
+ContourVal = mIp.Results.ContourVal;
+ContourTh = mIp.Results.ContourTh;
+Marker = mIp.Results.Marker;
+MarkerSize = mIp.Results.MarkerSize;
 
 if numel(data) ~= prod(topoSize)
     error("numel(data) ~= prod(topoSize)");
@@ -68,40 +68,40 @@ Y = linspace(0, topoSize(2) + 1, size(C, 2));
 imagesc(ax, "XData", X, "YData", Y, "CData", C);
 cRange = get(ax, "CLim");
 
-if strcmpi(contourOpt, "on")
+if strcmpi(ContourOpt, "on")
     hold on;
 
-    if isempty(contourVal)
+    if isempty(ContourVal)
         % contour option may not work with linear array
         try
-            contour(ax, X, Y, C, "LineColor", "k");
+            contour(ax, X, Y, C, "LineColor", [0, 0, 0]);
         end
 
     else
 
-        if isnumeric(contourVal)
+        if isnumeric(ContourVal)
             % for each contour level
-            for index = 1:numel(contourVal)
-                contour(ax, X, Y, C, [contourVal(index), contourVal(index)], "LineColor", "k", "LineWidth", 1);
+            for index = 1:numel(ContourVal)
+                contour(ax, X, Y, C, [ContourVal(index), ContourVal(index)], "LineColor", [0, 0, 0], "LineWidth", 1);
             end
 
-        elseif islogical(contourVal)
+        elseif islogical(ContourVal)
 
-            if all(contourVal)
+            if all(ContourVal)
                 disp('Contour mask all true');
-            elseif all(~contourVal)
+            elseif all(~ContourVal)
                 disp('Contour mask all false');
             else
-                C = flipud(reshape(double(contourVal), topoSize)');
+                C = flipud(reshape(double(ContourVal), topoSize)');
                 C = padarray(C, [1, 1], "replicate");
                 C = interp2(C, N);
                 C = imgaussfilt(C, 8);
-                contour(ax, X, Y, C, [contourTh, contourTh], "LineColor", "k", "LineWidth", 1);
+                contour(ax, X, Y, C, [ContourTh, ContourTh], "LineColor", "k", "LineWidth", 1);
             end
 
-            if ~strcmpi(marker, "none")
-                [ytemp, xtemp] = find(flipud(reshape(contourVal, topoSize)'));
-                scatter(ax, xtemp, ytemp, markerSize, "black", "Marker", marker, "LineWidth", 2);
+            if ~strcmpi(Marker, "none")
+                [ytemp, xtemp] = find(flipud(reshape(ContourVal, topoSize)'));
+                scatter(ax, xtemp, ytemp, MarkerSize, "black", "Marker", Marker, "LineWidth", 2);
             end
 
         end

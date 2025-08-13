@@ -369,12 +369,12 @@
                 ],
                 [
                     {"name": "FigOrAxes", "kind": "required", "type": ["@(args) all(isgraphics(args))"]},
-                    {"name": "lines", "kind": "ordered", "type": ["struct"]}
+                    {"name": "Lines", "kind": "ordered", "type": ["struct"]}
                 ]
             ]},
             {"name": "ConstantLine", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "use xline/yline to create vertical/horizontal lines"},
             {"name": "Layer", "kind": "namevalue", "type": ["choices={'top', 'bottom'}"]},
-            {"name": "ignoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]}
+            {"name": "IgnoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]}
         ],
         "description": "Add lines to a all subplots in a figure or to specific axes"
     },
@@ -555,7 +555,7 @@
             {"name": "cutoffRange", "kind": "namevalue", "type": [["numeric", "numel=2"], ["@(args) isempty(args)"]]},
             {"name": "symOpt", "kind": "namevalue", "type": ["choices = {'none', 'min', 'max', 'positive', 'negative'}"], "purpose": "symmetrical option"},
             {"name": "uiOpt", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "call an App for scaling"},
-            {"name": "ignoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]},
+            {"name": "IgnoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]},
             {"name": "autoTh", "kind": "namevalue", "type": ["numel=2", "numeric"], "purpose": "quantiles of range for auto scaling (default:[0.01,0.99])"}
         ],
         "description": "Scale axes of a figure or axes with various options"

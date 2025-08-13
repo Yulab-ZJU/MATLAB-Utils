@@ -1,6 +1,6 @@
 # Initializing MATLAB Utils
 
-To initialize toolbox, run `/initMATLABUtils.m`, which copies `/docs/functionSignatures.json` to `/resources/`.
+To initialize toolbox, run `/initMATLABUtils.m`, which adds necessary paths.
 
 To stay up-to-date with the latest version, please use Git for version management.:
 
@@ -64,7 +64,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu_topoplotArray` Plots topographic distribution of specified values on an electrode array.
 
-​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.\
+​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.
 
 ​	`mu_plotTFR` Plots multi-channel time-frequency responses.
 
@@ -178,7 +178,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu.resampledata` Resamples data with a new sample rate.
 
-​	`mu.shuffledata` Shuffle N-D matrix A along specific dimension, with each slice shuffled independently. It is useful when performing permutation test for correlation. For slice shuffled with the same order, use `shuffle`.
+​	`mu.shuffledata` Shuffle N-D matrix A along specific dimension, with each slice shuffled independently. It is useful when performing permutation test for correlation. For slice shuffled with the same order, use `shuffle` (in EEGLAB).
 
 ##### Preprocessing
 
@@ -332,4 +332,4 @@ Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefu
 
 ​	`KbGet` Gets keyboard press within a time window.
 
-​	`playAudio` Plays audio from a signal or file under ptb-3 control.
+​	`playAudio` Plays audio from a signal or file under PTB-3 control.

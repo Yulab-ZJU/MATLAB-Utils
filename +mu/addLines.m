@@ -2,7 +2,7 @@ function addLines(varargin)
 % Description: add lines to all subplots in figures
 % Input:
 %     FigsOrAxes: figure object array or axes object array
-%     lines: a struct array of [X],          % default = []
+%     Lines: a struct array of [X],          % default = []
 %                              [Y],          % default = []
 %                              [color],      % default = "k"
 %                              [width],      % default = 1
@@ -18,7 +18,7 @@ function addLines(varargin)
 %     ConstantLine: if set true (default), use xline/yline to create
 %                   vertical/horizontal lines when [X] or [Y] is left empty.
 %     Layer: 'top' (default) or 'bottom', layer to plot lines.
-%     ignoreInvisible: if set true, invisible axes in the target figure
+%     IgnoreInvisible: if set true, invisible axes in the target figure
 %                      will be excluded from drawing (default=true)
 % Notice:
 %     If [X] or [Y] is left empty, then best x/y range will be used.
@@ -41,20 +41,20 @@ end
 
 mIp = inputParser;
 mIp.addRequired("FigsOrAxes", @(x) all(isgraphics(x)));
-mIp.addOptional("lines", [], @(x) isempty(x) || isstruct(x));
+mIp.addOptional("Lines", [], @(x) isempty(x) || isstruct(x));
 mIp.addParameter("ConstantLine", true, @(x) islogical(x) && isscalar(x));
 mIp.addParameter("Layer", "top", @(x) ischar(x) || isstring(x));
-mIp.addParameter("ignoreInvisible", true, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("IgnoreInvisible", true, @(x) isscalar(x) && islogical(x));
 mIp.parse(FigsOrAxes, varargin{:});
 
-lines = mIp.Results.lines;
+Lines = mIp.Results.Lines;
 ConstantLineOpt = mIp.Results.ConstantLine;
 Layer = validatestring(mIp.Results.Layer, {'top', 'bottom'});
-ignoreInvisible = mIp.Results.ignoreInvisible;
+IgnoreInvisible = mIp.Results.IgnoreInvisible;
 
-if isempty(lines)
-    lines.X = [];
-    lines.Y = [];
+if isempty(Lines)
+    Lines.X = [];
+    Lines.Y = [];
 end
 
 if strcmp(class(FigsOrAxes), "matlab.ui.Figure") || strcmp(class(FigsOrAxes), "matlab.graphics.Graphics")
@@ -63,38 +63,38 @@ else
     allAxes = FigsOrAxes;
 end
 
-if ignoreInvisible
+if IgnoreInvisible
     % exclude invisible axes
     allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
 end
 
 %% Plot lines
-for lIndex = 1:length(lines)
+for lIndex = 1:length(Lines)
 
     for aIndex = 1:length(allAxes)
         hold(allAxes(aIndex), "on");
-        X = mu.getor(lines(lIndex), "X");
-        Y = mu.getor(lines(lIndex), "Y");
-        legendStr  = mu.getor(lines(lIndex), "legend");
-        color      = mu.getor(lines(lIndex), "color",      mu.getor(lines(1), "color", "k"),     true);
-        lineWidth  = mu.getor(lines(lIndex), "width",      mu.getor(lines(1), "width", 1),       true);
-        lineStyle  = mu.getor(lines(lIndex), "style",      mu.getor(lines(1), "style", "--"),    true);
-        marker     = mu.getor(lines(lIndex), "marker",     mu.getor(lines(1), "marker", "none"), true);
-        markerSize = mu.getor(lines(lIndex), "markerSize", mu.getor(lines(1), "markerSize", 6),  true);
+        X = mu.getor(Lines(lIndex), "X");
+        Y = mu.getor(Lines(lIndex), "Y");
+        legendStr  = mu.getor(Lines(lIndex), "legend");
+        color      = mu.getor(Lines(lIndex), "color",      mu.getor(Lines(1), "color", "k"),     true);
+        lineWidth  = mu.getor(Lines(lIndex), "width",      mu.getor(Lines(1), "width", 1),       true);
+        lineStyle  = mu.getor(Lines(lIndex), "style",      mu.getor(Lines(1), "style", "--"),    true);
+        marker     = mu.getor(Lines(lIndex), "marker",     mu.getor(Lines(1), "marker", "none"), true);
+        markerSize = mu.getor(Lines(lIndex), "markerSize", mu.getor(Lines(1), "markerSize", 6),  true);
         % for constant line
-        label                    = mu.getor(lines(lIndex), "label");
-        labelHorizontalAlignment = mu.getor(lines(lIndex), "labelHorizontalAlignment", mu.getor(lines(1), "labelHorizontalAlignment", "right"), true);
-        labelVerticalAlignment   = mu.getor(lines(lIndex), "labelVerticalAlignment",   mu.getor(lines(1), "labelVerticalAlignment", "top"),     true);
-        labelOrientation         = mu.getor(lines(lIndex), "labelOrientation",         mu.getor(lines(1), "labelOrientation", "aligned"),       true);
+        label                    = mu.getor(Lines(lIndex), "label");
+        labelHorizontalAlignment = mu.getor(Lines(lIndex), "labelHorizontalAlignment", mu.getor(Lines(1), "labelHorizontalAlignment", "right"), true);
+        labelVerticalAlignment   = mu.getor(Lines(lIndex), "labelVerticalAlignment",   mu.getor(Lines(1), "labelVerticalAlignment", "top"),     true);
+        labelOrientation         = mu.getor(Lines(lIndex), "labelOrientation",         mu.getor(Lines(1), "labelOrientation", "aligned"),       true);
 
         % other namevalue pairs
-        allParams = string(fieldnames(lines(lIndex)));
+        allParams = string(fieldnames(Lines(lIndex)));
         builtinParams = ["X", "Y", "color", "width", "style", "marker", "markerSize", "legend", "label", ...
                          "labelHorizontalAlignment", "labelVerticalAlignment", "labelOrientation"];
         otherParams = allParams(~contains(allParams, builtinParams));
         params = {};
         for pIndex = 1:length(otherParams)
-            params = [params, cellstr(otherParams{pIndex}), {lines(lIndex).(otherParams{pIndex})}];
+            params = [params, cellstr(otherParams{pIndex}), {Lines(lIndex).(otherParams{pIndex})}];
         end
 
         if isempty(X) && isscalar(Y) % yline
