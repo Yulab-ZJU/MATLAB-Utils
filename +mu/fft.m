@@ -43,16 +43,16 @@ end
 % ---- Determine FFT length ----
 if isempty(N)
     N = size(X, dim);
-elseif ischar(N) && strcmpi(N, 'nextpow2')
-    N = 2^nextpow2(size(X, dim));
-elseif ~(isscalar(N) && N > 0 && mod(N,1) == 0)
-    error('Invalid N value');
+elseif (ischar(N) || isstring(N)) && strcmpi(N, 'nextpow2')
+    N = 2 ^ nextpow2(size(X, dim));
+else
+    validateattributes(N, 'numeric', {'scalar', 'integer', 'positive'});
 end
 
 % ---- Ensure even length ----
-N = floor(N/2)*2;
+N = floor(N / 2) * 2;
 
-% ---- Compute FFT ----
+% ---- Compute N-point FFT ----
 Y = fft(X, N, dim);
 
 % ---- Single-sided ----
