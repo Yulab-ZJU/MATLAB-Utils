@@ -14,7 +14,8 @@ set(m, "MenuSelectedFcn", {@mMenu, Fig});
 for index = 1:3
     info.index = index;
     info.block = ['Block-', num2str(index)];
-    plot(ax, dataAll(index, :), "DeleteFcn", {@mDeleteFcn, Fig}, "UserData", info, "ButtonDownFcn", @mBtnDownFcn);
+    plot(ax, dataAll(index, :), "LineWidth", 2, ...
+         "DeleteFcn", {@mDeleteFcn, Fig}, "UserData", info, "ButtonDownFcn", @mBtnDownFcn);
     hold on;
     grid on;
 end

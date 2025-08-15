@@ -12,6 +12,11 @@ for rIndex = 1:pltsz(1)
 
     for cIndex = 1:pltsz(2)
         ICNum = sub2ind(pltsz, cIndex, rIndex);
+
+        if ICNum > size(topo, 2)
+            break;
+        end
+
         ax = mu.subplot(Fig, pltsz(1), pltsz(2), ICNum, "shape", "square-min", "margins", margins, "paddings", paddings);
         mu_topoplotArray(ax, topo(:, ICNum), topoSize);
         [~, idx] = max(abs(topo(:, ICNum)));

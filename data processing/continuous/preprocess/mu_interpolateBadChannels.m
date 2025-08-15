@@ -1,6 +1,6 @@
 function trialsData = mu_interpolateBadChannels(trialsData, badChs, neighbours)
 % Description: Interpolate data of bad channels by averaging neighbour channels
-% Input parameter [neighbours]: see mu_prepareNeighbours and ft_prepare_neighbours
+% Input parameter [neighbours]: see mu_prepareNeighboursArray and ft_prepare_neighbours
 
 neighbch = {neighbours.neighbch}';
 

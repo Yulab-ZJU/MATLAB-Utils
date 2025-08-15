@@ -87,8 +87,8 @@ else
             mu_plotWaveArray(struct("chMean", chMean, "chErr", chStd), [0, 1]);
             mu.scaleAxes("y", "symOpts", "max", "uiOpt", "show");
 
-            %%% good trials (mean, red) against bad trials (single, grey)
-            % previewRawWave(trialsData, badtrialIdx, V_All);
+            % good trials (mean, red) against bad trials (single, grey)
+            previewRawWave(trialsData, badtrialIdx, V_All);
 
             % histogram
             temp = mu.reslice(tIdx, 1);
@@ -178,14 +178,16 @@ end
 %% 
 function previewRawWave(trialsData, badtrialIdx, V)
     % Preview good trials (mean, red) against bad trials (single, grey)
+
+    [nch, ~] = mu.checkdata(trialsData);
     temp = find(badtrialIdx);
+    chData = struct();
     
     if ~isempty(temp) || all(badtrialIdx)
-        
+
         for index = 1:length(temp)
             chData(index).chMean = trialsData{temp(index)};
             chData(index).color = [200, 200, 200] / 255;
-            chData(index).skipChs = find(V == 0);
         end
     
         chData(index + 1).chMean = mu.calchMean(trialsData(~badtrialIdx));
@@ -195,7 +197,7 @@ function previewRawWave(trialsData, badtrialIdx, V)
         chData.color = 'r';
     end
     
-    Fig = mu_plotWaveArray(chData, [0, 1]);
+    Fig = mu_plotWaveArray(chData, [0, 1], "Channels", setdiff(1:nch, find(V == 0)));
     mu.scaleAxes(Fig, "y", "cutoffRange", [-200, 200], "symOpts", "max", "uiOpt", "show");
     return;
 end

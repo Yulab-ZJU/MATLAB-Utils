@@ -14,7 +14,7 @@ for rIndex = 1:pltsz(1)
         ICNum = sub2ind(flip(pltsz), cIndex, rIndex);
 
         if ICNum > size(topo, 2)
-            continue;
+            break;
         end
 
         ax = mu.subplot(Fig, pltsz(1), pltsz(2), ICNum, "shape", "square-min", "margins", margins, "paddings", paddings);
