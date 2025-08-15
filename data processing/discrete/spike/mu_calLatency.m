@@ -12,6 +12,9 @@ function [latency, P, spikes] = mu_calLatency(trials, windowOnset, windowBase, t
 
 narginchk(3, 6);
 
+validateattributes(windowOnset, 'numeric', {'numel', 2, 'increasing'});
+validateattributes(windowBase, 'numeric', {'numel', 2, 'increasing'});
+
 if nargin < 4
     th = 1e-6;
 end
@@ -24,26 +27,35 @@ if nargin < 6
     tTh = 50;
 end
 
+validateattributes(th, 'numeric', {'scalar', 'positive', '<', 1});
+validateattributes(nStart, 'numeric', {'scalar', 'positive', 'integer'});
+validateattributes(tTh, 'numeric', {'scalar', 'positive'});
+
 trials = reshape(trials, [numel(trials), 1]);
 switch class(trials)
     case "cell"
+        if any(~cellfun(@isvector, trials))
+            error("All trial spike data should be a vector. Please select spike data from one cluster.");
+        end
+        
         temp = cellfun(@(x) x(:), trials, "UniformOutput", false);
     case "struct"
+        if any(arrayfun(@(x) ~isvector(x.spike), trials))
+            error("All trial spike data should be a vector. Please select spike data from one cluster.");
+        end
+
         temp = arrayfun(@(x) x.spike(:), trials, "UniformOutput", false);
 end
-
 spikes = cat(1, temp{:});
 sprate = mean(mu_calFR(trials, windowBase));
 spikes = sort(spikes(spikes >= windowOnset(1) & spikes <= windowOnset(2)), "ascend");
 
-n = nStart:length(spikes);
+n = nStart:numel(spikes);
 spikes = spikes(nStart:end);
 lambda = numel(trials) * sprate * spikes / 1000;
 
-P = zeros(length(n), 1); % P(n>=k)=1-P(n<k)
-for index = 1:length(n)
-    P(index) = 1 - poisscdf(n(index) - 1, lambda(index));
-end
+% Vectorized calculation of Poisson cumulative probability
+P = 1 - poisscdf(n' - 1, lambda);
 
 latency = spikes(find(P < th & spikes < tTh, 1));
 return;
