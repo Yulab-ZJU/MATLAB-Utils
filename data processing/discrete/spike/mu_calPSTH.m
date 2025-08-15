@@ -10,25 +10,28 @@ edges = windowPSTH(1) + binSize / 2:step:windowPSTH(2) - binSize / 2; % ms
 trials = trials(:);
 
 switch class(trials)
-    case "cell"
-        if any(cellfun(@(x) size(x, 2), trials) > 1)
-            trials = cellfun(@(x) x(:, 1), trials, "UniformOutput", false);
+    case 'cell'
+        if any(~cellfun(@isvector, trials))
+            error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
 
         trials = cellfun(@(x) x(:), trials, "UniformOutput", false);
         temp = cat(1, trials{:});
         nTrials = length(trials);
         psth = mu.histcounts(temp, edges, binSize) / (binSize / 1000) / nTrials; % Hz
-    case "struct"
-        temp = arrayfun(@(x) x.spike(:), trials, "UniformOutput", false);
-        psth = mu.histcounts(cat(1, temp{:}), edges, binSize) / (binSize / 1000) / length(trials); % Hz
-    case "double"
-        if isvector(trials)
-            psth = mu.histcounts(trials, edges, binSize) / (binSize / 1000);
-        else
-            error("Invalid trials input");
+    case 'struct'
+        if any(~arrayfun(@isvector, x.spike))
+            error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
 
+        temp = arrayfun(@(x) x.spike(:), trials, "UniformOutput", false);
+        psth = mu.histcounts(cat(1, temp{:}), edges, binSize) / (binSize / 1000) / length(trials); % Hz
+    case {'double', 'single'}
+        if isvector(trials)
+            psth = mu.histcounts(trials, edges, binSize) / (binSize / 1000); % Hz
+        else
+            error("All trial spike data should be a vector. Please select spike data from one cluster.");
+        end
 end
 
 return;
