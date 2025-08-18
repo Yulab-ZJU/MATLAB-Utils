@@ -62,7 +62,7 @@ while 1
         try
             isValid = validateFcn(v);
         catch ME
-            if ~strcmp(ME.identifier, 'MATLAB:maxlhs')
+            if strcmp(ME.identifier, 'MATLAB:maxlhs')
                 try
                     validateFcn(v);
                     isValid = true;
@@ -70,6 +70,8 @@ while 1
                     msg = ME.message;
                     isValid = false;
                 end
+            else
+                isValid = false;
             end
         end
     else
