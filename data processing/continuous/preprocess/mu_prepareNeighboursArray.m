@@ -16,7 +16,7 @@ end
 % neighbours
 A0 = reshape(channels, topoSize);
 A = padarray(A0, [1, 1], 0);
-neighbours = struct("label", cellfun(@(x) num2str(x), num2cell(channels'), 'UniformOutput', false), "neighblabel", cell(numel(A0), 1));
+neighbours = struct("label", arrayfun(@num2str, channels(:), "UniformOutput", false), "neighblabel", numel(channels));
 for index = 1:numel(A0)
     [row, col] = find(A == A0(index));
     temp = A(row - 1:row + 1, col - 1:col + 1);

@@ -22,10 +22,12 @@ for rIndex = 1:pltsz(1)
         [~, idx] = max(abs(topo(:, ICNum)));
         title(ax, ['IC ', num2str(ICNum), ' | max - ', num2str(idx)]);
         mu.scaleAxes(ax, "c", "on", "symOpts", "max");
-        mu.colorbar("Width", 0.005);
+        mu.colorbar("Interval", 0.07, "Width", 0.005);
     end
 
 end
+
+colormap(flipud(slanCM('RdYlBu')));
 
 if nargout == 1
     varargout{1} = Fig;
