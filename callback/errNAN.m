@@ -3,6 +3,6 @@ function varargout = errNAN(err, varargin)
 % identifier — Error identifier
 % message — Error message text
 % index — Linear index into the input arrays at which func threw the error
-varargout = repmat({NaN}, 1, nargout);
+varargout = repmat({nan}, 1, nargout);
 return;
 end
