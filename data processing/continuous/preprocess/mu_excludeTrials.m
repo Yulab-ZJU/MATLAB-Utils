@@ -63,8 +63,8 @@ else
 end
 
 channels = (1:length(goodChIdx))'; % all channels
-nTrial_bad_All = arrayfun(@(x) [num2str(x), '/', num2str(length(trialsData))], V_All, "UniformOutput", false);
-nTrial_bad_Single = arrayfun(@(x) [num2str(x), '/', num2str(length(trialsData))], V, "UniformOutput", false);
+nTrial_bad_All = string(arrayfun(@(x) [num2str(x), '/', num2str(length(trialsData))], V_All, "UniformOutput", false));
+nTrial_bad_Single = string(arrayfun(@(x) [num2str(x), '/', num2str(length(trialsData))], V, "UniformOutput", false));
 mark = repmat("good", [length(channels), 1]);
 mark(~goodChIdx) = "bad";
 disp(table(channels, nTrial_bad_All, nTrial_bad_Single, mark));

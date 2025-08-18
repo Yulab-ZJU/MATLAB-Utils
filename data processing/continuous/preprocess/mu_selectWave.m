@@ -1,56 +1,55 @@
-function trialsData = mu_selectWave(data, fs, segTime, window)
-% Epoching time-series data (vectorized, safe for logical mask indexing)
+function trialsData = mu_selectWave(data, fs, segTime, window, scaleFactor)
+% Segment multi-channel time-series data (e.g., LFP/ECoG/EEG)
 %
 % Inputs:
-%   data      : [nch x ntime] input signal
+%   data      : [nch × ntime] double
 %   fs        : Sampling frequency (Hz)
-%   segTime   : Segmentation time points (ms)
-%   window    : [preEvent, postEvent] window around segTime (ms)
+%   segTime   : [ntrial × 1] event times (ms)
+%   window    : [preEvent, postEvent] (ms)
+%   scaleFactor: optional scaling (default = 1)
 % Output:
-%   trialsData: {ntrial x 1} cell array of extracted windows
+%   trialsData: {ntrial × 1} cell array, each [nch × winLength]
 
-% Convert time values to sample points
-windowSamples = round(window / 1e3 * fs);  % [pre, post] in samples
-segSamples    = round(segTime(:) / 1e3 * fs); % Ensure column vector
+narginchk(4, 5);
+if nargin < 5
+    scaleFactor = 1;
+end
+
+% Convert ms -> samples
+windowSamples = round(window / 1e3 * fs);   % [pre, post]
+segSamples    = round(segTime(:) / 1e3 * fs); 
 
 % Dimensions
-nch       = size(data, 1);
+[nch, ntime] = size(data);
 ntrial    = numel(segSamples);
 winLength = diff(windowSamples) + 1;
 
-% Calculate sample indices for all trials
-allStarts     = segSamples + windowSamples(1);
-sampleIndices = allStarts + (0:winLength - 1); % [ntrial × winLength]
+% Preallocate cell array
+trialsData = cell(ntrial, 1);
 
-% Identify valid samples
-validMask = sampleIndices >= 1 & sampleIndices <= size(data, 2);
-if any(~validMask(:, 1)) || any(~validMask(:, end))
-    warning('Window exceeds data bounds for some segments');
+% Flag for warning
+warned = false;
+
+% Loop over trials
+for k = 1:ntrial
+    startIdx = segSamples(k) + windowSamples(1);
+    stopIdx  = startIdx + winLength - 1;
+
+    % Boundary check
+    if startIdx < 1 || stopIdx > ntime
+        if ~warned
+            warning('Some trials exceed data bounds; out-of-range samples filled with NaN.');
+            warned = true;
+        end
+        tmp = nan(nch, winLength, 'like', data);
+        validRange = max(1, startIdx):min(ntime, stopIdx);
+        tmp(:, validRange - startIdx + 1) = data(:, validRange);
+    else
+        tmp = data(:, startIdx:stopIdx);
+    end
+
+    trialsData{k} = tmp * scaleFactor;
 end
-
-% Preallocate output
-trialsData = nan(nch, winLength, ntrial, 'like', data);
-
-% ===== Vectorized fill =====
-% Expand channel/trial/sample into vectors
-[trialIdx, sampleIdx] = find(validMask); % only valid positions
-chanIdx  = repelem((1:nch).', numel(trialIdx)); % repeat for all channels
-
-% Map to data indices
-srcIdx   = sampleIndices(sub2ind(size(sampleIndices), trialIdx, sampleIdx));
-srcIdx   = repmat(srcIdx, nch, 1);
-
-% Destination indices in trialsData
-dstIdx = sub2ind(size(trialsData), ...
-                 chanIdx, ...
-                 repmat(sampleIdx, nch, 1), ...
-                 repmat(trialIdx, nch, 1));
-
-% Assign in one shot
-trialsData(dstIdx) = data(sub2ind(size(data), chanIdx, srcIdx));
-
-% Convert to cell array [ntrial × 1]
-trialsData = squeeze(mat2cell(trialsData, nch, winLength, ones(ntrial, 1)));
 
 return;
 end
