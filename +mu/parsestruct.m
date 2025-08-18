@@ -1,96 +1,62 @@
 function varargout = parsestruct(S, varargin)
-% Description: Parse struct vector S
+% PARSESTRUCT Parse fields from a struct vector.
 % Usage:
-%     mu.parsestruct(S)
-%     mu.parsestruct(S, sIndex)
-%     mu.parsestruct(S, fieldName1, fieldName2, ...)
-%     mu.parsestruct(S, sIndex, fieldName1, fieldName2, ...)
-%     [varName1, varName2, ...] = mu.parsestruct(...)
-% Input:
-%     S: struct vector or scalar
-%     sIndex: indices of S to parse (only S(sIndex) will be parsed)
-%             If not specified, sIndex=1:length(S).
-%             If numel(sIndex)>1, return vars in column vector.
-%     fieldNames: fieldnames of S to parse (default: parse all)
-% Output:
-%     varNames: variable names to receive S.(fieldNames)
-% Notice:
-%     An error occurs if not all values of S(sIdx).(f) are of the same class
-%     because vertcat(S(sIdx).(f)) does not work.
-% Example:
-%     A(1).a1=1;
-%     A(1).a2=2;
-%     A(1).a3=3;
-%     A(2).a1=11;
-%     A(2).a2=12;
-%     A(2).a3=13;
+%   mu.parsestruct(S)                  % assign all fields to caller workspace
+%   mu.parsestruct(S, 'a', 'b')         % assign selected fields to caller workspace
+%   [A, B] = mu.parsestruct(S, 'a', 'b')  % return outputs
 %
-%     mu.parsestruct(A) returns a1=[1;11] a2=[2;12] a3=[3;13] in workspace
-%     mu.parsestruct(A, 1) returns a1=1 a2=2 a3=3 in workspace
-%     mu.parsestruct(A, "a1") returns a1=[1;11] in workspace
-%     mu.parsestruct(A, 1, "a1") returns a1=1 in workspace
-%     mu.parsestruct(A, 2, "a1") returns a1=11 in workspace
-%     b1=mu.parsestruct(A, "a1") returns b1=[1;11] in workspace (same as b1=vertcat(A.a1))
+% Input:
+%   S: struct vector
+%   varargin: optional list of field names to parse (default: all fields)
+%
+% Output:
+%   varargout: requested fields as output arguments
+%
+% Notice:
+%   If not all field values have compatible types/sizes, outputs are returned as cell arrays.
 
-if isstruct(S)
-    S = S(:); % convert to column vector
-else
-    error("parsestruct(): input [S] should be struct");
-end
+validateattributes(S, {'struct'}, {'vector'});
 
-if nargin > 1
-
-    if isnumeric(varargin{1}) && isvector(varargin{1})
-        sIndex = varargin{1};
-        warning("parsestruct(): input [sIndex] is considered to be redundant and will be removed in a future release");
-        varargin = varargin(2:end);
-    else
-        sIndex = 1:length(S);
-
-        if ~all(cellfun(@(x) isstring(x) || ischar(x), varargin))
-            error("Invalid variable name input");
-        end
-
-    end
-
-else
-    sIndex = 1:length(S);
-end
-
-if ~isempty(varargin) && nargout > 0 && nargout ~= length(varargin)
-    error("The number of output does not match the number of input field names");
-end
-
+% Determine fields to parse
 if isempty(varargin)
-    sField = fieldnames(S);
-
-    for fIndex = 1:length(sField)
-        % add local var to base workspace
-        eval(['assignin(''caller'', ''', sField{fIndex}, ''', vertcat(S(sIndex).', sField{fIndex}, '));']);
-    end
-
+    fieldsToParse = string(fieldnames(S));
 else
-
-    if nargout == 0
-
-        for fIndex = 1:length(varargin)
-            % add local var to base workspace
-            eval(['assignin(''caller'', ''', char(varargin{fIndex}), ''', vertcat(S(sIndex).', char(varargin{fIndex}), '));']);
-        end
-
-    else
-
-        for fIndex = 1:nargout
-            try
-                varargout{fIndex} = vertcat(S(sIndex).(varargin{fIndex}));
-            catch
-                disp("Not all values are of the same type and size. Return in cell.");
-                varargout{fIndex} = {S(sIndex).(varargin{fIndex})}';
-            end
-        end
-
+    fieldsToParse = string(varargin);
+    % validate field names
+    invalid = fieldsToParse(~ismember(fieldsToParse, string(fieldnames(S))));
+    if ~isempty(invalid)
+        error("Invalid field name(s): %s", strjoin(invalid, ", "));
     end
+end
 
+nFields = numel(fieldsToParse);
+
+% Determine output mode
+if nargout > 0
+    % return outputs
+    varargout = cell(1, nFields);
+    for k = 1:nFields
+        try
+            varargout{k} = vertcat(S.(fieldsToParse(k)));
+        catch
+            % incompatible types/sizes -> return as cell array
+            varargout{k} = {S.(fieldsToParse(k))}';
+        end
+    end
+else
+    % assign to caller workspace
+    for k = 1:nFields
+        try
+            if iscolumn(S)
+                val = vertcat(S.(fieldsToParse(k)));
+            else
+                val = horzcat(S.(fieldsToParse(k)));
+            end
+        catch
+            val = {S.(fieldsToParse(k))}';
+        end
+        assignin('caller', fieldsToParse(k), val);
+    end
 end
 
 return;

@@ -28,12 +28,12 @@ mIp = inputParser;
 mIp.addRequired("ax", @(x) isgraphics(x, "axes"));
 mIp.addRequired("rasterData", @isstruct);
 mIp.addOptional("sz", 40, @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive', 'integer'}));
-mIp.addParameter("border", false, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("border", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.parse(ax, varargin{:})
 
 rasterData = mIp.Results.rasterData;
 sz = mIp.Results.sz;
-border = mIp.Results.border;
+border = mu.OptionState.create(mIp.Results.border);
 
 nTrials = 0;
 hold(ax, "on");
@@ -67,7 +67,7 @@ for index = 1:numel(rasterData)
         mu.addLines(ax, lines, "ConstantLine", false);
     end
 
-    if border
+    if border.toLogical
         mu.addLines(ax, struct("Y", max(Y) + 0.5, ...
                                    "width", 0.5, ...
                                    "style", "-", ...

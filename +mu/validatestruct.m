@@ -9,35 +9,55 @@ function [pass, msg] = validatestruct(s, varargin)
 %     msg: validation failure message
 %          It shows in 'sIndex - fieldName: error msg'
 
-fIdx = find(cellfun(@(x) ischar(x) || isstring(x), varargin));
-msg = 'Validation Failed : ';
-pass = true;
+validateattributes(s, {'struct'}, {'vector'});
+if mod(numel(varargin), 2) ~= 0
+    error("Field names must be paired with validating function handles");
+end
 
-for sIndex = 1:length(s)
+fIdx = 1:2:numel(varargin);
+if ~all(cellfun(@(x) isfield(s, x), varargin(fIdx)))
+    error("Invalid field names");
+end
 
-    for n = 1:length(fIdx)
+msgBuf = strings(0, 1);
 
+% validate each field
+for k = 1:numel(fIdx)
+    fname = varargin{fIdx(k)};
+    fcn = varargin{fIdx(k) + 1};
+
+    % validate each struct
+    for sIdx = 1:numel(s)
+        val = s(sIdx).(fname);
+        
         try
-            isValid = varargin{fIdx(n) + 1}(s(sIndex).(varargin{fIdx(n)}));
-
-            if ~isempty(isValid) && ~isValid
-                msg = [msg, newline, num2str(sIndex), ' - ', char(varargin{fIdx(n)})];
-                pass = false;
-            end
-
+            isValid = fcn(val);
         catch ME
-            msg = [msg, newline, num2str(sIndex), ' - ', char(varargin{fIdx(n)}), ': ', char(ME.message)];
-            pass = false;
+            if ~strcmp(ME.identifier, 'MATLAB:maxlhs')
+                try
+                    fcn(val);
+                    isValid = true;
+                catch ME
+                    isValid = false;
+                    msgBuf(end + 1) = sprintf('%d - %s: %s', sIdx, fname, ME.message); %#ok<AGROW>
+                end
+            end
+        end
+
+        if ~isValid
+            msgBuf(end + 1) = sprintf('%d - %s', sIdx, fname); %#ok<AGROW>
         end
 
     end
 
 end
 
-if ~pass
-    disp(msg);
+if ~isempty(msgBuf)
+    msg = "Validation Failed:" + newline + strjoin(msgBuf, newline);
+    pass = false;
 else
     msg = 'Validation passed';
+    pass = true;
 end
 
 return;

@@ -53,7 +53,7 @@ mIp.addParameter("EdgeColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
-mIp.addParameter("DistributionCurve", "hide");
+mIp.addParameter("DistributionCurve", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.parse(varargin{:});
 
 X = mIp.Results.X;
@@ -65,7 +65,7 @@ EdgeColors = mIp.Results.EdgeColor;
 legendStrs = mIp.Results.DisplayName;
 BinWidth = mIp.Results.BinWidth;
 BinMethod = validatestring(mIp.Results.BinMethod, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'});
-DistributionCurve = validatestring(mIp.Results.DistributionCurve, {'show', 'hide'});
+DistributionCurve = mu.OptionState.create(mIp.Results.DistributionCurve);
 
 if isnumeric(X)
     % Convert X to cell vector
@@ -125,7 +125,7 @@ end
 
 H = bar(ax, edges(1:end - 1) + BinWidth / 2, N, width, "grouped", "LineWidth", LineWidth);
 
-if strcmpi(DistributionCurve, "show")
+if DistributionCurve.toLogical
 
     for index = 1:length(H)
         pd = fitdist(X{index}(:), "Kernel");

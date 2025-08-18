@@ -1,28 +1,27 @@
-function varargout = obtainArgoutN(fcn, Ns, varargin) %#ok<*STOUT,*INUSL>
-% Description: return the [fcn] outputs of specified ordinal numbers.
-%              You can use it in arrayfun, cellfun, mu.rowfun.
-% Input:
-%     fcn: function handle
-%     Ns: a double vector that specifies which argouts of fcn to return
-%     varargin: args for fcn
-% Output:
-%     varargout: [fcn] output value of specified ordinal number [Ns]
+function varargout = obtainArgoutN(fcn, Ns, varargin)
+% OBTAINARGOUTN Return specific outputs of a function handle.
+%
+%   [out1, out2, ...] = mu.obtainArgoutN(fcn, Ns, varargin)
+%   - fcn: function handle
+%   - Ns: vector of desired output positions
+%   - varargin: inputs to fcn
+%
 % Example:
-%     [res1, res2] = mu.obtainArgoutN(@size, [2, 3], ones(10, 20, 30))
-%     >> res1 = 20
-%     >> res2 = 30
-%     ext = mu.obtainArgoutN(@fileparts, 3, 'D:\Education\Test.wav')
-%     >> ext = '.wave'
+%   [res1,res2] = mu.obtainArgoutN(@size, [2,3], ones(10,20,30));
+%   >> res1 = 20, res2 = 30
 
-nout = numel(Ns);
-str = repmat("~", [1, max(Ns)]);
+nMax = max(Ns);          % total number of outputs to request
+allOut = cell(1, nMax);  % preallocate cell for all outputs
 
-for idx = 1:nout
-    str(Ns(idx)) = strcat("varargout{", num2str(idx), "}");
+% Call function once, get all outputs up to max(Ns)
+[allOut{:}] = fcn(varargin{:});
+
+% Extract requested outputs
+nReq = numel(Ns);
+varargout = cell(1, nReq);
+for k = 1:nReq
+    varargout{k} = allOut{Ns(k)};
 end
-
-str = strcat("[,", join(str, ","), "]=fcn(varargin{:});");
-eval(str);
 
 return;
 end

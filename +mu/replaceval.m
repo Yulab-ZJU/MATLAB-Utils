@@ -48,7 +48,7 @@ if nargin < 3
 end
 
 if isnumeric(conditions)
-    conditions = mat2cell(conditions(:), ones(numel(conditions), 1));
+    conditions = num2cell(conditions(:), 2);
 elseif isa(conditions, "function_handle")
     conditions = {conditions};
 elseif ischar(conditions) || isstring(conditions)

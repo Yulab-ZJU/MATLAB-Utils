@@ -13,7 +13,7 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %           1 for completely opaque.
 %       - legend: string or char, not shown if set empty.
 %       - lineWidth: specify line width for each group (default: using the general setting)
-%     window: time window [winStart,winEnd], in ms
+%     window: time window [winStart,winEnd]
 %
 %   NAME-VALUE PARAMETERS
 %   - 'GridSize': [nrow,ncol] that specifies the subplot grid to plot 

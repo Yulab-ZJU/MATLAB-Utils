@@ -13,30 +13,44 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %           1 for completely opaque.
 %       - legend: string or char, not shown if set empty.
 %       - lineWidth: specify line width for each group (default: using the general setting)
-%     window: time window [winStart,winEnd], in ms
+%     window: time window [winStart,winEnd]
 %     EEGPos: EEG position struct. See EEGPos_Neuracle64.m
 %
 %   NAME-VALUE PARAMETERS
 %   - 'LineWidth': General line width setting (default=1)
-%   - 'Scaleplate' : Hide x, y ticks and show a scaleplate instead. This option only works when 
+%   - 'Scaleplate' : Hide x, y ticks and show a scaleplate instead. This option only works when
 %                    plotting in actual electrode positions. (default='hide')
 %   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
 %        See `mu.subplot` for detail.
 %
-%-------------------------------------------------------------------------------- 
+%--------------------------------------------------------------------------------
 % OUTPUT:
 %     Figure handle of the wave plot.
 %
 
 mIp = inputParser;
-mIp.addRequired("chData", @(x) isstruct(x));
+mIp.addRequired("chData", @isstruct);
 mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'increasing'}));
+mIp.addRequired("EEGPos", @(x) isstruct(x) && isscalar(x));
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("paddings", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.addParameter("Scaleplate", "hide");
-mIp.parse(chData, window, varargin{:});
+mIp.parse(chData, window, EEGPos, varargin{:});
+
+EEGPos.ignore = mu.getor(EEGPos, "ignore");
+[pass, msg] = mu.validatestruct(EEGPos, "name", @(x) ischar(x) || isStringScalar(x), ...
+    "channels", @(x) validateattributes(x, 'numeric', {'vector', 'integer', 'positive'}), ...
+    "ignore", @(x) isempty(x) || all(ismember(x, EEGPos.channels)), ...
+    "locs", @(x) isstruct(x) && numel(EEGPos.locs) == numel(EEGPos.channels), ...
+    "channelNames", @(x) iscellstr(x) && numel(x) == numel(EEGPos.channels), ...
+    "grid", @(x) validateattributes(x, 'numeric', {'numel', 2, 'integer', 'positive'}), ...
+    "map", @(x) validateattributes(x, 'numeric', {'numel', numel(EEGPos.channels), 'integer', 'positive'}));
+if ~pass
+    msg = "Invalid EEGPos:" + newline + msg;
+    error("mu_plotWaveEEG:InvalidEEGPos", msg);
+end
 
 defaultLineWidth = mIp.Results.LineWidth;
 margins = mIp.Results.margins;
@@ -86,23 +100,23 @@ if isempty(locs)
             end
 
             ax = mu.subplot(Fig, GridSize(1), GridSize(2), EEGPos.map(ch), ...
-                            "margins", margins, "paddings", paddings);
+                "margins", margins, "paddings", paddings);
             hold(ax, "on");
 
             for gIndex = 1:length(chData)
                 chMean = chData(gIndex).chMean;
                 chErr = mu.getor(chData(gIndex), "chErr");
-    
+
                 color = validatecolor(chData(gIndex).color);
                 errColor = chData(gIndex).errColor;
                 errAlpha = chData(gIndex).errAlpha;
-    
+
                 if ~isempty(chErr)
                     y1 = chMean(ch, :) + chErr(ch, :);
                     y2 = chMean(ch, :) - chErr(ch, :);
                     fill(ax, [t, fliplr(t)], [y1, fliplr(y2)], errColor, 'edgealpha', 0, 'facealpha', errAlpha);
                 end
-    
+
                 plot(ax, t, chMean(ch, :), "Color", color, "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
             end
 
@@ -176,7 +190,7 @@ else
         else
             title(ax, ['CH ', num2str(ch)]);
         end
-        
+
     end
 
     X = X(idx);
@@ -199,8 +213,8 @@ if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
             continue;
         end
         legendHandles(gIndex) = line(ax, nan, nan, ...
-                                     "Color", chData(gIndex).color, ...
-                                     "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
+            "Color", chData(gIndex).color, ...
+            "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
     end
     idx = isgraphics(legendHandles);
     legend(ax, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');

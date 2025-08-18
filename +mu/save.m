@@ -1,23 +1,39 @@
 function success = save(FILENAME, varargin)
-% Check whether FILE exists and if it does, do nothing
-nVars = find(cellfun(@(x) contains(x, "-"), varargin), 1) - 1;
+% SAVEIFNOTEXIST Save variables to file only if file does not exist
+%
+%   success = saveIfNotExist(FILENAME, var1, var2, ..., Name, Value)
+%   - FILENAME: target .mat file
+%   - varargin: variable names (string/char) from caller workspace, optionally
+%               followed by MATLAB save Name/Value pairs
+%
+% Example:
+%   x = 1; y = 2;
+%   mu.save('test.mat', 'x', 'y', '-v7.3');
 
-if isempty(nVars)
-    nVars = numel(varargin);
+success = false;
+
+% Separate variable names and name-value options
+isOption = cellfun(@(x) ischar(x) && strncmp(x, '-', 1), varargin);
+varNames = varargin(~isOption);
+options  = varargin(isOption);
+
+% Collect variable values from caller workspace
+varStruct = struct();
+for k = 1:numel(varNames)
+    varName = varNames{k};
+    if evalin('caller', sprintf('exist(''%s'', ''var'')', varName))
+        varStruct.(varName) = evalin('caller', varName);
+    else
+        warning('Variable "%s" does not exist in caller workspace. Skipped.', varName);
+    end
 end
 
-for index = 1:nVars
-    res = evalin("caller", varargin{index});
-    eval(strcat(varargin{index}, "=res;"));
-end
-
-if ~exist(FILENAME, "file")
-    save(FILENAME, varargin{:});
+% Check if file exists
+if ~isfile(FILENAME)
+    save(FILENAME, '-struct', 'varStruct', options{:});
     success = true;
 else
-    disp(strcat(FILENAME, " already exists. Skip saving."));
-    success = false;
+    fprintf('%s already exists. Skip saving.\n', FILENAME);
 end
 
-return;
 end

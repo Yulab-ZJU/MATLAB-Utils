@@ -42,15 +42,15 @@ end
 mIp = inputParser;
 mIp.addRequired("FigsOrAxes", @(x) all(isgraphics(x)));
 mIp.addOptional("Lines", [], @(x) isempty(x) || isstruct(x));
-mIp.addParameter("ConstantLine", true, @(x) islogical(x) && isscalar(x));
+mIp.addParameter("ConstantLine", mu.OptionState.On);
 mIp.addParameter("Layer", "top", @(x) ischar(x) || isstring(x));
-mIp.addParameter("IgnoreInvisible", true, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("IgnoreInvisible", mu.OptionState.On);
 mIp.parse(FigsOrAxes, varargin{:});
 
 Lines = mIp.Results.Lines;
-ConstantLineOpt = mIp.Results.ConstantLine;
+ConstantLineOpt = mu.OptionState.create(mIp.Results.ConstantLine);
 Layer = validatestring(mIp.Results.Layer, {'top', 'bottom'});
-IgnoreInvisible = mIp.Results.IgnoreInvisible;
+IgnoreInvisible = mu.OptionState.create(mIp.Results.IgnoreInvisible);
 
 if isempty(Lines)
     Lines.X = [];
@@ -63,7 +63,7 @@ else
     allAxes = FigsOrAxes;
 end
 
-if IgnoreInvisible
+if IgnoreInvisible.toLogical
     % exclude invisible axes
     allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
 end
@@ -98,7 +98,7 @@ for lIndex = 1:length(Lines)
         end
 
         if isempty(X) && isscalar(Y) % yline
-            if ConstantLineOpt
+            if ConstantLineOpt.toLogical
                 h = yline(allAxes(aIndex), Y, "Color", color, ...
                                               "LineWidth", lineWidth, ...
                                               "LineStyle", lineStyle, ...
@@ -118,7 +118,7 @@ for lIndex = 1:length(Lines)
                                                 params{:});
             end
         elseif isempty(Y) && isscalar(X) % xline
-            if ConstantLineOpt
+            if ConstantLineOpt.toLogical
                 h = xline(allAxes(aIndex), X, "Color", color, ...
                                               "LineWidth", lineWidth, ...
                                               "LineStyle", lineStyle, ...

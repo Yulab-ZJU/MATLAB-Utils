@@ -12,7 +12,7 @@ function varargout = pararrayfun(fcn, varargin)
 %   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
 % Outputs:
-%   varargout       - Same as cellfun output
+%   varargout       - Same as arrayfun output
 
 % ---------------- Separate cell inputs ----------------
 isParam = cellfun(@(x) ischar(x) || isstring(x), varargin);

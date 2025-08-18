@@ -42,7 +42,7 @@ function varargout = boxplot(varargin)
 % ════════════════════════════════════════════════════════════════════════
 %  DATA POINTS & OUTLIERS
 % ════════════════════════════════════════════════════════════════════════
-%   'IndividualDataPoint': 'show' or 'hide' (default: 'hide')
+%   'IndividualDataPoint' : 'show' or 'hide' (default: 'hide')
 %   'SymbolParameters'    : Scatter properties for individual data points
 %   'Jitter'              : Scalar jitter width in X (default: 0.1)
 %   'Outlier'             : 'show' or 'hide' (default: 'show')
@@ -57,15 +57,15 @@ function varargout = boxplot(varargin)
 % ════════════════════════════════════════════════════════════════════════
 %  EXAMPLE
 % ════════════════════════════════════════════════════════════════════════
-%   data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories
-%   figure;
-%   mu.boxplot(data, ...
-%              'GroupLabels', {'Control', 'Treatment'}, ...
-%              'CategoryLabels', {'A', 'B', 'C'}, ...
-%              'Colors', lines(2), ...
-%              'Whisker', [5, 95], ...
-%              'BoxEdgeType', 'SE');
-%
+%     data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories
+%     figure;
+%     mu.boxplot(data, ...
+%                'GroupLabels', {'Control', 'Treatment'}, ...
+%                'CategoryLabels', {'A', 'B', 'C'}, ...
+%                'Colors', lines(2), ...
+%                'Notch', 'on', ...
+%                'IndividualDataPoint', 'show');
+%     
 %   % see `demo\demo_boxplot.mlx` for more examples.
 % ════════════════════════════════════════════════════════════════════════
 %  ⚠️  NOTES & CAUTIONS
@@ -148,15 +148,15 @@ mIp.addParameter("CategorySpace", 0.4, @(x) validateattributes(x, 'numeric', {'s
 mIp.addParameter("Colors", []);
 mIp.addParameter("BoxEdgeType", [25, 75]);
 mIp.addParameter("Whisker", 1.5);
-mIp.addParameter("Notch", "off");
+mIp.addParameter("Notch", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.addParameter("BoxParameters", defaultBoxParameters, @iscell);
 mIp.addParameter("CenterLineParameters", defaultCenterLineParameters, @iscell);
 mIp.addParameter("WhiskerParameters", defaultWhiskerParameters, @iscell);
 mIp.addParameter("WhiskerCapParameters", defaultWhiskerCapParameters, @iscell);
-mIp.addParameter("IndividualDataPoint", "hide");
+mIp.addParameter("IndividualDataPoint", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.addParameter("SymbolParameters", defaultSymbolParameters, @iscell);
 mIp.addParameter("Jitter", 0.1, @(x) validateattributes(x, 'numeric', {'scalar'}));
-mIp.addParameter("Outlier", "show");
+mIp.addParameter("Outlier", mu.OptionState.On, @mu.OptionState.validate);
 mIp.addParameter("OutlierParameters", defaultOutlierParameters, @iscell);
 
 mIp.parse(ax, varargin{:});
@@ -171,16 +171,16 @@ groupLegends = cellstr(mIp.Results.GroupLegends);
 categorySpace = mIp.Results.CategorySpace;
 colors = mIp.Results.Colors;
 boxEdgeType = mIp.Results.BoxEdgeType;
-notchOpt = validatestring(mIp.Results.Notch, {'on', 'off'});
+notchOpt = mu.OptionState.create(mIp.Results.Notch);
 boxParameters = getOrCellParameters(mIp.Results.BoxParameters, defaultBoxParameters);
 centerLineParameters = getOrCellParameters(mIp.Results.CenterLineParameters, defaultCenterLineParameters);
 whisker = mIp.Results.Whisker;
 whiskerParameters = getOrCellParameters(mIp.Results.WhiskerParameters, defaultWhiskerParameters);
 whiskerCapParameters = getOrCellParameters(mIp.Results.WhiskerCapParameters, defaultWhiskerCapParameters);
-individualDataPoint = validatestring(mIp.Results.IndividualDataPoint, {'show', 'hide'});
+individualDataPoint = mu.OptionState.create(mIp.Results.IndividualDataPoint);
 symbolParameters = getOrCellParameters(mIp.Results.SymbolParameters, defaultSymbolParameters);
 jitterWidth = mIp.Results.Jitter;
-outlierOpt = validatestring(mIp.Results.Outlier, {'show', 'hide'});
+outlierOpt = mu.OptionState.create(mIp.Results.Outlier);
 outlierParameters = getOrCellParameters(mIp.Results.OutlierParameters, defaultOutlierParameters);
 
 % Validate
@@ -302,7 +302,7 @@ whiskerColor = getNameValue(whiskerParameters, "Color");
 whiskerCapColor = getNameValue(whiskerCapParameters, "Color");
 
 % Compute outliers
-if strcmpi(outlierOpt, "show") && ~isempty(whisker)
+if outlierOpt.toLogical && ~isempty(whisker)
     outliers = cell(nCategory, nGroup);
     for cIndex = 1:nCategory
         for gIndex = 1:nGroup
@@ -374,13 +374,13 @@ for cIndex = 1:nCategory
         if strcmpi(outlierMarkerFaceColor, "auto")
             params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
         end
-        if strcmpi(outlierOpt, "show") && ~isempty(outliers{cIndex, gIndex})
+        if outlierOpt.toLogical && ~isempty(outliers{cIndex, gIndex})
             data = data(~ismember(data, outliers{cIndex, gIndex}));
             scatter(mid * ones(numel(outliers{cIndex, gIndex}), 1), outliers{cIndex, gIndex}, params{:});
         end
 
         % plot individual data points
-        if strcmpi(individualDataPoint, "show")
+        if individualDataPoint.toLogical
             params = symbolParameters;
             if strcmpi(symbolMarkerFaceColor, "auto")
                 params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
@@ -395,7 +395,7 @@ for cIndex = 1:nCategory
         if strcmpi(boxFaceColor, "auto")
             params = changeNameValue(params, "FaceColor", colors{gIndex}(cIndex, :));
         end
-        if strcmpi(notchOpt, "on")
+        if notchOpt.toLogical
             notchWidth = boxWidth * 0.3;
             top = q3(cIndex, gIndex);
             bottom = q1(cIndex, gIndex);

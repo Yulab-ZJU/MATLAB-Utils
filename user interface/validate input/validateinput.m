@@ -37,33 +37,49 @@ switch class(arg2)
         sInput = arg2;
 end
 
-while true
-    try
-        if ~isempty(sInput)
-            if strcmpi(uiOpt, "off")
-                v = input(prompt, "s");
-            else
-                app = validateinputApp(prompt, validateFcn, "s");
-                v = app.res;
-                delete(app);
-            end
+while 1
+    if ~isempty(sInput)
+        if strcmpi(uiOpt, "off")
+            v = input(prompt, "s");
         else
-            if strcmpi(uiOpt, "off")
-                v = input(prompt);
-            else
-                app = validateinputApp(prompt, validateFcn, []);
-                v = app.res;
-                delete(app);
+            app = validateinputApp(prompt, validateFcn, "s");
+            v = app.res;
+            delete(app);
+        end
+    else
+        if strcmpi(uiOpt, "off")
+            v = input(prompt);
+        else
+            app = validateinputApp(prompt, validateFcn, []);
+            v = app.res;
+            delete(app);
+        end
+    end
+
+    % validate
+    if ~isempty(validateFcn)
+        msg = ['Input should satisfy: ', func2str(validateFcn)];
+        try
+            isValid = validateFcn(v);
+        catch ME
+            if ~strcmp(ME.identifier, 'MATLAB:maxlhs')
+                try
+                    validateFcn(v);
+                    isValid = true;
+                catch ME
+                    msg = ME.message;
+                    isValid = false;
+                end
             end
         end
+    else
+        isValid = true;
+    end
 
-        if ~isempty(validateFcn)
-            validateFcn(v);
-        end
-
+    if isValid
         break;
-    catch e
-        disp(e.message);
+    else
+        disp(msg);
     end
 
 end

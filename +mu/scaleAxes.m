@@ -53,8 +53,8 @@ mIp.addOptional("cutoffRange0", [], @(x) validateattributes(x, 'numeric', {'2d',
 mIp.addOptional("symOpts0", [], @(x) any(validatestring(x, {'none', 'min', 'max', 'positive', 'negative'})));
 mIp.addParameter("cutoffRange", [], @(x) validateattributes(x, 'numeric', {'2d', 'increasing'}));
 mIp.addParameter("symOpt", [], @(x) any(validatestring(x, {'none', 'min', 'max', 'positive', 'negative'})));
-mIp.addParameter("uiOpt", "hide", @(x) any(validatestring(x, {'show', 'hide'})));
-mIp.addParameter("IgnoreInvisible", true, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("uiOpt", mu.OptionState.Off, @mu.OptionState.validate);
+mIp.addParameter("IgnoreInvisible", mu.OptionState.On, @mu.OptionState.validate);
 mIp.addParameter("autoTh", [], @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'real', '<=' 1, '>=', 0}));
 mIp.parse(FigsOrAxes, varargin{:});
 
@@ -62,8 +62,8 @@ axisName = mIp.Results.axisName;
 axisRange = mIp.Results.axisRange;
 cutoffRange = mu.getor(mIp.Results, "cutoffRange0", mIp.Results.cutoffRange, true);
 symOpt = mu.getor(mIp.Results, "symOpts0", mIp.Results.symOpt, true);
-uiOpt = mIp.Results.uiOpt;
-IgnoreInvisible = mIp.Results.IgnoreInvisible;
+uiOpt = mu.OptionState.create(mIp.Results.uiOpt);
+IgnoreInvisible = mu.OptionState.create(mIp.Results.IgnoreInvisible);
 autoTh = mIp.Results.autoTh;
 
 if strcmpi(axisName, "x")
@@ -94,7 +94,7 @@ else
     allAxes = FigsOrAxes(:);
 end
 
-if IgnoreInvisible
+if IgnoreInvisible.toLogical
     % exclude invisible axes
     allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
 
@@ -252,7 +252,7 @@ else
 end
 
 %% Call scaleAxes UI
-if strcmpi(uiOpt, "show")
+if uiOpt.toLogical
     scaleAxesApp(allAxes, axisName, double(axisRange), double([axisRange(1) - 0.25 * diff(axisRange), axisRange(2) + 0.25 * diff(axisRange)]));
     drawnow;
 end
