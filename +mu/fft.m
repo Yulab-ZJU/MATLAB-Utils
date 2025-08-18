@@ -1,19 +1,20 @@
-function [A, f, phase] = fft(X, fs, varargin)
+function [A, f, phase, psd] = fft(X, fs, varargin)
 % FFT Compute single-sided amplitude and phase spectrum of input data
 %
 %   [A, f, phase] = mu.fft(X, fs, N, dim, 'foi', foi)
 %
 % INPUTS:
-%   X   - Input data (vector, matrix, or N-D array)
-%   fs  - Sampling frequency in Hz
+%   X   - Input data (vector, matrix, or N-D array) (in volt, persume)
+%   fs  - Sampling frequency (in Hz, persume)
 %   N   - FFT length ([] for length, 'nextpow2' for next power of 2)
 %   dim - Dimension to perform FFT along (default: first non-singleton)
 %   foi - Frequency of interest (scalar or [min max])
 %
 % OUTPUTS:
-%   A     - Amplitude spectrum (single-sided)
+%   A     - Amplitude spectrum (single-sided) (in volt)
 %   f     - Frequency vector
-%   phase - Phase spectrum (single-sided)
+%   phase - Phase spectrum (single-sided) (-pi~pi)
+%   psd   - Power spectral density (single-sided) (in V^2/Hz)
 
 % ---- Parse inputs ----
 p = inputParser;
@@ -91,6 +92,10 @@ if ~isempty(foi)
     else
         error('foi must be scalar or two-element vector');
     end
+end
+
+if nargout > 3
+    psd = (A .^ 2) / (2 * fs / N);
 end
 
 return;
