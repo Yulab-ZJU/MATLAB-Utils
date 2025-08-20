@@ -230,10 +230,10 @@ if strcmpi(Scaleplate, 'show') && ~isempty(locs)
     ylim(ax, yrange);
     minXTickSeg = mode(diff(xticks(ax)));
     minYTickSeg = mode(diff(yticks(ax)));
-    line(ax, [0, minXTickSeg], [0, 0], "Color", [0, 0, 0], "LineWidth", 1.5);
-    line(ax, [0, 0], [0, minYTickSeg], "Color", [0, 0, 0], "LineWidth", 1.5);
-    text(ax, minXTickSeg, 0, num2str(minXTickSeg), "HorizontalAlignment", "left", "VerticalAlignment", "middle", "FontSize", 14, "FontWeight", "bold");
-    text(ax, 0, minYTickSeg, num2str(minYTickSeg), "HorizontalAlignment", "center", "VerticalAlignment", "bottom", "FontSize", 14, "FontWeight", "bold");
+    line(ax, [0, minXTickSeg] + mean(window), [mean(yrange), mean(yrange)], "Color", [0, 0, 0], "LineWidth", 1.5);
+    line(ax, [mean(window), mean(window)], [0, minYTickSeg] + mean(yrange), "Color", [0, 0, 0], "LineWidth", 1.5);
+    text(ax, minXTickSeg + mean(window), mean(yrange), num2str(minXTickSeg), "HorizontalAlignment", "left", "VerticalAlignment", "middle", "FontSize", 14, "FontWeight", "bold");
+    text(ax, mean(window), minYTickSeg + mean(yrange), num2str(minYTickSeg), "HorizontalAlignment", "center", "VerticalAlignment", "bottom", "FontSize", 14, "FontWeight", "bold");
     set(ax, "Visible", "off");
 
     allAxes = findobj(Fig, "Type", "axes");
