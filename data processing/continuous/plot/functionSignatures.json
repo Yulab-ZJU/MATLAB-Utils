@@ -84,6 +84,29 @@
             {"name": "MarkerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=15"},
             {"name": "MarkerSize0", "kind": "namevalue", "type": ["scalar", "@(x) x >= 0"], "purpose": "default=4"}
         ]
+    },
+
+    "mu_addScaleplate": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [],
+                [
+                    {"name": "Fig", "kind": "required", "type": ["@(args) isa(args, 'matlab.ui.Figure')"]}
+                ]
+            ]},
+            {"name": "Position", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"]},
+            {"name": "LineColor", "kind": "namevalue", "type": [["numeric"], ["string"], ["char"]], "purpose": "default=[0, 0, 0]"},
+            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "default=1"},
+            {"name": "LineStyle", "kind": "namevalue", "type": ["choices = {'-', '--', ':', '-.'}"], "purpose": "default='-'"},
+            {"name": "FontSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "default=10"},
+            {"name": "FontColor", "kind": "namevalue", "type": [["numeric"], ["string"], ["char"]], "purpose": "default=[0, 0, 0]"},
+            {"name": "FontName", "kind": "namevalue", "type": ["string", "char"], "purpose": "default='Arial'"},
+            {"name": "FontWeight", "kind": "namevalue", "type": ["choices = {'normal', 'bold'}"], "purpose": "default='normal'"},
+            {"name": "FontAngle", "kind": "namevalue", "type": ["choices = {'normal', 'italic'}"], "purpose": "default='normal'"},
+            {"name": "FixScale", "kind": "namevalue", "type": ["choices = {'on', 'off'}"], "purpose": "default='off'"},
+            {"name": "XScaleUnit", "kind": "namevalue", "type": [["string"], ["char"]]},
+            {"name": "YScaleUnit", "kind": "namevalue", "type": [["string"], ["char"]]}
+        ]
     }
 
 }

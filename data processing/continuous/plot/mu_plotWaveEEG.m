@@ -26,8 +26,8 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %
 %--------------------------------------------------------------------------------
 % OUTPUT:
-%     Figure handle of the wave plot.
-%
+%     Fig: Figure handle of the wave plot.
+%     sp : scaleplate class
 
 mIp = inputParser;
 mIp.addRequired("chData", @isstruct);
@@ -197,7 +197,7 @@ else
     Y = Y(idx);
 end
 
-yrange = mu.scaleAxes(Fig, "y");
+mu.scaleAxes(Fig, "y");
 
 % legends
 if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
@@ -223,26 +223,21 @@ end
 
 % scaleplate
 if strcmpi(Scaleplate, 'show') && ~isempty(locs)
-    % create an axes at left-bottom
-    ax = axes("Position", [min(X) - dX / 2, min(Y) - dY / 2, dX, dY]);
-    hold(ax, "on");
-    xlim(ax, window);
-    ylim(ax, yrange);
-    minXTickSeg = mode(diff(xticks(ax)));
-    minYTickSeg = mode(diff(yticks(ax)));
-    line(ax, [0, minXTickSeg] + mean(window), [mean(yrange), mean(yrange)], "Color", [0, 0, 0], "LineWidth", 1.5);
-    line(ax, [mean(window), mean(window)], [0, minYTickSeg] + mean(yrange), "Color", [0, 0, 0], "LineWidth", 1.5);
-    text(ax, minXTickSeg + mean(window), mean(yrange), num2str(minXTickSeg), "HorizontalAlignment", "left", "VerticalAlignment", "middle", "FontSize", 14, "FontWeight", "bold");
-    text(ax, mean(window), minYTickSeg + mean(yrange), num2str(minYTickSeg), "HorizontalAlignment", "center", "VerticalAlignment", "bottom", "FontSize", 14, "FontWeight", "bold");
-    set(ax, "Visible", "off");
+    sp = mu_addScaleplate(Fig);
 
     allAxes = findobj(Fig, "Type", "axes");
     set(allAxes, "XTickLabels", '');
     set(allAxes, "YTickLabels", '');
+else
+    sp = [];
 end
 
-if nargout == 1
+if nargout > 0
     varargout{1} = Fig;
+end
+
+if nargout > 1
+    varargout{2} = sp;
 end
 
 return;
