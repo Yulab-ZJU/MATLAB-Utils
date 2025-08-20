@@ -82,10 +82,10 @@ while ~any(strcmpi(k, {'y', ''}))
 
     ICs = input('Input IC number for data reconstruction (empty for all): ');
     if isempty(ICs)
-        ICs = 1:length(chs2doICA);
+        ICs = 1:size(comp.topo, 2);
     end
     badICs = input('Input bad IC number: ');
-    ICs(ismember(ICs, badICs)) = [];
+    ICs = setdiff(ICs, badICs);
 
     temp = mu_ica_reconstructData(trialsData, comp, ICs);
     temp = cellfun(@(x) mu.insertrows(x, badChs), temp, "UniformOutput", false);
