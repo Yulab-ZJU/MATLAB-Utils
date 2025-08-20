@@ -477,7 +477,7 @@
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
-                    {"name": "ax", "kind": "optional", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]}
+                    {"name": "ax", "kind": "ordered", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]}
                 ],
                 []
             ]},
