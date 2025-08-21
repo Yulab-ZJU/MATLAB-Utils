@@ -259,6 +259,16 @@
         "description": "Complete a struct with default values"
     },
 
+    "mu.addfield": {
+        "inputs": [
+            {"name": "s", "kind": "required", "type": ["struct", "vector"]},
+            {"tuple": [
+                {"name": "fName", "kind": "ordered", "type": [["char"], ["string"]]},
+                {"name": "fVal", "kind": "ordered", "type": [["cell"], ["numeric"]]}
+            ]}
+        ]
+    },
+
     "mu.structcat": {
         "inputs": [
             {"name": "A", "kind": "required", "type": ["struct"], "repeating": true}

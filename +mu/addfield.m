@@ -1,45 +1,64 @@
-function s = addfield(s, fName, fVal)
+function s = addfield(s, varargin)
 % ADDFIELD Add or update a field in struct array s
+%     s = mu.addfield(s, 'fName1', fVal1, 'fName2', fVal2, ...)
 %
-% s: struct array (vector)
-% fName: field name (char vector, string scalar, or 1x1 cellstr)
-% fVal: cell array with numel(s) elements or numeric matrix with size(s,1) rows
+% s: struct array
+% fName_i: field name
+% fVal_i: [numel(s) x 1] cell array or numeric array with numel(s) rows
 %
 % For cell fVal: assign element-wise to each struct.
 % For numeric matrix fVal: assign row-wise to each struct.
 
-arguments
-    s struct {mustBeVector}
-    fName {mustBeTextScalar}
-    fVal {mustBeNonempty}
+fNames = varargin(1:2:end);
+fVals = varargin(2:2:end);
+
+% Validate inputs
+assert(isstruct(s), "[s] must be a struct");
+cellfun(@mustBeTextScalar, fNames);
+
+if numel(fNames) ~= numel(fVals)
+    error("Mismatch name-value pairs");
 end
 
-n = numel(s);
+if any(cellfun(@isnumeric, fVals))
+    assert(isvector(s), "[s] must be a vector when there is numeric [fVal]");
+end
 
 % Standardize field name to char
-if iscell(fName)
-    fName = fName{1};
-elseif isstring(fName)
-    fName = char(fName);
-end
+fNames = cellfun(@char, fNames, "UniformOutput", false);
 
-% Validate size of fVal
-if iscell(fVal)
-    assert(numel(fVal) == n, 'Length of cell fVal must equal number of structs.');
-elseif isnumeric(fVal)
-    assert(size(fVal, 1) == n, 'Row count of numeric fVal must equal number of structs.');
-else
-    error('fVal must be a cell array or numeric matrix.');
-end
+for fIndex = 1:numel(fNames)
+    fName = fNames{fIndex};
+    fVal = fVals{fIndex};
 
-% Assign values without explicit loop
-if iscell(fVal)
-    [s.(fName)] = fVal{:};
-else
-    % Split numeric matrix rows into comma separated list
-    valCell = mat2cell(fVal, ones(n, 1), size(fVal, 2));
-    [s.(fName)] = valCell{:};
+    % Validate size of fVal
+    if iscell(fVal)
+        assert(isequal(size(fVal), size(s)), 'Size of cell [fVal] must equal size of [s].');
+    elseif isnumeric(fVal)
+        assert(size(fVal, 1) == numel(s), 'Row count of numeric [fVal] must equal number of [s].');
+    else
+        error('[fVal] must be a cell array or numeric array.');
+    end
+
+    s = addfieldImpl(s, fName, fVal);
 end
 
 return;
+end
+
+%% Impl
+function s = addfieldImpl(s, fName, fVal)
+    % Assign values without explicit loop
+    if iscell(fVal)
+        [s.(fName)] = fVal{:};
+    else
+        % Split numeric matrix rows into comma separated list
+        sz = num2cell(size(fVal));
+        sz{1} = ones(sz{1}, 1);
+        valCell = mat2cell(fVal, sz{:});
+        valCell = cellfun(@squeeze, valCell, "UniformOutput", false);
+        [s.(fName)] = valCell{:};
+    end
+    
+    return;
 end
