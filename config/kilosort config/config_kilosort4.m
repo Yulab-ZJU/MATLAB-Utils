@@ -7,10 +7,21 @@ for index = 1:2:nargin
 end
 
 %% Python setup
-settings.pythonExe = 'D:\Environment\anaconda3\envs\kilosort\python.exe';
+[status, cmdout] = system('conda run -n kilosort where python');
+if status == 0
+    temp = regexp(cmdout, '\n', 'split');
+    if any(contains(temp, 'kilosort'))
+        envPythonLine = temp(contains(temp, 'kilosort'));
+        settings.pythonExe = strtrim(envPythonLine{1});
+    else
+        error("Kilosort env not found.");
+    end
+else
+    error("Unable to get python.exe paths.");
+end
 
 %% settings
-% See ~\Kilosort4\kilosort\parameters.py for a full list of parameters
+% See ~\resources\parameters.py for a full list of parameters
 %%% Main parameters %%%
 % number of channels, must be specified here (*)
 settings.n_chan_bin = mu.getor(args, "n_chan_bin");
