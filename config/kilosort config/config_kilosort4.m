@@ -1,6 +1,14 @@
 function [settings, opts] = config_kilosort4(varargin)
 % Configuration of kilosort4
 % Items marked with (*) are a must.
+%
+% E.g.,
+%   [settings, opts] = config_kilosort4(...
+%       "n_chan_bin", 385, ...
+%       "fs", 30e3, ...
+%       "data_dtype", 'int16', ...
+%       "filename", fullfile(pwd, 'ZFM-02370_mini.imec0.ap.short.bin'), ...
+%       "probe_name", fullfile(pwd, 'NeuroPix1_default.mat'));
 
 for index = 1:2:nargin
     args.(varargin{index}) = varargin{index + 1};
@@ -32,7 +40,7 @@ settings.fs = mu.getor(args, "fs");
 % Number of samples included in each batch of data
 settings.batch_size = mu.getor(args, "batch_size", 6e4);
 
-% Number of non-overlapping blocks for drift correction 
+% Number of non-overlapping blocks for drift correction
 % Additional nblocks-1 blocks are created in the overlaps
 settings.nblocks = mu.getor(args, "nblocks", 1);
 
@@ -62,7 +70,7 @@ opts.filename = mu.getor(args, "filename");
 % By default, will be set to [data_dir]/'kilosort4'
 opts.results_dir = mu.getor(args, "results_dir", fullfile(fileparts(mu.getabspath(opts.filename)), 'kilosort4'));
 
-% dtype of data in binary file (*)
+% dtype of data in binary file
 % By default, dtype is assumed to be 'int16'
 opts.data_dtype = mu.getor(args, "data_dtype", 'int16');
 
