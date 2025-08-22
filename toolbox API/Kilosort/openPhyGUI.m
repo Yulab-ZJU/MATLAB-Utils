@@ -30,7 +30,11 @@ if ~envExists
     % Install the development version of phy
     status2 = system('pip install git+https://github.com/cortex-lab/phy.git');
 
-    if status1 ~= 0 || status2 ~= 0
+    % (OPTIONAL) Degrade joblib if an error occurred: (TypeError): 
+    % Memory.__init__() got an unexpected keyword argument 'bytes_limit'
+    status3 = system('pip install "joblib<1.3"');
+
+    if status1 ~= 0 || status2 ~= 0 || status3 ~= 0
         error('Failed to create Conda environment "phy2".');
     end
 
