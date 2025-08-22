@@ -1,7 +1,7 @@
 function [A, f, phase, psd] = fft(X, fs, varargin)
 % FFT Compute single-sided amplitude and phase spectrum of input data
 %
-%   [A, f, phase] = mu.fft(X, fs, N, dim, 'foi', foi)
+%   [A, f, phase, psd] = mu.fft(X, fs, N, dim, 'foi', foi)
 %
 % INPUTS:
 %   X   - Input data (vector, matrix, or N-D array) (in volt, persume)
@@ -11,16 +11,20 @@ function [A, f, phase, psd] = fft(X, fs, varargin)
 %   foi - Frequency of interest (scalar or [min max])
 %
 % OUTPUTS:
-%   A     - Amplitude spectrum (single-sided) (in volt)
+%   A     - Amplitude spectrum (single-sided) (in Volt)
 %   f     - Frequency vector
 %   phase - Phase spectrum (single-sided) (-pi~pi)
 %   psd   - Power spectral density (single-sided) (in V^2/Hz)
+% 
+% NOTES:
+%   Single-sided PSD estimation is equivalent to using `periodogram`, 
+%   which computes PSD using a rectangular window.
 
 % ---- Parse inputs ----
 p = inputParser;
 p.addRequired('X', @(x) validateattributes(x, {'numeric'}, {'real','nonempty'}));
 p.addRequired('fs', @(x) validateattributes(x, {'numeric'}, {'scalar','positive'}));
-p.addOptional('N', []);
+p.addOptional('N', [], @(x) isnumeric(x) || ischar(x) || isStringScalar(x));
 p.addOptional('dim', [], @(x) isempty(x) || (isscalar(x) && x > 0 && mod(x,1) == 0));
 p.addParameter('foi', [], @(x) validateattributes(x, {'numeric'}, {'vector','increasing','positive'}));
 p.parse(X, fs, varargin{:});
@@ -30,28 +34,24 @@ foi = p.Results.foi;
 userDim = p.Results.dim;
 
 % ---- Determine FFT dimension ----
-if isvector(X)
-    X = X(:);
-    dim = 1;
+if isempty(userDim)
+    dim = find(size(X) > 1, 1);
 else
-    if isempty(userDim)
-        dim = find(size(X) > 1, 1);
-    else
-        dim = userDim;
-    end
+    dim = userDim;
 end
 
 % ---- Determine FFT length ----
 if isempty(N)
     N = size(X, dim);
-elseif (ischar(N) || isstring(N)) && strcmpi(N, 'nextpow2')
-    N = 2 ^ nextpow2(size(X, dim));
-else
+elseif isnumeric(N)
     validateattributes(N, 'numeric', {'scalar', 'integer', 'positive'});
+else
+    validatestring(N, {'nextpow2'});
+    N = 2 ^ nextpow2(size(X, dim));
 end
 
 % ---- Ensure even length ----
-N = floor(N / 2) * 2;
+N = floor(N/2) * 2;
 
 % ---- Compute N-point FFT ----
 Y = fft(X, N, dim);
@@ -66,7 +66,7 @@ phase = angle(Y(idx{:}));
 
 % Double amplitudes except DC and Nyquist
 multIdx = repmat({':'}, 1, ndims(A));
-multIdx{dim} = 2:(nfft-1);
+multIdx{dim} = 2:(nfft - 1);
 A(multIdx{:}) = 2 * A(multIdx{:});
 
 % ---- Frequency vector ----
@@ -95,7 +95,7 @@ if ~isempty(foi)
 end
 
 if nargout > 3
-    psd = (A .^ 2) / (2 * fs / N);
+    psd = (A .^ 2) / (2 * fs / N); % equivalent to `periodogram`
 end
 
 return;
