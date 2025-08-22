@@ -39,9 +39,7 @@ end
 currentPath = pwd;
 cd(path);
 [status, cmdout] = system('conda run -n phy2 phy template-gui params.py');
-if status == 0
-    disp("Open Phy GUI...");
-else
+if status ~= 0
     error(['Unexpected error occurred: ', newline, cmdout]);
 end
 cd(currentPath);
