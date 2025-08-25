@@ -12,8 +12,13 @@ function [settings, opts] = config_kilosort4(varargin)
 %       "filename", fullfile(pwd, 'ZFM-02370_mini.imec0.ap.short.bin'), ...
 %       "probe_name", fullfile(pwd, 'NeuroPix1_default.mat'));
 
+args = [];
 for index = 1:2:nargin
     args.(varargin{index}) = varargin{index + 1};
+end
+
+if isempty(args) || any(~isfield(args, {'n_chan_bin', 'fs', 'probe_name', 'filename'}))
+    error("Input name-value pairs should at least contain: 'n_chan_bin', 'fs', 'probe_name', 'filename'");
 end
 
 %% Python setup
@@ -22,7 +27,7 @@ if status == 0
     temp = regexp(cmdout, '\n', 'split');
     if any(contains(temp, 'kilosort'))
         envPythonLine = temp(contains(temp, 'kilosort'));
-        settings.pythonExe = strtrim(envPythonLine{1});
+        opts.pythonExe = strtrim(envPythonLine{1});
     else
         error("Kilosort env not found.");
     end
@@ -34,10 +39,10 @@ end
 % See ~\resources\parameters.py for a full list of parameters
 %%% Main parameters %%%
 % number of channels, must be specified here (*)
-settings.n_chan_bin = mu.getor(args, "n_chan_bin");
+settings.n_chan_bin = args.n_chan_bin;
 
 % sample rate, Hz (*)
-settings.fs = mu.getor(args, "fs");
+settings.fs = args.fs;
 
 % Number of samples included in each batch of data
 settings.batch_size = mu.getor(args, "batch_size", 6e4);
@@ -63,10 +68,10 @@ settings.nt = mu.getor(args, "nt", 61);
 
 %% options
 % Full path of probe file (*)
-opts.probe_name = mu.getor(args, "probe_name");
+opts.probe_name = args.probe_name;
 
 % Full path of binary data file (*)
-opts.filename = mu.getor(args, "filename");
+opts.filename = args.filename;
 
 % Directory where results will be stored
 % By default, will be set to [data_dir]/'kilosort4'

@@ -27,8 +27,8 @@ function kilosort4(settings, opts)
 %
 
 % python interpreter
-pythonExe = settings.pythonExe;
-settings = rmfield(settings, "pythonExe");
+pythonExe = opts.pythonExe;
+opts = rmfield(opts, "pythonExe");
 
 % json convertion
 settings_json = jsonencode(settings);
