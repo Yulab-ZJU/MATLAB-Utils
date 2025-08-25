@@ -50,8 +50,8 @@ def main():
         )
 
         # generate cluster_info.tsv
-        if opts.get('fs', None) is not None and opts.get('results_dir', None) is not None:
-            generate_cluster_info(opts['results_dir'], opts['fs'])
+        if settings.get('fs', None) is not None and opts.get('results_dir', None) is not None:
+            generate_cluster_info(opts['results_dir'], settings['fs'])
         else:
             print("fs or results_dir not provided, skipping cluster_info.tsv generation.")
 

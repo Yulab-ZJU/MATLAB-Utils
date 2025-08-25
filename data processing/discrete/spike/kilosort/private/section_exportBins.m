@@ -19,7 +19,8 @@ for index = 1:numel(params)
             [BINPATHs{index}, nch] = TDT2bins(BLOCKPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
             TRIGPATHs{index} = BLOCKPATHs{index};
         case 'rhd'
-            [BINPATHs{index}, TRIGPATHs{index}, nch] = RHD2bins(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
+            [BINPATHs{index}, TRIGPATHs{index}] = RHD2bins(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
+            nch = 128;
         case {'neuropixel', 'neuropixels', 'np'}
             [BINPATHs{index}, TRIGPATHs{index}] = NP2bins(DATAPATHs, skipBinExportExisted);
             nch = 385;

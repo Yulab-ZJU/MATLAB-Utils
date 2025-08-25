@@ -1,8 +1,8 @@
-function [outbins, triggers, nch] = RHD2bins(filenames, varargin)
+function [outbins, triggers] = RHD2bins(filenames, varargin)
 % read_Intan_RHD2000_file and export to binary data files and MAT trigger files
 filenames = cellstr(filenames);
 outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), filenames, "UniformOutput", false);
-triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'Wave.bin')), filenames, "UniformOutput", false);
+triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'TTL.mat')), filenames, "UniformOutput", false);
 
 mIp = inputParser;
 mIp.addParameter("Format", 'i16');
@@ -19,7 +19,7 @@ for fIndex = 1:numel(filenames)
     if isfolder(filename) % folder
         files = dir(fullfile(filename, '*.rhd'));
         if numel(files) ~= 1
-            error('%d RHD file is found in %s. Required number: 1', numel(files), filename);
+            error('%d RHD file is found in %s. Required number: 1\n', numel(files), filename);
         end
         filename = fullfile(files.folder, files.name);
     else % full path
@@ -29,14 +29,14 @@ for fIndex = 1:numel(filenames)
     end
 
     if exist(outbin, "file")
-        fprintf('File already exists: %s', outbin);
+        fprintf('File already exists: %s\n', outbin);
         if skipExisted
             disp('Skip exporting existed binary file');
             continue;
         end
     end
 
-    fidOut = fopen(outbin, 'wb');
+    fidOut = fopen(outbin, 'wb+');
     fid = fopen(filename, 'r');
     s = dir(filename);
     filesize = s.bytes;
@@ -52,10 +52,10 @@ for fIndex = 1:numel(filenames)
     data_file_main_version_number = fread(fid, 1, 'int16');
     data_file_secondary_version_number = fread(fid, 1, 'int16');
 
-    fprintf(1, '\n');
-    fprintf(1, 'Reading Intan Technologies RHD2000 Data File, Version %d.%d\n', ...
+    fprintf('\n');
+    fprintf('Reading Intan Technologies RHD2000 Data File, Version %d.%d\n', ...
         data_file_main_version_number, data_file_secondary_version_number);
-    fprintf(1, '\n');
+    fprintf('\n');
 
     if (data_file_main_version_number == 1)
         num_samples_per_data_block = 60;
@@ -385,9 +385,9 @@ for fIndex = 1:numel(filenames)
     fclose(fid);
     fclose(fidOut);
 
-    if (data_present)
+    if data_present
 
-        fprintf(1, 'Parsing data...\n');
+        fprintf('Parsing data...\n');
 
         % Extract digital input channels to separate variables.
         for i=1:num_board_dig_in_channels
@@ -398,9 +398,9 @@ for fIndex = 1:numel(filenames)
         % Check for gaps in timestamps.
         num_gaps = sum(diff(t_amplifier) ~= 1);
         if (num_gaps == 0)
-            fprintf(1, 'No missing timestamps in data.\n');
+            fprintf('No missing timestamps in data.\n');
         else
-            fprintf(1, 'Warning: %d gaps in timestamp data found.  Time scale will not be uniform!\n', ...
+            fprintf('Warning: %d gaps in timestamp data found. Time scale will not be uniform!\n', ...
                 num_gaps);
         end
 
@@ -412,15 +412,9 @@ for fIndex = 1:numel(filenames)
         save(triggers{fIndex}, "TTL", "-v7.3");
     end
 
-    fprintf(1, 'Done!  Elapsed time: %0.1f seconds\n', toc);
-    if (data_present)
-        fprintf(1, 'Extracted data are now available in the MATLAB workspace.\n');
-    else
-        fprintf(1, 'Extracted waveform information is now available in the MATLAB workspace.\n');
-    end
+    fprintf('Done!  Elapsed time: %0.1f seconds\n', toc);
 end
 
-nch = num_amplifier_channels;
 return;
 end
 

@@ -24,7 +24,7 @@ end
 if iscellstr(args.filename)
     args.filename = string(args.filename);
 end
-args.filename = arrayfun(@mu.getabspath, args.filename);
+args.filename = arrayfun(@(x) string(mu.getabspath(x)), args.filename);
 if numel(args.filename) > 1 && ~isfield(args, 'results_dir')
     warning("Please specify output dir for multiple input data");
 end
