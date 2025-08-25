@@ -1,4 +1,4 @@
-function params = getParams(recordExcelPath, ids)
+function [params, tbl] = getParamsExcel(recordExcelPath, ids)
 
 arguments
     recordExcelPath {mustBeTextScalar}

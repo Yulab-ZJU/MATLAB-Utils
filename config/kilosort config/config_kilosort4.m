@@ -21,6 +21,14 @@ if isempty(args) || any(~isfield(args, {'n_chan_bin', 'fs', 'probe_name', 'filen
     error("Input name-value pairs should at least contain: 'n_chan_bin', 'fs', 'probe_name', 'filename'");
 end
 
+if iscellstr(args.filename)
+    args.filename = string(args.filename);
+end
+args.filename = arrayfun(@mu.getabspath, args.filename);
+if numel(args.filename) > 1 && ~isfield(args, 'results_dir')
+    warning("Please specify output dir for multiple input data");
+end
+
 %% Python setup
 [status, cmdout] = system('conda run -n kilosort where python');
 if status == 0
@@ -74,8 +82,13 @@ opts.probe_name = args.probe_name;
 opts.filename = args.filename;
 
 % Directory where results will be stored
-% By default, will be set to [data_dir]/'kilosort4'
-opts.results_dir = mu.getor(args, "results_dir", fullfile(fileparts(mu.getabspath(opts.filename)), 'kilosort4'));
+% By default, will be set to [data_dir]/kilosort4
+if isStringScalar(opts.filename)
+    default_results_dir = fullfile(fileparts(opts.filename), 'kilosort4');
+else % default: save to the first [data_dir]/kilosort4
+    default_results_dir = fullfile(fileparts(opts.filename(1)), 'kilosort4');
+end
+opts.results_dir = mu.getor(args, "results_dir", default_results_dir);
 
 % dtype of data in binary file
 % By default, dtype is assumed to be 'int16'
