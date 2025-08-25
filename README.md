@@ -68,6 +68,8 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	`mu_plotTFR` Plots multi-channel time-frequency responses.
 
+​	`mu_addScaleplate` Adds a scale plate to a figure with multiple subplots at a specified position.
+
 ------
 
 ### 2. data structure
