@@ -9,7 +9,7 @@ SAVEROOTPATH = 'D:\Lab members\XHX\kilosort4 API\test Data\';
 sortIDs = 2; % which id to sort
 th = [8, 4]; % [Th_universal, Th_learned]
 
-skipBinExportExisted = true;
+skipBinExportExisted = false;
 skipSortExisted = true;
 
 % fixed

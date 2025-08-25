@@ -30,13 +30,9 @@ for fIndex = 1:numel(filenames)
 
     if exist(outbin, "file")
         fprintf('File already exists: %s', outbin);
-        if ~skipExisted
-            key = validateinput('Continue? y/[n] ', @(x) isempty(x) || ismember(string(x), ["y", "n"]), 's');
-            if isempty(key) || strcmpi(key, "n")
-                continue;
-            end
-        else
+        if skipExisted
             disp('Skip exporting existed binary file');
+            continue;
         end
     end
 
@@ -387,6 +383,7 @@ for fIndex = 1:numel(filenames)
 
     % Close data file.
     fclose(fid);
+    fclose(fidOut);
 
     if (data_present)
 
