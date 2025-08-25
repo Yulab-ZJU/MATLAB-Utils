@@ -1,4 +1,4 @@
-function [datPATHs, TRIGPATHs] = getNPbins(datPATHs, skipBinExportExisted)
+function [datPATHs, TRIGPATHs] = NP2bins(datPATHs, skipBinExportExisted)
 
 datPATHs = cellstr(datPATHs);
 TRIGPATHs = cell(numel(datPATHs), 1);
@@ -17,8 +17,9 @@ for dIndex = 1:numel(datPATHs)
     end
 
     % get data length
-    dataLength = getBinDataLength(datPATHs{dIndex}, 385, 'i16');
-    trigger = memmapfile(datPATHs{dIndex}, 'Format', {'int16', [385, dataLength], 'x'});
+    nch = 385;
+    dataLength = getBinDataLength(datPATHs{dIndex}, nch, 'i16');
+    trigger = memmapfile(datPATHs{dIndex}, 'Format', {'int16', [nch, dataLength], 'x'});
     TTL = trigger.Data.x(end, :);
     save(TRIGPATHs{dIndex}, "TTL", "-v7.3");
 end

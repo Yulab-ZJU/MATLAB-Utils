@@ -23,7 +23,7 @@ for i = 1:numel(ids)
 
         % type convertion
         if iscell(paramVals) && strcmpi(paramTypes.(paramName), 'double')
-            paramVals = cellfun(@str2double, paramVals, "UniformOutput", false);
+            paramVals = cellfun(@str2double, paramVals);
         end
 
         params(i, 1).(paramName) = paramVals;
@@ -31,23 +31,23 @@ for i = 1:numel(ids)
 
     % scalar
     params(i).ID = ids(i);
-    params(i).SR_AP = params(i).SR_AP{1};
-    params(i).SR_LFP = params(i).SR_LFP{1};
+    params(i).SR_AP = params(i).SR_AP(1);
+    if isfield(params(i), "SR_LFP")
+        params(i).SR_LFP = params(i).SR_LFP(1);
+    end
     params(i).sitePos = params(i).sitePos{1};
-    params(i).depth = params(i).depth{1};
+    params(i).depth = params(i).depth(1);
     params(i).recTech = params(i).recTech{1};
-    params(i).chNum = params(i).chNum{1};
-    params(i).badChannel = params(i).badChannel{1};
+    params(i).chNum = params(i).chNum(1);
+    params(i).badChannel = params(i).badChannel(1);
+    if isnan(params(i).badChannel)
+        params(i).badChannel = [];
+    end
     params(i).cf = params(i).cf{1};
-    params(i).dz = params(i).dz{1};
+    params(i).dz = params(i).dz(1);
     params(i).ks_ChSel = params(i).ks_ChSel{1};
     params(i).ks_ID = params(i).ks_ID{1};
     params(i).comments = params(i).comments{1};
-
-    % state flag
-    params(i).sort = cat(1, params(i).sort{:});
-    params(i).lfpExported = cat(1, params(i).lfpExported{:});
-    params(i).spkExported = cat(1, params(i).spkExported{:});
 end
 
 return;

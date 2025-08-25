@@ -1,4 +1,4 @@
-function [BINPATHs, TRIGPATHs, nch] = section_exportBins(recordExcelPath, sortIDs, skipBinExportExisted)
+function [BINPATHs, TRIGPATHs, nch] = section_exportBins(recordExcelPath, sortIDs, FORMAT, skipBinExportExisted)
 % Read parameters from Excel file
 params = getParamsExcel(recordExcelPath, sortIDs);
 
@@ -21,7 +21,7 @@ for index = 1:numel(params)
         case 'rhd'
             [BINPATHs{index}, TRIGPATHs{index}, nch] = RHD2bins(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
         case {'neuropixel', 'neuropixels', 'np'}
-            [BINPATHs{index}, TRIGPATHs{index}] = getNPbins(DATAPATHs, skipBinExportExisted);
+            [BINPATHs{index}, TRIGPATHs{index}] = NP2bins(DATAPATHs, skipBinExportExisted);
             nch = 385;
         otherwise
             error('Unsupported type: %s', recTech);

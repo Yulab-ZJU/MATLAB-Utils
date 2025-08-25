@@ -1,8 +1,8 @@
 function [outbins, triggers, nch] = RHD2bins(filenames, varargin)
 % read_Intan_RHD2000_file and export to binary data files and MAT trigger files
 filenames = cellstr(filenames);
-outbins = cellfun(@(x) fullfile(fileparts(x), 'Wave.bin'), filenames, "UniformOutput", false);
-triggers = cellfun(@(x) fullfile(fileparts(x), 'TTL.mat'), filenames, "UniformOutput", false);
+outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), filenames, "UniformOutput", false);
+triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'Wave.bin')), filenames, "UniformOutput", false);
 
 mIp = inputParser;
 mIp.addParameter("Format", 'i16');
