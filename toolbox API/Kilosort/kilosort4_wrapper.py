@@ -1,6 +1,9 @@
 import json
 import sys
 from kilosort import run_kilosort
+import numpy as np
+import pandas as pd
+from pathlib import Path
 
 def main():
     if len(sys.argv) < 3:
@@ -45,9 +48,57 @@ def main():
             verbose_console=opts.get('verbose_console', False),
             verbose_log=opts.get('verbose_log', False)
         )
+
+        # generate cluster_info.tsv
+        if settings.get('fs', None) is not None and opts.get('results_dir', None) is not None:
+            generate_cluster_info(opts['results_dir'], settings['fs'])
+        else:
+            print("fs or results_dir not provided, skipping cluster_info.tsv generation.")
+
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
+
+def generate_cluster_info(results_dir, fs):
+    results_dir = Path(results_dir)
+    
+    spike_clusters = np.load(results_dir / 'spike_clusters.npy')
+    spike_times = np.load(results_dir / 'spike_times.npy')
+    templates = np.load(results_dir / 'templates.npy')  # shape: n_templates x n_channels x template_length
+
+    unique_clusters = np.unique(spike_clusters)
+    cluster_ids, main_channels, n_spikes_list, fr_list, group_list = [], [], [], [], []
+
+    for cid in unique_clusters:
+        cluster_ids.append(int(cid))
+
+        idx = np.where(spike_clusters == cid)[0]
+        n_spikes = len(idx)
+        n_spikes_list.append(n_spikes)
+
+        fr = n_spikes / (spike_times.max() / fs)
+        fr_list.append(fr)
+
+        template_idx = int(cid)
+        if template_idx >= templates.shape[0]:
+            main_ch = -1
+        else:
+            tmpl = templates[template_idx]
+            main_ch = int(np.argmax(np.max(np.abs(tmpl), axis=1)))
+        main_channels.append(main_ch)
+
+        group_list.append('unsorted')
+
+    df = pd.DataFrame({
+        'cluster_id': cluster_ids,
+        'ch': main_channels,
+        'n_spikes': n_spikes_list,
+        'fr': fr_list,
+        'group': group_list
+    })
+    cluster_info_file = results_dir / 'cluster_info.tsv'
+    df.to_csv(cluster_info_file, sep='\t', index=False)
+    print(f'cluster_info.tsv saved at {cluster_info_file}')
 
 if __name__ == "__main__":
     main()

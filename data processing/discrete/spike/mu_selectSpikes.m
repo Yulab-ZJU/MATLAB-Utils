@@ -5,7 +5,7 @@ function out = mu_selectSpikes(sortdata, trialAllOrtEvt, window)
 % - Switches to binary search (discretize) if overlap detected
 %
 % INPUT:
-%   sortdata:       [N×2] (spikeTime, cluster) or [N×1] spikeTime only
+%   sortdata:       [N × 2] (spikeTime, cluster) or [N × 1] (spikeTime only)
 %   trialAllOrtEvt: struct with .onset field, or [tEvt] vector
 %   window:         [start, end], relative to event
 %

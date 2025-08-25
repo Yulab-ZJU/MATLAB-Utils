@@ -43,8 +43,8 @@ for index = 1:numel(rasterData)
 
     if ~isfield(rasterData(index), "Y")
         Y = mat2cell((nTrials + 1:nTrials + numel(rasterData(index).X))', ones(numel(rasterData(index).X), 1));
-        nTrials = nTrials + length(X);
-        Y = cell2mat(cellfun(@(x, y) repmat(y, [length(x), 1]), X, Y, "UniformOutput", false));
+        nTrials = nTrials + numel(X);
+        Y = cell2mat(cellfun(@(x, y) repmat(y, [numel(x), 1]), X, Y, "UniformOutput", false));
         X = cellfun(@(x) x(:), X, "UniformOutput", false);
         X = cat(1, X{:});
     end
@@ -60,18 +60,18 @@ for index = 1:numel(rasterData)
             "MarkerEdgeColor", "none", ...
             "MarkerFaceColor", color);
 
-    lines = mu.getor(rasterData(index), "lines");
-    if ~isempty(lines)
-        lines = mu.addfield(lines, "X", arrayfun(@(x) repmat(x.X, 2, 1), lines, "UniformOutput", false));
-        lines = mu.addfield(lines, "Y", repmat([min(Y), max(Y)], numel(lines), 1));
-        mu.addLines(ax, lines, "ConstantLine", false);
+    Lines = mu.getor(rasterData(index), "lines");
+    if ~isempty(Lines)
+        Lines = mu.addfield(Lines, "X", arrayfun(@(x) repmat(x.X, 2, 1), Lines, "UniformOutput", false));
+        Lines = mu.addfield(Lines, "Y", repmat([min(Y), max(Y)], numel(Lines), 1));
+        mu.addLines(ax, Lines, "ConstantLine", false);
     end
 
     if border.toLogical
         mu.addLines(ax, struct("Y", max(Y) + 0.5, ...
                                    "width", 0.5, ...
                                    "style", "-", ...
-                                   "color", "k"));
+                                   "color", [0, 0, 0]));
     end
 
 end

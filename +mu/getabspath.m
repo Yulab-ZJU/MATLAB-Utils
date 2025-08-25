@@ -7,7 +7,7 @@ function P = getabspath(relativePath)
 %   If relativePath is empty, reports an error.
 
 arguments
-    relativePath {mustBeTextScalar}  % char or string scalar
+    relativePath {mustBeTextScalarOrEmpty} = ""
 end
 
 if nargin < 1 || isempty(relativePath)
@@ -42,4 +42,10 @@ end
 
 function p = normalizePath(pathStr)
     p = char(java.io.File(pathStr).getCanonicalPath());
+end
+
+function mustBeTextScalarOrEmpty(x)
+    if ~(isempty(x) || isstring(x) && isscalar(x) || ischar(x) && isrow(x))
+        error('relativePath must be a char, string scalar, or empty.');
+    end
 end

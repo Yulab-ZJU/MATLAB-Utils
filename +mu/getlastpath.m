@@ -19,7 +19,8 @@ end
 
 % Get absolute path
 P = mu.getabspath(P);
-if ~isfolder(P)
+[~, ~, ext] = fileparts(P);
+if ~isempty(ext)
     P = fileparts(P);
 end
 
