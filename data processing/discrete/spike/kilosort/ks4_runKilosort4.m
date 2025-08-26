@@ -1,4 +1,4 @@
-function resultDirs = section_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
+function resultDirs = ks4_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
 % Read parameters from Excel file
 [params, tbl] = getParamsExcel(EXCELPATH, sortIDs);
 

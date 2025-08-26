@@ -1,0 +1,12 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mergeBinFiles": {
+        "inputs": [
+            {"name": "data", "kind": "required", "type": [["numeric"], ["cell"]], "purpose": "data"},
+            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate"}
+        ],
+        "description": "Applies a zero-phase shift filter to the data"
+    }
+
+}
