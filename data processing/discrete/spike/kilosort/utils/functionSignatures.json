@@ -3,10 +3,10 @@
 
     "mergeBinFiles": {
         "inputs": [
-            {"name": "data", "kind": "required", "type": [["numeric"], ["cell"]], "purpose": "data"},
-            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate"}
+            {"name": "outFile", "kind": "required", "type": [["string"], ["char"]], "purpose": "output file path"},
+            {"name": "file", "kind": "required", "type": [["string"], ["char"]], "purpose": "files to merge", "repeating": true}
         ],
-        "description": "Applies a zero-phase shift filter to the data"
+        "description": "Merge multiple bin files into one"
     }
 
 }
