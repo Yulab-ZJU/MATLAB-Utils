@@ -1,5 +1,5 @@
-function [spikeTimes, clusterIdxs, dataTDT, tShift] = ...
-         section_exportSpkMat(EXCELPATH, sortIDs, SAVEROOTPATH, ...
+function [spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = ...
+         ks4_exportSpkMat(EXCELPATH, sortIDs, SAVEROOTPATH, ...
                               RESPATHs, TRIGPATHs, nsamples, ...
                               skipMatSaveExisted)
 % Get params
@@ -28,7 +28,7 @@ frThrMean = 1;
 frThr0 = 0.5;
 
 % loop for each result
-[spikeTimes, clusterIdxs, dataTDT, tShift] = deal(cell(numel(RESPATHs), 1));
+[spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = deal(cell(numel(RESPATHs), 1));
 for rIndex = 1:numel(RESPATHs)
     % Read from NPY files
     RESPATH = RESPATHs{rIndex};
@@ -36,6 +36,7 @@ for rIndex = 1:numel(RESPATHs)
     clusterIdxMerge = double(readNPY(fullfile(RESPATH, 'spike_clusters.npy')));
     idSimilar = readNPY(fullfile(RESPATH, 'similar_templates.npy'));
 
+    % Exclude clusters with few spikes
     clusterUnique = unique(clusterIdxMerge);
     idSimilar = idSimilar(ismember(1:length(idSimilar), clusterUnique + 1), ismember(1:length(idSimilar), clusterUnique + 1));
 
@@ -73,11 +74,11 @@ for rIndex = 1:numel(RESPATHs)
         idToDel = spikeFrMerge < frThr0;
     end
 
-    % read from tsv file
-    filename = fullfile(RESPATH, 'cluster_info.tsv');
-    fileID = fopen(filename, 'r');
+    % Read from tsv file
+    clusterInfoFile = fullfile(RESPATH, 'cluster_info.tsv');
+    fileID = fopen(clusterInfoFile, 'r');
     if fileID == -1
-        error('File does not exist: %s', filename);
+        error('File does not exist: %s', clusterInfoFile);
     end
     fieldNames = textscan(fileID, '%s%s%s%s%s%s%s%s%s%s%s', 'HeaderLines', 0);
     array = [fieldNames{:}];
@@ -89,7 +90,7 @@ for rIndex = 1:numel(RESPATHs)
     cluster_info = cell2struct(array(2:end, :), array(1, :), 2);
     fclose(fileID);
 
-    % match cluster_id with channel
+    % Match cluster_id with channel
     id = [cluster_info.cluster_id]';
     ch = [cluster_info.ch]';
     idCh = sortrows([id, ch], 1);
@@ -110,10 +111,7 @@ for rIndex = 1:numel(RESPATHs)
     [~, loc] = ismember(clusterIdxMerge, idCh(:, 1));
     clusterIdxMerge = chIdxMerge(loc);
 
-    % spikeTimes{rIndex} = arrayfun(@(x) [spikeTimeMerge(clusterAll == x), chIdxMerge(clusterIdxMerge == x) * ones(sum(clusterAll == x), 1)], clusterIdxMerge, "UniformOutput", false);
-    % clusterIdxs{rIndex} = clusterIdxMerge;
-
-    % loop for each paradigm
+    % Loop for each paradigm
     nsample = [1; cumsum(nsamples{rIndex}(:)); inf];
     for pIndex = 1:numel(BLOCKPATHs{rIndex})
         % Align to start point of each block
@@ -126,27 +124,25 @@ for rIndex = 1:numel(RESPATHs)
         if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
             load(TRIGPATHs{rIndex}{pIndex}, "TTL");
             trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.Swep.onset);
-            TTL_Onset = find(diff(TTL) > 0.9) + 1;
+            TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
 
-            if trialNum < numel(TTL_Onset)
-                TTL_Onset(find(diff(TTL_Onset) < 0.05) + 1) = [];
-            end
-
-            if trialNum < numel(TTL_Onset)
-                error("The TTL sync signal does not match the TDT epocs [Swep] store!");
+            if trialNum ~= numel(TTL_Onset_temp)
+                TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
+                assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
             end
 
             % Align TDT trigger with TTL trigger
-            nShift = TTL_Onset(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.Swep.onset(1) * fs(rIndex), 0);
+            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.Swep.onset(1) * fs(rIndex), 0);
+            TTL_Onset{rIndex}{pIndex} = (TTL_Onset_temp - nShift) / fs(rIndex); % sec
 
-        else % use TDT trigger
-            % do nothing
+        else % Use TDT trigger
             nShift = 0;
+            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.Swep.onset; % sec
         end
 
-        spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex);
+        spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex); % sec
         clusterIdxs{rIndex}{pIndex} = clusterIdx;
-        tShift{rIndex}(pIndex) = nShift / fs(rIndex);
+        tShift{rIndex}(pIndex) = nShift / fs(rIndex); % sec
     end
 
 end
@@ -163,6 +159,7 @@ for rIndex = 1:numel(RESPATHs)
         data = [];
         data.epocs = dataTDT{rIndex}{pIndex}.epocs;
         data.sortdata = [spikeTimes{rIndex}{pIndex}, clusterIdxs{rIndex}{pIndex}];
+        data.TTL_Onset = TTL_Onset{rIndex}{pIndex};
         data.fs = fs(rIndex);
         data.params = params(rIndex);
 
