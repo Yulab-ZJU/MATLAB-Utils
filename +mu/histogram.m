@@ -23,7 +23,7 @@ function varargout = histogram(varargin)
 %
 % Outputs:
 %   H       - bar handles array
-%   N       - histogram counts matrix (#groups x #bins)
+%   N       - histogram counts matrix (#bins x #groups)
 %   edges   - bin edges
 %
 % Example:
@@ -46,23 +46,25 @@ hold(ax, "on");
 mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, {'numeric', 'cell'}, {'2d'}));
 mIp.addOptional("edges", [], @(x) validateattributes(x, {'numeric'}, {'vector'}));
-mIp.addParameter("width", 0.8, @(x) validateattributes(x, {'numeric'}, {'>', 0, '<=', 1}));
 mIp.addParameter("LineWidth", 0.5, @(x) validateattributes(x, {'numeric'}, {'positive'}));
 mIp.addParameter("FaceColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("EdgeColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
+mIp.addParameter("GroupSpace", 0.4, @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+mIp.addParameter("CategorySpace", 0, @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
 mIp.addParameter("DistributionCurve", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.parse(varargin{:});
 
 X = mIp.Results.X;
 edges = mIp.Results.edges;
-width = mIp.Results.width;
 LineWidth = mIp.Results.LineWidth;
 FaceColors = mIp.Results.FaceColor;
 EdgeColors = mIp.Results.EdgeColor;
 legendStrs = mIp.Results.DisplayName;
+groupSpace = mIp.Results.GroupSpace;
+categorySpace = mIp.Results.CategorySpace;
 BinWidth = mIp.Results.BinWidth;
 BinMethod = validatestring(mIp.Results.BinMethod, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'});
 DistributionCurve = mu.OptionState.create(mIp.Results.DistributionCurve);
@@ -118,19 +120,50 @@ end
 
 BinWidth = mode(diff(edges));
 
-N = zeros(numel(X), length(edges) - 1);
-for index = 1:numel(X)
-    N(index, :) = histcounts(X{index}, edges);
+categoryWidthHalf = BinWidth * (1 - categorySpace) / 2;
+positions = edges(1:end - 1) + BinWidth / 2;
+groupEdgeLeft  = positions - categoryWidthHalf;
+groupEdgeRight = positions + categoryWidthHalf;
+
+nGroup = numel(X);
+nCategory = numel(edges) - 1;
+boxWidth = (1 - (nGroup - 1) * groupSpace) / nGroup * categoryWidthHalf * 2;
+boxEdgeLeft  = arrayfun(@(x, y) x:boxWidth + groupSpace * categoryWidthHalf * 2:y, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
+boxEdgeRight = arrayfun(@(x, y) x + boxWidth:boxWidth + groupSpace * categoryWidthHalf * 2:y + boxWidth, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
+boxEdgeLeft  = cat(1, boxEdgeLeft {:}); % [nCategory × nGroup]
+boxEdgeRight = cat(1, boxEdgeRight{:}); % [nCategory × nGroup]
+
+[N, boxEdgeLower, boxEdgeUpper] = zeros(nCategory, nGroup);
+for index = 1:nGroup
+    N(:, index) = histcounts(X{index}, edges);
+end
+boxEdgeUpper = N;
+
+for cIndex = 1:nCategory
+    for gIndex = 1:nGroup
+        left = boxEdgeLeft(cIndex, gIndex);
+        right = boxEdgeRight(cIndex, gIndex);
+        bottom = boxEdgeLower(cIndex, gIndex);
+        top = boxEdgeUpper(cIndex, gIndex);
+        
+        xBox = [left, right, right, left];
+        yBox = [top, top, bottom, bottom];
+        patch(ax, "XData", xBox, ...
+              "YData", yBox, ...
+              "EdgeColor", EdgeColors{gIndex}, ...
+              "FaceColor", FaceColors{gIndex}, ...
+              "LineWidth", LineWidth);
+    end
 end
 
-H = bar(ax, edges(1:end - 1) + BinWidth / 2, N, width, "grouped", "LineWidth", LineWidth);
+% H = bar(ax, edges(1:end - 1) + BinWidth / 2, N, 0.8, "grouped", "LineWidth", LineWidth);
 
 if DistributionCurve.toLogical
 
     for index = 1:length(H)
         pd = fitdist(X{index}(:), "Kernel");
         temp = linspace(min(edges) - std(X{index}(:)), max(edges) + std(X{index}(:)), 1e3);
-        L(index) = plot(ax, temp, pdf(pd, temp) * sum(N(index, :)) * BinWidth, "Color", "k", "LineWidth", 1);
+        L(index) = plot(ax, temp, pdf(pd, temp) * sum(N(:, index)) * BinWidth, "Color", "k", "LineWidth", 1);
         mu.setLegendOff(L(index));
     end
 

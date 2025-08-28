@@ -512,10 +512,11 @@
                     {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]}
                 ]
             ]},
-            {"name": "width", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
             {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
+            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"]},
+            {"name": "CategorySpace", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "DisplayName", "kind": "namevalue", "type": ["cell"]},
             {"name": "BinWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"]},
             {"name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"]},

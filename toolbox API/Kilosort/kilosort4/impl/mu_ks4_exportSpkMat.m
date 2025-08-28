@@ -228,7 +228,7 @@ if a == 1 % for row vector
 elseif b == 1 % for column vector
     A = cat(1, C{:});
 else % for 2-D matrix
-    temp = rowFcn(@(x) cat(2, x{:}), C, "UniformOutput", false);
+    temp = mu.rowfun(@(x) cat(2, x{:}), C, "UniformOutput", false);
     A = cat(1, temp{:});
 end
 
