@@ -1,6 +1,6 @@
 function [BINPATHs, TRIGPATHs, nch] = mu_ks4_exportBins(EXCELPATH, sortIDs, FORMAT, skipBinExportExisted)
 % Read parameters from Excel file
-params = getParamsExcel(EXCELPATH, sortIDs);
+params = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
 
 % loop for each sort ID
 [BINPATHs, TRIGPATHs] = deal(cell(numel(params), 1));
@@ -16,13 +16,13 @@ for index = 1:numel(params)
     % Export to binary data
     switch lower(recTech)
         case 'tdt'
-            [BINPATHs{index}, nch] = TDT2bins(BLOCKPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
+            [BINPATHs{index}, nch] = mu_ks4_getBins_TDT(BLOCKPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
             TRIGPATHs{index} = BLOCKPATHs{index};
         case 'rhd'
-            [BINPATHs{index}, TRIGPATHs{index}] = RHD2bins(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
+            [BINPATHs{index}, TRIGPATHs{index}] = mu_ks4_getBins_RHD(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
             nch = 128;
         case {'neuropixel', 'neuropixels', 'np'}
-            [BINPATHs{index}, TRIGPATHs{index}] = NP2bins(DATAPATHs, skipBinExportExisted);
+            [BINPATHs{index}, TRIGPATHs{index}] = mu_ks4_getBins_NP(DATAPATHs, skipBinExportExisted);
             nch = 385;
         otherwise
             error('Unsupported type: %s', recTech);

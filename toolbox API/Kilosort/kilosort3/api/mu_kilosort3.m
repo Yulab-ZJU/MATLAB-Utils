@@ -11,9 +11,9 @@ function mu_kilosort3(binFullPath, ops, SAVEPATH)
 %
 % Example:
 %   Th = [10, 6]; % specify threshold
-%   run('.\config\configFileRat.m'); % returns ops
+%   run('.\config\mu_ks3_config_LA32Rat.m'); % returns ops
 %   ops.Th = Th;
-%   kilosort3('data.bin', ops);
+%   mu_kilosort3('data.bin', ops);
 %
 % The function will:
 %   - Preprocess the data

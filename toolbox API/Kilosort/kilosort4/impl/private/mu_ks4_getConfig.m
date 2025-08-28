@@ -1,4 +1,4 @@
-function [settings, opts] = mu_ks4_config(filenames, resultsDir, nCh, dtype, fs, th, badChs)
+function [settings, opts] = mu_ks4_getConfig(filenames, resultsDir, nCh, dtype, fs, th, badChs)
 narginchk(5, 7);
 
 if nargin < 6
@@ -9,7 +9,7 @@ if nargin < 7
     badChs = [];
 end
 
-chanMapRoot = fullfile(fileparts(which('initMATLABUtils')), 'config', 'kilosort config', 'chanMap');
+chanMapRoot = fullfile(mu.getrootpath(fileparts(which('mu_kilosort4')), 1), 'chanMap');
 
 switch dtype
     case 'i16'
@@ -67,6 +67,6 @@ switch nCh
 end
 
 params = [params, otherparams];
-[settings, opts] = config_kilosort4(params{:});
+[settings, opts] = mu_ks4_config(params{:});
 return;
 end

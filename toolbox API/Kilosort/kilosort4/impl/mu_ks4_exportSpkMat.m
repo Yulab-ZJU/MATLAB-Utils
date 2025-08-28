@@ -3,7 +3,7 @@ function [spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = ...
                              RESPATHs, TRIGPATHs, nsamples, ...
                              skipMatSaveExisted)
 % Get params
-[params, tbl] = getParamsExcel(EXCELPATH, sortIDs);
+[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
 
 [BLOCKPATHs, SAVEPATHs] = deal(cell(numel(sortIDs), 1));
 fs = nan(numel(sortIDs), 1);
