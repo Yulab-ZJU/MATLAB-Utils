@@ -1,4 +1,14 @@
-function openPhyGUI(path)
+function mu_ks_openPhyGUI(path)
+% mu_ks_openPhyGUI  Open Phy GUI for Kilosort results
+%
+% Usage:
+%   mu_ks_openPhyGUI(path)
+%
+% Inputs:
+%   path - directory containing Kilosort results
+%
+% Output:
+%   Launches Phy GUI for manual clustering
 
 % Validate params
 narginchk(0, 1);

@@ -1,8 +1,8 @@
-function genClusterInfo(resultsDir, fs)
-% genClusterInfo  Generate cluster_info.tsv from Kilosort results
+function mu_ks_genClusterInfo(resultsDir, fs)
+% mu_ks_genClusterInfo  Generate cluster_info.tsv from Kilosort results
 %
 % Usage:
-%   genClusterInfo(resultsDir, fs)
+%   mu_ks_genClusterInfo(resultsDir, fs)
 %
 % Inputs:
 %   resultsDir - folder containing spike_clusters.npy, spike_times.npy, templates.npy

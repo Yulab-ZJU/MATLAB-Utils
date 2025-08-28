@@ -1,11 +1,11 @@
-function mergeBinFiles(outFile, varargin)
-% mergeBinFiles Concatenate multiple binary files using Windows CMD copy /b
+function mu_ks_mergeBinFiles(outFile, varargin)
+% mu_ks_mergeBinFiles Concatenate multiple binary files using Windows CMD copy /b
 %
-%   mergeBinFiles(OUTFILE, FILE1, FILE2, ...) concatenates FILE1, FILE2, ...
+%   mu_ks_mergeBinFiles(OUTFILE, FILE1, FILE2, ...) concatenates FILE1, FILE2, ...
 %   into OUTFILE by calling Windows CMD command: copy /b.
 %
 %   Example:
-%       mergeBinFiles('merged.bin', 'file1.bin', 'file2.dat', 'file3.bin')
+%       mu_ks_mergeBinFiles('merged.bin', 'file1.bin', 'file2.dat', 'file3.bin')
 
 % Validate inputs
 if nargin < 2
