@@ -514,13 +514,14 @@
             ]},
             {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
-            {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
-            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "CategorySpace", "kind": "namevalue", "type": ["numeric", "scalar"]},
+            {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'"},
+            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0"},
+            {"name": "BinSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0"},
             {"name": "DisplayName", "kind": "namevalue", "type": ["cell"]},
             {"name": "BinWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"]},
-            {"name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"]},
-            {"name": "DistributionCurve", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]}
+            {"name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"], "purpose": "default: 'auto'"},
+            {"name": "DistributionCurve", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default: 'hide'"},
+            {"name": "FitCurveLineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 1"}
         ],
         "description": "Create a histogram with various customization options"
     },
