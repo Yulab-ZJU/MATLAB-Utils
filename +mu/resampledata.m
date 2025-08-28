@@ -18,7 +18,7 @@ if iscell(data)
 elseif isa(data, "double") || isa(data, "single")
     dataResample = resample(data, P, Q);
 else
-    error("resampleData(): Invalid data type");
+    error("Invalid data type");
 end
 
 return;

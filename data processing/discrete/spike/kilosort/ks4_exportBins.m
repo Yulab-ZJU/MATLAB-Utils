@@ -1,6 +1,6 @@
-function [BINPATHs, TRIGPATHs, nch] = ks4_exportBins(recordExcelPath, sortIDs, FORMAT, skipBinExportExisted)
+function [BINPATHs, TRIGPATHs, nch] = ks4_exportBins(EXCELPATH, sortIDs, FORMAT, skipBinExportExisted)
 % Read parameters from Excel file
-params = getParamsExcel(recordExcelPath, sortIDs);
+params = getParamsExcel(EXCELPATH, sortIDs);
 
 % loop for each sort ID
 [BINPATHs, TRIGPATHs] = deal(cell(numel(params), 1));
