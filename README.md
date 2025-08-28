@@ -314,13 +314,13 @@ Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefu
 
 #### 8.3 kilosort
 
-​	`kilosort3` API for kilosort3
+​	`kilosort3` Runs kilosort3.
 
 ​	`kilosort4` Runs kilosort4 (python version) via MATLAB.
 
 ​	`checkPython` Converts system python version to `3.7` for kilosort3.
 
-​	`parseNPY` Reads sort results from NPY files.
+​	`genClusterInfo` Generates `cluster_info.tsv` from kilosort results.
 
 #### 8.4 psignifit
 
