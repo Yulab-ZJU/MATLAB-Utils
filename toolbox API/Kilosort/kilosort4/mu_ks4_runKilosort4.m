@@ -1,4 +1,4 @@
-function resultDirs = ks4_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
+function resultDirs = mu_ks4_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
 % Read parameters from Excel file
 [params, tbl] = getParamsExcel(EXCELPATH, sortIDs);
 
@@ -36,7 +36,7 @@ for index = 1:numel(params)
     [settings, opts] = getConfigKilosort4(BINPATHs{index}, resultDirs{index}, nCh, FORMAT, fs, th, badChs);
 
     % Run kilosort4
-    kilosort4(settings, opts);
+    mu_kilosort4(settings, opts);
 
     % Update Excel file
     tbl.sort(tbl.ID == sortIDs(index)) = {'1'};

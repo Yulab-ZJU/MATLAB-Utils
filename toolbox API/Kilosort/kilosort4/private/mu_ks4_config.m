@@ -1,4 +1,4 @@
-function [settings, opts] = getConfigKilosort4(filenames, resultsDir, nCh, dtype, fs, th, badChs)
+function [settings, opts] = mu_ks4_config(filenames, resultsDir, nCh, dtype, fs, th, badChs)
 narginchk(5, 7);
 
 if nargin < 6

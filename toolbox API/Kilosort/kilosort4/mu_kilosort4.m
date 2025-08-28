@@ -1,5 +1,5 @@
-function kilosort4(settings, opts)
-% KILOSORT4 runs kilosort-4 in MATLAB via python API.
+function mu_kilosort4(settings, opts)
+% MU_KILOSORT4 runs kilosort-4 in MATLAB via python API.
 %
 % NOTES:
 %   Run config_kilosort4.m first for [settings] and [opts].

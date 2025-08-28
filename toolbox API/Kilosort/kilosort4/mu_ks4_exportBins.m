@@ -1,4 +1,4 @@
-function [BINPATHs, TRIGPATHs, nch] = ks4_exportBins(EXCELPATH, sortIDs, FORMAT, skipBinExportExisted)
+function [BINPATHs, TRIGPATHs, nch] = mu_ks4_exportBins(EXCELPATH, sortIDs, FORMAT, skipBinExportExisted)
 % Read parameters from Excel file
 params = getParamsExcel(EXCELPATH, sortIDs);
 
