@@ -44,7 +44,7 @@ else
 end
 
 %% settings
-% See ..\wrapper\parameters.py for a full list of parameters
+% See .\wrapper\parameters.py for a full list of parameters
 %%% Main parameters %%%
 % number of channels, must be specified here (*)
 settings.n_chan_bin = args.n_chan_bin;
