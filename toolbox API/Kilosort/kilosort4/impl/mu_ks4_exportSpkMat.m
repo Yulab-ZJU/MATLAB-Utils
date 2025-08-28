@@ -75,24 +75,12 @@ for rIndex = 1:numel(RESPATHs)
     end
 
     % Read from tsv file
-    clusterInfoFile = fullfile(RESPATH, 'cluster_info.tsv');
-    fileID = fopen(clusterInfoFile, 'r');
-    if fileID == -1
-        error('File does not exist: %s', clusterInfoFile);
-    end
-    fieldNames = textscan(fileID, '%s%s%s%s%s%s%s%s%s%s%s', 'HeaderLines', 0);
-    array = [fieldNames{:}];
-    array = array(:, ismember(array(1, :), ["cluster_id", "ch"]));
-    fields = array(1, :);
-    values = array(2:end, 1:end);
-    values = cellfun(@(x) str2double(x), values, "UniformOutput", false);
-    array = [fields; values];
-    cluster_info = cell2struct(array(2:end, :), array(1, :), 2);
-    fclose(fileID);
+    clusterInfo = readtable(fullfile(RESPATH, 'cluster_info.tsv'), ...
+                            'FileType', 'text', 'Delimiter', '\t');
 
     % Match cluster_id with channel
-    id = [cluster_info.cluster_id]';
-    ch = [cluster_info.ch]';
+    id = clusterInfo.cluster_id;
+    ch = clusterInfo.ch;
     idCh = sortrows([id, ch], 1);
     idCh(idToDel, :) = [];
     chs = unique(idCh(:, 2));
