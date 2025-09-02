@@ -1,21 +1,23 @@
 function resultDirs = mu_ks4_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
 % Read parameters from Excel file
+sortIDs = unique(sortIDs);
 [params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+nBatch = numel(params);
 
 % Loop for each sort ID
-resultDirs = cell(numel(params), 1);
-for index = 1:numel(params)
-    sorted = params(index).sort;
-    BLOCKPATHs = params(index).BLOCKPATH;
-    fs = params(index).SR_AP;
-    nCh = params(index).chNum;
-    badChs = params(index).badChannel;
+resultDirs = cell(nBatch, 1);
+for rIndex = 1:nBatch
+    sorted = params(rIndex).sort;
+    BLOCKPATHs = params(rIndex).BLOCKPATH;
+    fs = params(rIndex).SR_AP;
+    nCh = params(rIndex).chNum;
+    badChs = params(rIndex).badChannel;
 
     % Init result dir path
     [~, ~, BLOCKNUMs] = cellfun(@(x) mu.getlastpath(x, 1), BLOCKPATHs, "UniformOutput", false);
     BLOCKNUMs = cellfun(@(x) split(x, '-'), BLOCKNUMs, "UniformOutput", false);
     BLOCKNUMs = cellfun(@(x) x{end}, BLOCKNUMs, "UniformOutput", false);
-    resultDirs{index} = fullfile(mu.getrootpath(BLOCKPATHs{1}, 1), ['Merge ', strjoin(BLOCKNUMs, '_')]);
+    resultDirs{rIndex} = fullfile(mu.getrootpath(BLOCKPATHs{1}, 1), ['Merge ', strjoin(BLOCKNUMs, '_')]);
     
     % Skip sorted
     if all(sorted) && skipSortExisted
@@ -23,23 +25,23 @@ for index = 1:numel(params)
     end
     
     % Get kilosort configuration
-    if exist(resultDirs{index}, "dir")
-        fprintf('Result folder %s already exists.\n', resultDirs{index});
+    if exist(resultDirs{rIndex}, "dir")
+        fprintf('Result folder %s already exists.\n', resultDirs{rIndex});
         if ~skipSortExisted
             disp('Delete result folder and re-sorting...');
-            rmdir(resultDirs{index}, "s");
+            rmdir(resultDirs{rIndex}, "s");
         else
             disp('Skip sorted.');
             continue;
         end
     end
-    [settings, opts] = mu_ks4_getConfig(BINPATHs{index}, resultDirs{index}, nCh, FORMAT, fs, th, badChs);
+    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th, badChs);
 
     % Run kilosort4
     mu_kilosort4(settings, opts);
 
     % Update Excel file
-    tbl.sort(tbl.ID == sortIDs(index)) = {'1'};
+    tbl.sort(tbl.ID == sortIDs(rIndex)) = {'1'};
     writetable(tbl, EXCELPATH);
 end
 
