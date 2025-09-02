@@ -1,6 +1,6 @@
 %% Common settings
 % path of chanMap.m
-ops.chanMap = 'D:\Education\Lab\kilosort files\Kilosort\configFiles\chan32_1_kilosortChanMap.mat';
+ops.chanMap = fullfile(mu.getrootpath(fileparts(mfilename("fullpath")), 2), 'chan32_1_kilosortChanMap.mat');
 % ops.chanMap = 1:ops.Nchan; % treated as linear probe if no chanMap file
 
 % total number of channels in your recording

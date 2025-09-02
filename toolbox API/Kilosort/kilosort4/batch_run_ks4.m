@@ -6,7 +6,7 @@ SAVEROOTPATH = '~\DATA\MAT DATA\';
 
 %% Parameter settings
 % user-specified
-sortIDs = 2; % which id to sort
+sortIDs = [1, 2]; % which id to sort
 th = [9, 8]; % [Th_universal, Th_learned]
 
 skipBinExportExisted = true;
