@@ -1,9 +1,9 @@
-function [settings, opts] = config_kilosort4(varargin)
+function [settings, opts] = mu_ks4_config(varargin)
 % Configuration of kilosort4
 % Items marked with (*) are a must.
 %
 % E.g.,
-%   [settings, opts] = config_kilosort4(...
+%   [settings, opts] = mu_ks4_config(...
 %       "n_chan_bin", 385, ...
 %       "fs", 30e3, ...
 %       "Th_universal", 9, ... Th(1)
@@ -44,7 +44,7 @@ else
 end
 
 %% settings
-% See ~\resources\parameters.py for a full list of parameters
+% See .\wrapper\parameters.py for a full list of parameters
 %%% Main parameters %%%
 % number of channels, must be specified here (*)
 settings.n_chan_bin = args.n_chan_bin;

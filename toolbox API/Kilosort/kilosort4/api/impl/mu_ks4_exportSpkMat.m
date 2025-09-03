@@ -1,24 +1,36 @@
-function [spikeTimes, clusterIdxs, dataTDT, tShift] = ...
-         section_exportSpkMat(EXCELPATH, sortIDs, SAVEROOTPATH, ...
-                              RESPATHs, TRIGPATHs, nsamples, ...
-                              skipMatSaveExisted)
-% Get params
-[params, tbl] = getParamsExcel(EXCELPATH, sortIDs);
+function [spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = ...
+    mu_ks4_exportSpkMat(EXCELPATH, ...
+                        sortIDs, ...
+                        SAVEROOTPATH, ...
+                        BINPATHs, ...
+                        RESPATHs, ...
+                        TRIGPATHs, ...
+                        FORMAT, ...
+                        nch, ...
+                        skipSpkExportExisted)
 
-[BLOCKPATHs, SAVEPATHs] = deal(cell(numel(sortIDs), 1));
-fs = nan(numel(sortIDs), 1);
-for index = 1:numel(sortIDs)
-    BLOCKPATHs{index} = params(index).BLOCKPATH;
-    sitePos = params(index).sitePos;
-    fs(index) = params(index).SR_AP; % Hz
-    
+% Get params
+sortIDs = unique(sortIDs);
+[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+nBatch = numel(params);
+
+% Get data length of each binary file
+nsamples = cellfun(@(x) cellfun(@(y) mu_ks_getBinDataLength(y, nch, FORMAT), x), BINPATHs, "UniformOutput", false);
+
+[BLOCKPATHs, SAVEPATHs] = deal(cell(nBatch, 1));
+fs = nan(nBatch, 1);
+for rIndex = 1:nBatch
+    BLOCKPATHs{rIndex} = params(rIndex).BLOCKPATH;
+    sitePos = params(rIndex).sitePos;
+    fs(rIndex) = params(rIndex).SR_AP; % Hz
+
     % ~\subject\date\Block-n
-    [~, TANKNAMEs, ~] = cellfun(@(x) mu.getlastpath(x, 3), params(index).BLOCKPATH, "UniformOutput", false);
+    [~, TANKNAMEs, ~] = cellfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
     TANKNAMEs = cellfun(@(x) strjoin(x(1:2), filesep), TANKNAMEs, "UniformOutput", false);
-    
+
     % ~\CTL_New\paradigm\date_sitePos
     % paradigm -> Block-n
-    SAVEPATHs{index} = cellfun(@(x, y) fullfile(SAVEROOTPATH, 'CTL_New', x, [y, '_', sitePos]), params(index).paradigm, TANKNAMEs, "UniformOutput", false);
+    SAVEPATHs{rIndex} = cellfun(@(x, y) fullfile(SAVEROOTPATH, 'CTL_New', x, [y, '_', sitePos]), params(rIndex).paradigm, TANKNAMEs, "UniformOutput", false);
 end
 
 simThr = 0.7;
@@ -28,7 +40,7 @@ frThrMean = 1;
 frThr0 = 0.5;
 
 % loop for each result
-[spikeTimes, clusterIdxs, dataTDT, tShift] = deal(cell(numel(RESPATHs), 1));
+[spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = deal(cell(numel(RESPATHs), 1));
 for rIndex = 1:numel(RESPATHs)
     % Read from NPY files
     RESPATH = RESPATHs{rIndex};
@@ -36,6 +48,7 @@ for rIndex = 1:numel(RESPATHs)
     clusterIdxMerge = double(readNPY(fullfile(RESPATH, 'spike_clusters.npy')));
     idSimilar = readNPY(fullfile(RESPATH, 'similar_templates.npy'));
 
+    % Exclude clusters with few spikes
     clusterUnique = unique(clusterIdxMerge);
     idSimilar = idSimilar(ismember(1:length(idSimilar), clusterUnique + 1), ismember(1:length(idSimilar), clusterUnique + 1));
 
@@ -73,25 +86,13 @@ for rIndex = 1:numel(RESPATHs)
         idToDel = spikeFrMerge < frThr0;
     end
 
-    % read from tsv file
-    filename = fullfile(RESPATH, 'cluster_info.tsv');
-    fileID = fopen(filename, 'r');
-    if fileID == -1
-        error('File does not exist: %s', filename);
-    end
-    fieldNames = textscan(fileID, '%s%s%s%s%s%s%s%s%s%s%s', 'HeaderLines', 0);
-    array = [fieldNames{:}];
-    array = array(:, ismember(array(1, :), ["cluster_id", "ch"]));
-    fields = array(1, :);
-    values = array(2:end, 1:end);
-    values = cellfun(@(x) str2double(x), values, "UniformOutput", false);
-    array = [fields; values];
-    cluster_info = cell2struct(array(2:end, :), array(1, :), 2);
-    fclose(fileID);
+    % Read from tsv file
+    clusterInfo = readtable(fullfile(RESPATH, 'cluster_info.tsv'), ...
+        'FileType', 'text', 'Delimiter', '\t');
 
-    % match cluster_id with channel
-    id = [cluster_info.cluster_id]';
-    ch = [cluster_info.ch]';
+    % Match cluster_id with channel
+    id = clusterInfo.cluster_id;
+    ch = clusterInfo.ch;
     idCh = sortrows([id, ch], 1);
     idCh(idToDel, :) = [];
     chs = unique(idCh(:, 2));
@@ -110,10 +111,7 @@ for rIndex = 1:numel(RESPATHs)
     [~, loc] = ismember(clusterIdxMerge, idCh(:, 1));
     clusterIdxMerge = chIdxMerge(loc);
 
-    % spikeTimes{rIndex} = arrayfun(@(x) [spikeTimeMerge(clusterAll == x), chIdxMerge(clusterIdxMerge == x) * ones(sum(clusterAll == x), 1)], clusterIdxMerge, "UniformOutput", false);
-    % clusterIdxs{rIndex} = clusterIdxMerge;
-
-    % loop for each paradigm
+    % Loop for each paradigm
     nsample = [1; cumsum(nsamples{rIndex}(:)); inf];
     for pIndex = 1:numel(BLOCKPATHs{rIndex})
         % Align to start point of each block
@@ -126,27 +124,25 @@ for rIndex = 1:numel(RESPATHs)
         if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
             load(TRIGPATHs{rIndex}{pIndex}, "TTL");
             trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.Swep.onset);
-            TTL_Onset = find(diff(TTL) > 0.9) + 1;
+            TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
 
-            if trialNum < numel(TTL_Onset)
-                TTL_Onset(find(diff(TTL_Onset) < 0.05) + 1) = [];
-            end
-
-            if trialNum < numel(TTL_Onset)
-                error("The TTL sync signal does not match the TDT epocs [Swep] store!");
+            if trialNum ~= numel(TTL_Onset_temp)
+                TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
+                assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
             end
 
             % Align TDT trigger with TTL trigger
-            nShift = TTL_Onset(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.Swep.onset(1) * fs(rIndex), 0);
+            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.Swep.onset(1) * fs(rIndex), 0);
+            TTL_Onset{rIndex}{pIndex} = (TTL_Onset_temp - nShift) / fs(rIndex); % sec
 
-        else % use TDT trigger
-            % do nothing
+        else % Use TDT trigger
             nShift = 0;
+            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.Swep.onset; % sec
         end
 
-        spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex);
+        spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex); % sec
         clusterIdxs{rIndex}{pIndex} = clusterIdx;
-        tShift{rIndex}(pIndex) = nShift / fs(rIndex);
+        tShift{rIndex}(pIndex) = nShift / fs(rIndex); % sec
     end
 
 end
@@ -156,13 +152,14 @@ for rIndex = 1:numel(RESPATHs)
     for pIndex = 1:numel(SAVEPATHs{index})
         exported = params(index).spkExported(pIndex);
 
-        if exported && skipMatSaveExisted
+        if exported && skipSpkExportExisted
             continue;
         end
 
         data = [];
         data.epocs = dataTDT{rIndex}{pIndex}.epocs;
         data.sortdata = [spikeTimes{rIndex}{pIndex}, clusterIdxs{rIndex}{pIndex}];
+        data.TTL_Onset = TTL_Onset{rIndex}{pIndex};
         data.fs = fs(rIndex);
         data.params = params(rIndex);
 
@@ -171,7 +168,7 @@ for rIndex = 1:numel(RESPATHs)
         end
 
         save(fullfile(SAVEPATHs{rIndex}{pIndex}, 'spkData.mat'), "data");
-    
+
         % update Excel
         idx = find(tbl.ID == sortIDs(rIndex));
         tbl.spkExported(idx(pIndex)) = {'1'};
@@ -184,75 +181,75 @@ end
 
 %% Utils
 function groups = mNchoosek(data, nPool, header)
-narginchk(2, 3);
-if nargin < 3
-    header = [];
-else
-    if iscolumn(header)
-        header = header';
+    narginchk(2, 3);
+    if nargin < 3
+        header = [];
+    else
+        if iscolumn(header)
+            header = header';
+        end
     end
-end
-if isempty(data) || isempty(nPool)
-    groups = [];
-else
-    temp = cellfun(@(x) num2cell(nchoosek(data, x), 2), num2cell(nPool)', "UniformOutput", false);
-    temp = cat(1, temp{:});
-    groups = cellfun(@(y) [header, y], temp, "UniformOutput", false);
-end
-return;
+    if isempty(data) || isempty(nPool)
+        groups = [];
+    else
+        temp = cellfun(@(x) num2cell(nchoosek(data, x), 2), num2cell(nPool)', "UniformOutput", false);
+        temp = cat(1, temp{:});
+        groups = cellfun(@(y) [header, y], temp, "UniformOutput", false);
+    end
+    return;
 end
 
 function [uniqueCA, idx] = mUniqueCell(cellRaw, varargin)
-mIp = inputParser;
-mIp.addRequired("cellRaw", @(x) iscell(x));
-mIp.addOptional("type", "simple", @(x) any(validatestring(x, {'simple', 'largest set', 'minimum set'})));
-mIp.parse(cellRaw, varargin{:});
-
-type = mIp.Results.type;
-
-temp = reshape(cellRaw, [], 1);
-idxTemp = 1 : length(temp);
-[temp, uniqIdx] = unique(string(cellfun(@(x) strjoin(mat2cellStr(sort(x)), ","), temp, "UniformOutput", false)));
-idxTemp = idxTemp(uniqIdx);
-temp = cellfun(@(k) str2double(strsplit(k, ",")), temp, "UniformOutput", false);
-[~, index] = sortrows(cell2mat(cellfun(@(x) [x, zeros(1, max(cellfun(@length, temp) - length(x)))], temp, "UniformOutput", false)), 1:cellfun(@length, temp), "ascend");
-idxTemp = idxTemp(index);
-temp = temp(index);
-if matches(type, "simple")
-    uniqueCA = temp;
-    idx = idxTemp';
-elseif matches(type, "largest set")
-    largest_set = ~any(cell2mat(cellfun(@(x, y) ~ismember((1:length(temp))', y) & cellfun(@(k) all(ismember(k, x)), temp), temp, num2cell(1:length(temp))', "UniformOutput", false)'), 2);
-    uniqueCA = temp(largest_set);
-    idx = idxTemp(largest_set)';
-elseif matches(type, "minimum set")
-    minimum_set = ~any(cell2mat(cellfun(@(x, y) ~ismember((1:length(temp))', y) & cellfun(@(k) all(ismember(k, x)), temp), temp, num2cell(1:length(temp))', "UniformOutput", false)'), 1)';
-    uniqueCA = temp(minimum_set);
-    idx = idxTemp(minimum_set)';
-end
-return;
+    mIp = inputParser;
+    mIp.addRequired("cellRaw", @(x) iscell(x));
+    mIp.addOptional("type", "simple", @(x) any(validatestring(x, {'simple', 'largest set', 'minimum set'})));
+    mIp.parse(cellRaw, varargin{:});
+    
+    type = mIp.Results.type;
+    
+    temp = reshape(cellRaw, [], 1);
+    idxTemp = 1 : length(temp);
+    [temp, uniqIdx] = unique(string(cellfun(@(x) strjoin(mat2cellStr(sort(x)), ","), temp, "UniformOutput", false)));
+    idxTemp = idxTemp(uniqIdx);
+    temp = cellfun(@(k) str2double(strsplit(k, ",")), temp, "UniformOutput", false);
+    [~, index] = sortrows(cell2mat(cellfun(@(x) [x, zeros(1, max(cellfun(@length, temp) - length(x)))], temp, "UniformOutput", false)), 1:cellfun(@length, temp), "ascend");
+    idxTemp = idxTemp(index);
+    temp = temp(index);
+    if matches(type, "simple")
+        uniqueCA = temp;
+        idx = idxTemp';
+    elseif matches(type, "largest set")
+        largest_set = ~any(cell2mat(cellfun(@(x, y) ~ismember((1:length(temp))', y) & cellfun(@(k) all(ismember(k, x)), temp), temp, num2cell(1:length(temp))', "UniformOutput", false)'), 2);
+        uniqueCA = temp(largest_set);
+        idx = idxTemp(largest_set)';
+    elseif matches(type, "minimum set")
+        minimum_set = ~any(cell2mat(cellfun(@(x, y) ~ismember((1:length(temp))', y) & cellfun(@(k) all(ismember(k, x)), temp), temp, num2cell(1:length(temp))', "UniformOutput", false)'), 1)';
+        uniqueCA = temp(minimum_set);
+        idx = idxTemp(minimum_set)';
+    end
+    return;
 end
 
 function A = mCell2mat(C)
-% Elements of C can be cell/string/numeric
-
-[a, b] = size(C);
-
-if a == 1 % for row vector
-    A = cat(2, C{:});
-elseif b == 1 % for column vector
-    A = cat(1, C{:});
-else % for 2-D matrix
-    temp = rowFcn(@(x) cat(2, x{:}), C, "UniformOutput", false);
-    A = cat(1, temp{:});
-end
-
-return;
+    % Elements of C can be cell/string/numeric
+    
+    [a, b] = size(C);
+    
+    if a == 1 % for row vector
+        A = cat(2, C{:});
+    elseif b == 1 % for column vector
+        A = cat(1, C{:});
+    else % for 2-D matrix
+        temp = mu.rowfun(@(x) cat(2, x{:}), C, "UniformOutput", false);
+        A = cat(1, temp{:});
+    end
+    
+    return;
 end
 
 function str = mat2cellStr(mat)
-[Col, Raw] = size(mat);
-str = cellfun(@(x) num2str(x), num2cell(mat), "UniformOutput", false);
-str = reshape(str, [Col, Raw]);
-return;
+    [Col, Raw] = size(mat);
+    str = cellfun(@(x) num2str(x), num2cell(mat), "UniformOutput", false);
+    str = reshape(str, [Col, Raw]);
+    return;
 end

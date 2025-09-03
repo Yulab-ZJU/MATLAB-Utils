@@ -26,6 +26,7 @@ if strcmpi(varargin{1}, "default")
     set(target, "LineWidth", 0.75);
     set(target, "XColor", [0, 0, 0]);
     set(target, "YColor", [0, 0, 0]);
+    set(target, "Layer", "top");
     varargin = varargin(2:end);
 end
 

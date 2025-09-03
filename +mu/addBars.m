@@ -1,12 +1,12 @@
 function varargout = addBars(varargin)
-% ADDBARS adds significant areas to axes (vertical bars).
+% ADDBARS adds significant areas to axes (vertical patches).
 % Input:
 %   - ax: target axes (default: gca)
 %   - xval: X values, real vector
 %   - color: color of bars (default: "k")
 %   - alpha: Face alpha value of bars (default: 0.1)
 % Output:
-%   - h: bar object
+%   - h: patch object(s)
 
 if isgraphics(varargin{1}, "axes")
     ax = varargin{1};
@@ -22,7 +22,7 @@ mIp.addOptional("color", "k", @(x) true);
 mIp.addOptional("alpha", 0.1, @(x) validateattributes(x, {'numeric'}, {'scalar', '<=', 1, ">=", 0}));
 mIp.parse(ax, varargin{:});
 
-xval = mIp.Results.xval;
+xval = mIp.Results.xval(:);
 color = validatecolor(mIp.Results.color);
 FaceAlpha = mIp.Results.alpha;
 
@@ -40,17 +40,26 @@ for index = 1:length(children)
     end
 end
 xdata = unique(xdata);
+if numel(xdata) > 1
+    width = min(diff(xdata));
+else
+    width = range(get(ax, "XLim")) * 0.01; % fallback: 1% x-axis range
+end
 
 yRange = get(ax, "YLim");
-width = min(diff(xdata));
 
-if yRange(1) >= 0 % all positive
-    h = bar(ax, xval, ones(numel(xval), 1) * yRange(2), width, "FaceColor", color, "FaceAlpha", FaceAlpha, "EdgeColor", "none");
-elseif yRange(2) <= 0 % all negative
-    h = bar(ax, xval, ones(numel(xval), 1) * yRange(1), width, "FaceColor", color, "FaceAlpha", FaceAlpha, "EdgeColor", "none");
-else
-    h(1) = bar(ax, xval, ones(numel(xval), 1) * yRange(1), width, "FaceColor", color, "FaceAlpha", FaceAlpha, "EdgeColor", "none");
-    h(2) = bar(ax, xval, ones(numel(xval), 1) * yRange(2), width, "FaceColor", color, "FaceAlpha", FaceAlpha, "EdgeColor", "none");
+hold(ax, "on");
+h = gobjects(0);
+
+for i = 1:numel(xval)
+    xv = [xval(i) - width / 2, ...
+          xval(i) + width / 2, ...
+          xval(i) + width / 2, ...
+          xval(i) - width / 2];
+    yv = [yRange(1), yRange(1), yRange(2), yRange(2)];
+    h(end + 1) = patch(ax, xv, yv, color, ...
+                       "FaceAlpha", FaceAlpha, ...
+                       "EdgeColor", "none");
 end
 
 mu.setLegendOff(h);
@@ -61,5 +70,4 @@ elseif nargout > 1
     error("Unspecified output arg");
 end
 
-return;
 end

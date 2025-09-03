@@ -1,5 +1,5 @@
-function kilosort3(binFullPath, ops, SAVEPATH)
-%KILOSORT3 Runs the Kilosort 3 spike sorting pipeline on binary data.
+function mu_kilosort3(binFullPath, ops, SAVEPATH)
+% mu_kilosort3 Runs the Kilosort 3 spike sorting pipeline on binary data.
 %
 % This function executes the full Kilosort 3 workflow for spike sorting neural data.
 % It preprocesses the input binary file, runs all main Kilosort steps, and saves results.
@@ -11,9 +11,9 @@ function kilosort3(binFullPath, ops, SAVEPATH)
 %
 % Example:
 %   Th = [10, 6]; % specify threshold
-%   run('.\config\configFileRat.m'); % returns ops
+%   run('.\config\mu_ks3_config_LA32Rat.m'); % returns ops
 %   ops.Th = Th;
-%   kilosort3('data.bin', ops);
+%   mu_kilosort3('data.bin', ops);
 %
 % The function will:
 %   - Preprocess the data

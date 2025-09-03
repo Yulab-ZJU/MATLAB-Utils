@@ -35,7 +35,7 @@ mIp.addParameter("harmonics", 1, @(x) validateattributes(x, {'numeric'}, {'vecto
 mIp.addParameter("amps", [], @(x) validateattributes(x, {'numeric'}, {'vector'}));
 mIp.addParameter("rfTime", 5e-3, @(x) validateattributes(x, {'numeric'}, {'nonnegative', 'scalar'}));
 mIp.addParameter("rfOpt", "both", @(x) any(validatestring(x, {'both', 'rise', 'fall'})));
-mIp.addParameter("normOpt", false, @(x) isscalar(x) && islogical(x));
+mIp.addParameter("normOpt", mu.OptionState.Off);
 mIp.parse(f, durs, fs, varargin{:});
 
 fsDevice = mIp.Results.fsDevice;
@@ -43,7 +43,7 @@ harmonics = mIp.Results.harmonics;
 amps = mIp.Results.amps;
 rfTime = mIp.Results.rfTime;
 rfOpt = mIp.Results.rfOpt;
-normOpt = mIp.Results.normOpt;
+normOpt = mu.OptionState.create(mIp.Results.normOpt);
 
 if (~any(f) && any(durs / 2 < rfTime)) || (all(f) && sum(durs) / 2 < rfTime)
     error("Duration should not be shorter than rise-fall time");
@@ -93,7 +93,7 @@ if ~any(f == 0)
     y = mu.genRiseFallEdge(y, fs, rfTime, rfOpt)';
 end
 
-if normOpt
+if normOpt.toLogical
     y = mapminmax(y(:)', -1, 1)';
 end
 

@@ -1,8 +1,8 @@
-function kilosort4(settings, opts)
-% KILOSORT4 runs kilosort-4 in MATLAB via python API.
+function mu_kilosort4(settings, opts)
+% MU_KILOSORT4 runs kilosort-4 in MATLAB via python API.
 %
 % NOTES:
-%   Run config_kilosort4.m first for [settings] and [opts].
+%   Run mu_ks4_config.m first for [settings] and [opts].
 %
 %   *Conda env kilosort is a MUST:
 %   1. Create env kilosort with python=3.x (e.g., 3.10 or 3.11)

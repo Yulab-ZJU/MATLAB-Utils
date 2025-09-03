@@ -1,8 +1,8 @@
-function nsample = getBinDataLength(BINPATH, nch, FORMAT)
-% getBinDataLength  Get number of samples in binary data file
+function nsample = mu_ks_getBinDataLength(BINPATH, nch, FORMAT)
+% mu_ks_getBinDataLength  Get number of samples in binary data file
 %
 % Usage:
-%   nsample = getBinDataLength(BINPATH, nch, FORMAT)
+%   nsample = mu_ks_getBinDataLength(BINPATH, nch, FORMAT)
 %
 % Inputs:
 %   BINPATH : path to binary file

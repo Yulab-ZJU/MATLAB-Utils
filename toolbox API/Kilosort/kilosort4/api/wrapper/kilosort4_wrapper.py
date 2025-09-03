@@ -72,7 +72,7 @@ def generate_cluster_info(results_dir, fs):
     for cid in unique_clusters:
         cluster_ids.append(int(cid))
 
-        idx = np.where(spike_clusters == cid)[0]
+        idx = np.nonzero(spike_clusters == cid)[0]
         n_spikes = len(idx)
         n_spikes_list.append(n_spikes)
 

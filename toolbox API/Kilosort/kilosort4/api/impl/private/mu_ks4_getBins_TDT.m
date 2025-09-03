@@ -1,4 +1,4 @@
-function [outbins, nch] = TDT2bins(BLOCKPATHs, varargin)
+function [outbins, nch] = mu_ks4_getBins_TDT(BLOCKPATHs, varargin)
 %% Validate inputs
 mIp = inputParser;
 mIp.addParameter("Channel", [], @(x) validateattributes(x, 'numeric', {'vector', 'integer', 'positive'}));

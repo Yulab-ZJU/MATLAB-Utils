@@ -1,4 +1,4 @@
-function [params, tbl] = getParamsExcel(recordExcelPath, ids)
+function [params, tbl] = mu_ks4_getParamsExcel(recordExcelPath, ids)
 
 arguments
     recordExcelPath {mustBeTextScalar}

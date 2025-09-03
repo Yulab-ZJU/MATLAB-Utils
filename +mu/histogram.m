@@ -12,18 +12,20 @@ function varargout = histogram(varargin)
 %   edges       - optional numeric vector of bin edges
 %
 % Name-Value Pairs:
-%   'width'             - bar width (0 < width <= 1), (default=0.8)
 %   'LineWidth'         - bar edge linewidth, default 0.5
 %   'FaceColor'         - cell array of colors or 'none', per group
 %   'EdgeColor'         - cell array of colors or 'none', per group
+%   'GroupSpace'        - Normalized space between groups, default 0
+%   'BinSpace'          - Normalized space between bars, default 0
 %   'DisplayName'       - cell array of legend strings per group
 %   'BinWidth'          - scalar bin width (overrides BinMethod)
 %   'BinMethod'         - method for automatic binning (default 'auto')
 %   'DistributionCurve' - 'show' or 'hide' (default 'hide')
+%   'FitCurveLineWidth' - Line width of fitting curves, default 1
 %
 % Outputs:
 %   H       - bar handles array
-%   N       - histogram counts matrix (#groups x #bins)
+%   N       - histogram counts matrix (#bins x #groups)
 %   edges   - bin edges
 %
 % Example:
@@ -46,27 +48,32 @@ hold(ax, "on");
 mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, {'numeric', 'cell'}, {'2d'}));
 mIp.addOptional("edges", [], @(x) validateattributes(x, {'numeric'}, {'vector'}));
-mIp.addParameter("width", 0.8, @(x) validateattributes(x, {'numeric'}, {'>', 0, '<=', 1}));
 mIp.addParameter("LineWidth", 0.5, @(x) validateattributes(x, {'numeric'}, {'positive'}));
 mIp.addParameter("FaceColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("EdgeColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
+mIp.addParameter("GroupSpace", 0, @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+mIp.addParameter("BinSpace", 0, @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
 mIp.addParameter("DistributionCurve", mu.OptionState.Off, @mu.OptionState.validate);
+mIp.addParameter("FitCurveLineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.parse(varargin{:});
 
 X = mIp.Results.X;
 edges = mIp.Results.edges;
-width = mIp.Results.width;
 LineWidth = mIp.Results.LineWidth;
 FaceColors = mIp.Results.FaceColor;
 EdgeColors = mIp.Results.EdgeColor;
 legendStrs = mIp.Results.DisplayName;
+groupSpace = mIp.Results.GroupSpace;
+binSpace = mIp.Results.BinSpace;
 BinWidth = mIp.Results.BinWidth;
 BinMethod = validatestring(mIp.Results.BinMethod, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'});
 DistributionCurve = mu.OptionState.create(mIp.Results.DistributionCurve);
+FitCurveLineWidth = mIp.Results.FitCurveLineWidth;
 
+% Convert X to cell
 if isnumeric(X)
     % Convert X to cell vector
     if isvector(X)
@@ -75,88 +82,114 @@ if isnumeric(X)
         % divide by rows
         X = mat2cell(X, ones(size(X, 1), 1));
     end
-
 elseif iscell(X)
-
     if ~any(cellfun(@(x) isvector(x) && isnumeric(x), X))
         error("Each data group in X should be a numeric vector");
     end
-
 end
+nGroup = numel(X);
 
-if isscalar(FaceColors) && strcmpi(FaceColors, "none")
-    FaceColors = repmat({'none'}, numel(X), 1);
-end
-
-if isscalar(EdgeColors) && strcmpi(EdgeColors, "none")
-    EdgeColors = repmat({'none'}, numel(X), 1);
-end
-
-if ~isempty(FaceColors) && numel(FaceColors) ~= numel(X)
-    error("Number of face colors should be the same as the data group number");
-end
-
-if ~isempty(EdgeColors) && numel(EdgeColors) ~= numel(X)
-    error("Number of edge colors should be the same as the data group number");
-end
-
-if ~isempty(legendStrs) && numel(legendStrs) ~= numel(X)
+if ~isempty(legendStrs) && numel(legendStrs) ~= nGroup
     error("Number of legend strings should be the same as the data group number");
 end
 
+% Determine colors
+colors = num2cell(lines(nGroup), 2);
+if isscalar(FaceColors) && strcmpi(FaceColors, "none")
+    FaceColors = repmat({'none'}, nGroup, 1);
+else
+    if isempty(FaceColors)
+        FaceColors = colors;
+    else
+        FaceColors = cellfun(@validatecolor, FaceColors, "UniformOutput", false);
+    end
+    assert(numel(FaceColors) == nGroup, 'The number of FaceColor should equal to the number of groups %d', nGroup);
+end
+
+if (isscalar(EdgeColors) && strcmpi(EdgeColors, "none")) || isempty(EdgeColors)
+    EdgeColors = repmat({'none'}, nGroup, 1);
+else
+    EdgeColors = cellfun(@validatecolor, EdgeColors, "UniformOutput", false);
+    assert(numel(EdgeColors) == nGroup, 'The number of EdgeColor should equal to the number of groups %d', nGroup);
+end
+
+% Determine bin edges
 if isempty(edges)
     % trans cell array X into a numeric column vector
     X_All = cell2mat(cellfun(@(x) x(:), X(:), "UniformOutput", false));
-
     if isempty(BinWidth)
         [~, edges] = histcounts(X_All, "BinMethod", BinMethod);
     else
         [~, edges] = histcounts(X_All, "BinWidth", BinWidth);
     end
-
 end
-
+nBin = numel(edges) - 1;
 BinWidth = mode(diff(edges));
 
-N = zeros(numel(X), length(edges) - 1);
-for index = 1:numel(X)
-    N(index, :) = histcounts(X{index}, edges);
+% Determine bar edges
+binWidthHalf = BinWidth * (1 - binSpace) / 2;
+positions = edges(1:end - 1) + BinWidth / 2;
+groupEdgeLeft  = positions - binWidthHalf;
+groupEdgeRight = positions + binWidthHalf;
+
+barWidth = (1 - (nGroup - 1) * groupSpace) / nGroup * binWidthHalf * 2;
+barEdgeLeft  = arrayfun(@(x, y) x:barWidth + groupSpace * binWidthHalf * 2:y, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
+barEdgeRight = arrayfun(@(x, y) x + barWidth:barWidth + groupSpace * binWidthHalf * 2:y + barWidth, groupEdgeLeft, groupEdgeRight, "UniformOutput", false);
+barEdgeLeft  = cat(1, barEdgeLeft {:}); % [nBin × nGroup]
+barEdgeRight = cat(1, barEdgeRight{:}); % [nBin × nGroup]
+
+[N, barEdgeLower] = deal(zeros(nBin, nGroup));
+for gIndex = 1:nGroup
+    N(:, gIndex) = histcounts(X{gIndex}, edges);
+end
+barEdgeUpper = N;
+
+% Plot grouped histograms
+legendHandles = gobjects(1, nGroup);
+for cIndex = 1:nBin
+    for gIndex = 1:nGroup
+        left = barEdgeLeft(cIndex, gIndex);
+        right = barEdgeRight(cIndex, gIndex);
+        bottom = barEdgeLower(cIndex, gIndex);
+        top = barEdgeUpper(cIndex, gIndex);
+        
+        xBox = [left, right, right, left];
+        yBox = [top, top, bottom, bottom];
+        H(cIndex, gIndex) = patch(ax, "XData", xBox, ...
+                                      "YData", yBox, ...
+                                      "LineWidth", LineWidth, ...
+                                      "FaceColor", FaceColors{gIndex}, ...
+                                      "EdgeColor", EdgeColors{gIndex});
+
+        if ~isempty(legendStrs) && ~isempty(char(legendStrs{gIndex})) && cIndex == 1
+            legendHandles(gIndex) = patch(ax, "XData", nan, ...
+                                              "YData", nan, ...
+                                              "LineWidth", LineWidth, ...
+                                              "FaceColor", FaceColors{gIndex}, ...
+                                              "EdgeColor", EdgeColors{gIndex});
+        end
+    end
 end
 
-H = bar(ax, edges(1:end - 1) + BinWidth / 2, N, width, "grouped", "LineWidth", LineWidth);
-
+% Plot distribution curves
 if DistributionCurve.toLogical
-
-    for index = 1:length(H)
-        pd = fitdist(X{index}(:), "Kernel");
-        temp = linspace(min(edges) - std(X{index}(:)), max(edges) + std(X{index}(:)), 1e3);
-        L(index) = plot(ax, temp, pdf(pd, temp) * sum(N(index, :)) * BinWidth, "Color", "k", "LineWidth", 1);
-        mu.setLegendOff(L(index));
+    for gIndex = 1:nGroup
+        pd = fitdist(X{gIndex}(:), "Kernel");
+        temp = linspace(min(edges) - std(X{gIndex}(:)), max(edges) + std(X{gIndex}(:)), 1e3);
+        L(gIndex) = plot(ax, temp, pdf(pd, temp) * sum(N(:, gIndex)) * BinWidth, ...
+                         "Color", FaceColors{gIndex}, ...
+                         "LineWidth", FitCurveLineWidth);
+        mu.setLegendOff(L(gIndex));
     end
-
 end
 
-for index = 1:length(H)
-
-    if ~isempty(FaceColors) && ~isempty(FaceColors{index})
-        H(index).FaceColor = FaceColors{index};
-        L(index).Color = FaceColors{index};
-    end
-
-    if ~isempty(EdgeColors) && ~isempty(EdgeColors{index})
-        H(index).EdgeColor = EdgeColors{index};
-    end
-
-    if ~isempty(legendStrs) && ~isempty(char(legendStrs{index}))
-        H(index).DisplayName = legendStrs{index};
-    else
-        mu.setLegendOff(H(index));
-    end
-
-end
-
+% Show legends
 if ~isempty(legendStrs)
-    legend(ax, "Location", "best");
+    validHandles = isgraphics(legendHandles);
+    legend(ax, legendHandles(validHandles), ...
+               legendStrs(validHandles), ...
+               'Location', 'best', ...
+               'AutoUpdate', 'off');
 end
 
 xlim(ax, [min(edges), max(edges)]);

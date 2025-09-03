@@ -1,8 +1,8 @@
-function [outbins, triggers] = RHD2bins(filenames, varargin)
+function [outbins, triggers] = mu_ks4_getBins_RHD(rhdPATHs, varargin)
 % read_Intan_RHD2000_file and export to binary data files and MAT trigger files
-filenames = cellstr(filenames);
-outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), filenames, "UniformOutput", false);
-triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'TTL.mat')), filenames, "UniformOutput", false);
+rhdPATHs = cellstr(rhdPATHs);
+outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), rhdPATHs, "UniformOutput", false);
+triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'TTL.mat')), rhdPATHs, "UniformOutput", false);
 
 mIp = inputParser;
 mIp.addParameter("Format", 'i16');
@@ -12,8 +12,8 @@ mIp.parse(varargin{:});
 Format = validatestring(mIp.Results.Format, {'i16', 'f32'});
 skipExisted = mIp.Results.SkipExisted;
 
-for fIndex = 1:numel(filenames)
-    filename = filenames{fIndex};
+for fIndex = 1:numel(rhdPATHs)
+    filename = rhdPATHs{fIndex};
     outbin = outbins{fIndex};
 
     if isfolder(filename) % folder

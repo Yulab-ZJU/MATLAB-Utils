@@ -50,9 +50,9 @@ if isempty(blockSize)
     else
         nWorkers = parcluster('local').NumWorkers;
     end
-    blockSize = max(1, ceil(nElements / max(nWorkers, 1)));
+    blockSize = max(1, ceil(nRows / max(nWorkers, 1)));
 end
-nBlocks = ceil(nElements / blockSize);
+nBlocks = ceil(nRows / blockSize);
 
 % ---------------- Preallocate output ----------------
 nout = nargout;

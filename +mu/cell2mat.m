@@ -24,7 +24,7 @@ function y = convertToUniformType(x)
     if ischar(x) || isstring(x)
         y = string(x);
     elseif iscell(x)
-        y = convertToUniformType(cell2mat(x)); % Recursive handling of nested cells
+        y = convertToUniformType(mu.cell2mat(x)); % Recursive handling of nested cells
     else
         y = x;
     end

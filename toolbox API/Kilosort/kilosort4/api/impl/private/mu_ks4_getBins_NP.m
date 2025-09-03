@@ -1,4 +1,4 @@
-function [datPATHs, TRIGPATHs] = NP2bins(datPATHs, skipBinExportExisted)
+function [datPATHs, TRIGPATHs] = mu_ks4_getBins_NP(datPATHs, skipBinExportExisted)
 
 datPATHs = cellstr(datPATHs);
 TRIGPATHs = cell(numel(datPATHs), 1);
@@ -18,7 +18,7 @@ for dIndex = 1:numel(datPATHs)
 
     % get data length
     nch = 385;
-    dataLength = getBinDataLength(datPATHs{dIndex}, nch, 'i16');
+    dataLength = mu_ks_getBinDataLength(datPATHs{dIndex}, nch, 'i16');
     trigger = memmapfile(datPATHs{dIndex}, 'Format', {'int16', [nch, dataLength], 'x'});
     TTL = trigger.Data.x(end, :);
     save(TRIGPATHs{dIndex}, "TTL", "-v7.3");
