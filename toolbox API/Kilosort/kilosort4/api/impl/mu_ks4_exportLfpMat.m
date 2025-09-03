@@ -28,7 +28,7 @@ for rIndex = 1:nBatch
 
     % Export LFP: loop for each block
     for pIndex = 1:numel(SAVEPATHs)
-        if params(index).spkExported(pIndex) && skipLfpExportExisted
+        if params(index).lfpExported(pIndex) && skipLfpExportExisted
             continue;
         end
 
