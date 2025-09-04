@@ -29,7 +29,7 @@ if ~strcmpi(chs2doICA, 'all')
     validateattributes(chs2doICA, 'numeric', {'vector', 'positive', 'integer'});
     temp = channels;
     temp(~ismember(channels, chs2doICA(:))) = [];
-    chs2doICA = arrayfun(@num2str, temp, "UniformOutput", false);
+    chs2doICA = compose('%d', temp);
 end
 
 method = mIp.Results.Method;
@@ -42,7 +42,7 @@ cfg = [];
 cfg.trials = 'all';
 data.trial = trialsData(:)';
 data.time = repmat({linspace(windowICA(1), windowICA(2), nsample) / 1000}, 1, ntrial);
-data.label = arrayfun(@num2str, channels, "UniformOutput", false);
+data.label = compose('%d', channels);
 data.fsample = fs;
 data.trialinfo = ones(ntrial, 1);
 data = ft_selectdata(cfg, data);

@@ -73,7 +73,7 @@ if ~isempty(fhp) || ~isempty(flp)
     cfg.trials = 'all';
     dataTemp.trial = data(:)';
     dataTemp.time = repmat({t}, 1, ntrial);
-    dataTemp.label = arrayfun(@num2str, (1:nch)', "UniformOutput", false);
+    dataTemp.label = compose('%d', (1:nch)');
     dataTemp.fsample = fs;
     dataTemp = ft_selectdata(cfg, dataTemp);
 
