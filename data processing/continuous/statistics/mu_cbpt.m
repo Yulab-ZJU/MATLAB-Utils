@@ -42,16 +42,16 @@ narginchk(3, inf);
 % validate
 [nch, nsample] = mu.checkdata(varargin{:});
 
-data = struct("time"     , cell(length(varargin), 1), ...
-              "label"    , cell(length(varargin), 1), ...
-              "trial"    , cell(length(varargin), 1), ...
-              "trialinfo", cell(length(varargin), 1));
-for index = 1:length(varargin)
+data = struct("time"     , cell(numel(varargin), 1), ...
+              "label"    , cell(numel(varargin), 1), ...
+              "trial"    , cell(numel(varargin), 1), ...
+              "trialinfo", cell(numel(varargin), 1));
+for index = 1:numel(varargin)
     trialsData = varargin{index};
     data(index).time = linspace(0, 1, nsample); % normalized time
-    data(index).label = arrayfun(@num2str, (1:nch)', "UniformOutput", false);
+    data(index).label = compose('%d', (1:nch)');
     data(index).trial = cell2mat(cellfun(@(x) permute(x, [3, 1, 2]), trialsData, "UniformOutput", false));
-    data(index).trialinfo = repmat(index, [length(trialsData), 1]);
+    data(index).trialinfo = repmat(index, [numel(trialsData), 1]);
 end
 
 stat = mu_cbpt_impl(data, cfg);
