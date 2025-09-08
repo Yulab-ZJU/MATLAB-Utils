@@ -1,12 +1,10 @@
 function plotSize = autoplotsize(num)
-% Determine [nrow,ncol] by totol subplot number
+%AUTOPLOTSIZE  Determine optimal [nrow, ncol] for a given number of subplots
+%   plotSize = [nrow, ncol]
 
-F = figure("visible", "off");
-t = tiledlayout("flow");
-for i = 1:num
-    nexttile
-end
-pause(0.01);
-plotSize = t.GridSize;
-close(F);
+% Approximate square grid
+ncol = ceil(sqrt(num));
+nrow = ceil(num / ncol);
+plotSize = [nrow, ncol];
+return;
 end

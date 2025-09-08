@@ -40,8 +40,6 @@ if isempty(varNames)
     return;
 end
 
-% 使用一次性evalin获取所有变量，避免循环evalin性能瓶颈
-% 拼接成结构体构造字符串，如: 'struct(''var1'', val1, ''var2'', val2, ...)'
 varsExpr = strcat("struct(", strjoin(cellfun(@(v) ['''' v ''', evalin(''caller'', ''' v ''')'], varNames, 'UniformOutput', false), ', '), ")");
 res = evalin("caller", varsExpr);
 

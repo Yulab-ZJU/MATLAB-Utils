@@ -2,6 +2,7 @@ function varargout = histogram(varargin)
 % HISTOGRAM  Grouped histogram with flexible inputs and display options
 %
 % Usage:
+%   mu.histogram(X)
 %   H = mu.histogram(X)
 %   H = mu.histogram(X, edges)
 %   H = mu.histogram(..., 'BinWidth', val, 'FaceColor', {...}, ...)
