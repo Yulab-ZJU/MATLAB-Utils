@@ -23,7 +23,7 @@ function mu_kilosort4(settings, opts)
 %     conda activate phy2
 %   3. Install the development version of phy:
 %     pip install git+https://github.com/cortex-lab/phy.git
-%   To open phy GUI via MATLAB, see openPhyGUI.m
+%   To open phy GUI via MATLAB, see mu_ks_openPhyGUI.m
 %
 
 % python interpreter

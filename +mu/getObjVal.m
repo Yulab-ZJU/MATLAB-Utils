@@ -2,9 +2,9 @@ function varargout = getObjVal(FigsOrAxes, ObjType, varargin)
 % GETOBJVAL  Get properties of graphic objects with optional filtering.
 %
 % Usage:
-%   vals = mu.getObjVal(FigsOrAxes, ObjType)
-%   vals = mu.getObjVal(FigsOrAxes, ObjType, getParams)
-%   vals = mu.getObjVal(FigsOrAxes, ObjType, getParams, searchParams, searchValue)
+%   [vals, objs] = mu.getObjVal(FigsOrAxes, ObjType)
+%   [vals, objs] = mu.getObjVal(FigsOrAxes, ObjType, getParams)
+%   [vals, objs] = mu.getObjVal(FigsOrAxes, ObjType, getParams, searchParams, searchValue)
 %
 % Inputs:
 %   FigsOrAxes   - Handle or array of figure or axes graphics objects

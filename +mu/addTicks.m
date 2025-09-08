@@ -25,6 +25,10 @@ for index = 1:numel(vals)
     tickVals = get(ax, strcat(axisName, "Tick"));
     tickLabels = get(ax, strcat(axisName, "TickLabels"));
 
+    if ismember(vals(index), tickVals)
+        continue;
+    end
+
     idx = find(tickVals > vals(index), 1);
 
     if ~isempty(idx)

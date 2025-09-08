@@ -63,7 +63,7 @@ switch class(trialsData)
     case "cell"
         trialsData = trialsData(:);
         nTrial = numel(trialsData);
-        [nCh, nTime0] = size(trialsData{1});
+        [nCh, nTime0] = mu.checkdata(trialsData);
         trialsData = cat(1, trialsData{:});
     case "double"
         nTrial = 1;
@@ -77,11 +77,10 @@ if size(trialsData, 1) < segNum
     segNum = size(trialsData, 1);
 end
 
-if mod(nTrial * nCh, segNum) == 0
-    segIdx = segNum * ones(floor(nTrial * nCh / segNum), 1);
-else
-    segIdx = [segNum * ones(floor(nTrial * nCh / segNum), 1); mod(nTrial * nCh, segNum)];
-end
+nTotal = nTrial * nCh;
+nBlocks = ceil(nTotal / segNum);
+segIdx = repmat(segNum, nBlocks, 1);
+segIdx(end) = nTotal - sum(segIdx(1:end - 1));
 trialsData = mat2cell(trialsData, segIdx);
 
 % Pad data
@@ -91,7 +90,7 @@ if ~isempty(tPad)
         error("Total duration of padding should not be shorter than data duration.");
     end
 
-    nPad = fix((tPad * fs - nTime0) / 2); % nPad for one side
+    nPad = ceil((tPad * fs - nTime0) / 2); % nPad for one side
     trialsData = cellfun(@(x) wextend(2, 'zpd', x, [0, nPad]), trialsData, "UniformOutput", false);
     nTime = nTime0 + 2 * nPad;
 else
@@ -164,11 +163,8 @@ else % parallel
 end
 
 nFreq = size(cwtres, 2);
-temp = zeros(nTrial, nCh, nFreq, nTime);
-for index = 1:size(temp, 1)
-    temp(index, :, :, :) = cwtres(nCh * (index - 1) + 1:nCh * index, :, :);
-end
-cwtres = temp;
+cwtres = reshape(cwtres, [nCh, nTrial, nFreq, nTime]);
+cwtres = permute(cwtres, [2, 1, 3, 4]);
 
 if ~isempty(tPad)
     cwtres = cwtres(:, :, :, nPad + 1:nPad + nTime0);

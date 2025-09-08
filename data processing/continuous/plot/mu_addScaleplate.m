@@ -10,6 +10,6 @@ else
     Fig = gcf;
 end
 
-sp = Scaleplate(Fig, varargin{:});
+sp = mu_scaleplate(Fig, varargin{:});
 return;
 end
