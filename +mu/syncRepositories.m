@@ -98,6 +98,7 @@ for rIndex = 1:numel(RepositoryPaths)
 
     if SyncOption
         [status, msg] = system("git push");
+        fprintf(msg);
         if status ~= 0
             warning("git push failed in %s\nMessage: %s", repo, msg);
         end
