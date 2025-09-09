@@ -77,6 +77,7 @@ for rIndex = 1:numel(RepositoryPaths)
     % Stage and commit if needed
     [status, ~] = system("git diff --quiet"); % 0 = clean
     if status ~= 0
+        system("git status");
         system("git add .");
         if isempty(logstr)
             commitMsg = sprintf("update %s by %s", string(datetime), currentUser);
