@@ -43,8 +43,8 @@ if isempty(RepositoryPaths)
     if isempty(RepositoryPaths)
         error("No GIT repositories found");
     else
-        fprintf("The following GIT repositories are found:\n");
-        cellfun(@(x) fprintf("  %s\n", x), RepositoryPaths);
+        fprintf("The following GIT repositories are found:");
+        cellfun(@(x) fprintf("\n  %s", x), RepositoryPaths);
     end
 
 else
