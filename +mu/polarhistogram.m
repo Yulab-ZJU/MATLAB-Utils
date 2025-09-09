@@ -2,10 +2,10 @@ function varargout = polarhistogram(varargin)
 % POLARHISTOGRAM  Grouped polar histogram (self-drawn polar axes)
 %
 % Usage:
-%   H = polarHistogram(theta)
-%   H = polarHistogram(theta, edges)
-%   H = polarHistogram(..., 'Name', Value, ...)
-%   [H, N, edges] = polarHistogram(...)
+%   H = polarhistogram(theta)
+%   H = polarhistogram(theta, edges)
+%   H = polarhistogram(..., 'Name', Value, ...)
+%   [H, N, edges] = polarhistogram(...)
 %
 % Inputs:
 %   theta - numeric vector (radian), matrix (each row = group),

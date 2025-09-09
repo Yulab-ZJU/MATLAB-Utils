@@ -503,15 +503,14 @@
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]},
-                    {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]}
+                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
                 ],
                 [
                     {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]},
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]},
-                    {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]}
+                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
                 ]
             ]},
+            {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]},
             {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
             {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'"},
