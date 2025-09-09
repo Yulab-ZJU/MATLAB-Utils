@@ -48,7 +48,7 @@ if isempty(RepositoryPaths)
     end
 
 else
-    RepositoryPaths = cellfun(@mu.getabspath, cellstr(RepositoryPaths));
+    RepositoryPaths = cellfun(@mu.getabspath, cellstr(RepositoryPaths), "UniformOutput", false);
     cellfun(@(x) assert(exist(fullfile(x, '.git'), "dir"), 'No GIT repository found in %s', x), RepositoryPaths);
 end
 
