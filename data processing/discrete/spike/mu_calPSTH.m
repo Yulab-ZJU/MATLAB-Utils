@@ -26,7 +26,7 @@ switch class(trials)
 
         trials = cellfun(@(x) x(:), trials, "UniformOutput", false);
         temp = cat(1, trials{:});
-        nTrials = length(trials);
+        nTrials = numel(trials);
         psth = mu.histcounts(temp, edges, binSize) / (binSize / 1000) / nTrials; % Hz
     case 'struct'
         if any(arrayfun(@(x) ~isvector(x.spike), trials))
