@@ -1,5 +1,5 @@
 function v = getorfull(s, default)
-%GETORFULL  Complete struct s with default fields
+%GETORFULL  Complete struct s with default fields.
 %   v = mu.getorfull(s, default)
 %   - Fields in s are preserved.
 %   - Fields in default missing from s are added.

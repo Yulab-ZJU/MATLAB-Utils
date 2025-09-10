@@ -1,5 +1,5 @@
 function varargout = mu_plotTFR(data, f, windowData, varargin)
-% Plot time-frequency response (TFR) for multi-channel data.
+%MU_PLOTTFR  Plot time-frequency response (TFR) for multi-channel data.
 %
 %--------------------------------------------------------------------------------
 % SYNTAX

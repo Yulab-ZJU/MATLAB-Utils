@@ -1,6 +1,7 @@
 function varargout = subplot(varargin)
-% Description: advanced subplot function
-% Schematic:
+%SUBPLOT  Advanced subplot function.
+%
+% SCHEMATIC:
 %     % The following figure is created by script:
 %     figure("WindowState", "maximized");
 %     set(0, "DefaultAxesBox", "on");
@@ -35,52 +36,45 @@ function varargout = subplot(varargin)
 % |padding_left      ↑ padding_bottom                                  |
 % |__________________↓_________________________________________________|
 %
+% INPUTS:
+%   REQUIRED:
+%     row/col/index  - Same usage of function subplot
+%   OPTIONAL:
+%     Fig      - Figure handle (default=gcf)
+%   NAME-VALUE:
+%     nSize     - [nX, nY] specifies size of subplot (default: [1, 1]). 
+%                 [nSize] is relative to axes.
+%     margins   - Margins of subplot specified as [left, right, bottom, top].
+%                 [margins] is relative to div. (default: [0.05, 0.05, 0.08, 0.05])
+%                 You can also set them separately using name-value pair (prior to [margins]):
+%                 [margin_left], [margin_right], [margin_bottom], [margin_top]
+%     paddings  - Paddings of subplot specified as [left, right, bottom, top].
+%                 [paddings] is relative to figure. (default: [0.03, 0.03, 0.08, 0.05])
+%                 You can also set them separately using name-value pair (prior to [paddings]):
+%                 [padding_left], [padding_right], [padding_bottom], [padding_top]
+%     shape     - 'auto'(default), 'square-min', 'square-max', or 'fill'.
+%                 Option 'fill' is prior to [margins] and [nSize] options.
+%     alignment - How axes aligns to <div>, either preset string or a 2-element vector that 
+%                 specifies axes center [x,y] relative to <div> (normalized).
+%                 If set positive, relative to left and bottom.
+%                 If set negative, relative to right and top.
+%                 This option influences how the axes is expanded or shrinked using [nSize] option.
+%                 Optional values:
+%                 'left-bottom', 'left-center', 'left-top', 
+%                 'center-bottom', 'center' (default), 'center-top', 
+%                 'right-bottom', 'right-center', 'right-top'
+%                 You can also specify [alignment_horizontal] and [alignment_vertical] separately, 
+%                 which is prior to [alignment].
+%     divBox    - Show <div> box (default: "hide"). 
+%                 This is a developer option to locate axes.
 %
-% Notes:
-%     All parameters here are normalized in unit.
-%     MAXIMIZE your figure before using mu.subplot to create axes is recommended.
-% Inputs:
-%     Fig: figure handle (default=gcf)
-%     row/col/index: same usage of function subplot
-%     nSize: [nX, nY] specifies size of subplot (default: [1, 1]).
-%            [nSize] is relative to axes.
-%     margins: margins of subplot specified as [left, right, bottom, top].
-%              [margins] is relative to div. (default: [0.05, 0.05, 0.08, 0.05])
-%              You can also set them separately using name-value pair (prior to [margins]):
-%              - [margin_left]
-%              - [margin_right]
-%              - [margin_bottom]
-%              - [margin_top]
-%     paddings: paddings of subplot specified as [left, right, bottom, top].
-%               [paddings] is relative to figure. (default: [0.03, 0.03, 0.08, 0.05])
-%               You can also set them separately using name-value pair (prior to [paddings]):
-%               - [padding_left]
-%               - [padding_right]
-%               - [padding_bottom]
-%               - [padding_top]
-%     shape: 'auto'(default), 'square-min', 'square-max', 'fill'
-%            (NOTICE: 'fill' option is prior to [margins] and [nSize] options)
-%     alignment: how axes aligns to <div>, either preset string or a 2-element vector that 
-%                specifies axes center [x,y] relative to <div> (normalized).
-%                If set positive, relative to left and bottom.
-%                If set negative, relative to right and top.
-%                This option influences how the axes is expanded or shrinked using [nSize] option.
-%                Optional values:
-%                - 'left-bottom'
-%                - 'left-center'
-%                - 'left-top'
-%                - 'center-bottom'
-%                - 'center' (default)
-%                - 'center-top'
-%                - 'right-bottom'
-%                - 'right-center'
-%                - 'right-top'
-%                You can also specify 'alignment_horizontal' and
-%                'alignment_vertical' separately (prior to 'alignment').
-%     divBox: show <div> box (default: "hide"). This is a developer option to locate axes.
-% Outputs:
-%     ax: subplot axes object
-%     opts: subplot options
+% OUTPUTS:
+%     ax    - Subplot axes object
+%     opts  - Subplot options
+%
+% NOTES:
+%   - All parameters here are normalized in unit.
+%   - MAXIMIZE your figure before using mu.subplot to create axes is recommended.
 
 %% Parameter validation
 if strcmp(class(varargin{1}), "matlab.ui.Figure")

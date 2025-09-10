@@ -1,10 +1,10 @@
 function P = getabspath(relativePath)
-% GETABSPATH  Convert relative path to absolute path without creating folders.
+%GETABSPATH  Convert relative path to absolute path without creating folders.
 %   P = mu.getabspath(relativePath) returns the absolute path corresponding to
 %   the input relativePath. Does NOT create any folder.
 %
 % NOTES:
-%   If relativePath is empty, reports an error.
+%   - If relativePath is empty, reports an error.
 
 arguments
     relativePath {mustBeTextScalarOrEmpty} = ""

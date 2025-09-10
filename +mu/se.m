@@ -1,5 +1,10 @@
-function y = se(x, varargin)
-% Return standard error of [x] along [dim]
+function E = se(x, varargin)
+%SE  Standard error of [x] along [dim].
+%
+% SYNTAX:
+%     E = mu.se(x)
+%     E = mu.se(x, dim)
+%     E = mu.se(x, dim, "omitnan")
 
 mIp = inputParser;
 mIp.addRequired("x");
@@ -28,6 +33,6 @@ else
     end
 end
 
-y = stdVal ./ sqrt(nX);
+E = stdVal ./ sqrt(nX);
 return;
 end

@@ -1,5 +1,5 @@
 function setAxes(varargin)
-% SETAXES sets the values of axes parameters with name-value pairs
+%SETAXES  Set the values of axes parameters with name-value pairs.
 
 narginchk(0, inf);
 

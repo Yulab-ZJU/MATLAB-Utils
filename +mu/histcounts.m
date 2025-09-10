@@ -1,13 +1,14 @@
 function counts = histcounts(data, edges, binSize)
-% HISTCOUNTS Count number of data points in bins centered at edges with given bin size
+%HISTCOUNTS  Count number of data points in bins centered at edges with given bin size.
 %
-% counts = mu.histcounts(data, edges, binSize)
+% SYNTAX:
+%     counts = mu.histcounts(data, edges, binSize)
 %
-% This function mimics the behavior of binning data into intervals centered
-% at 'edges' with a width of 'binSize'. It uses MATLAB's built-in histcounts
-% for better performance.
-%
-% Each bin is: [edges(i) - binSize/2, edges(i) + binSize/2)
+% NOTES:
+%   - This function mimics the behavior of binning data into intervals centered
+%     at 'edges' with a width of 'binSize'. It uses MATLAB's built-in histcounts
+%     for better performance.
+%   - Each bin is: [edges(i) - binSize/2, edges(i) + binSize/2)
 
 if isempty(data)
     counts = zeros(length(edges), 1);

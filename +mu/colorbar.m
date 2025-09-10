@@ -1,5 +1,6 @@
-function cb = colorbar(varargin)
-% COLORBAR Create colorbar outside tightPosition (IncludeLabels true).
+function varargout = colorbar(varargin)
+%COLORBAR  Create colorbar outside tightPosition (IncludeLabels true).
+%
 % SYNTAX:
 %   cb = colorbar(ax, 'Location', loc, 'Interval', interval, 'Width', width, 'Label', label, ...)
 %   If ax omitted, defaults to gca.
@@ -68,6 +69,10 @@ end
 
 if strcmpi(loc, 'northoutside') || strcmpi(loc, 'southoutside')
     cb.TickLength = width / 5;
+end
+
+if nargout > 0
+    varargout{1} = cb;
 end
 
 return;

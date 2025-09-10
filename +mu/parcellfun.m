@@ -1,17 +1,17 @@
 function varargout = parcellfun(fcn, varargin)
-% PARCELLFUN - Parallel cellfun with block-wise processing
+%PARCELLFUN  Parallel cellfun with block-wise processing.
 %
-% Syntax:
+% SYNTAX:
 %   Y = mu.parcellfun(fcn, C1, C2, ..., 'UniformOutput', true/false, 'BlockSize', N, 'ErrorHandler', @eh)
 %
-% Inputs:
+% INPUTS:
 %   fcn             - Function handle to apply to each group of elements
 %   C1, C2, ...     - Cell arrays of same size
 %   'UniformOutput' (optional) - logical (default: true)
 %   'BlockSize'     (optional) - scalar int, elements per block (default: auto)
 %   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
-% Outputs:
+% OUTPUTS:
 %   varargout       - Same as cellfun output
 
 % ---------------- Separate cell inputs ----------------

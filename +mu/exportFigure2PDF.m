@@ -1,7 +1,7 @@
 function exportFigure2PDF(figHandle, filename, width_mm, height_mm)
-% Make a copy of figure and export to PDF with specified [width, height]
+%EXPORTFIGURE2PDF  Make a copy of figure and export to PDF with specified [width, height].
 %
-% Parameters:
+% INPUTS:
 %   figHandle   - figure handle
 %   filename    - full file name of PDF
 %   width_mm    - with, in mm

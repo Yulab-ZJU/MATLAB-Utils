@@ -1,16 +1,21 @@
 function ax = rasterplot(varargin)
-% Description: plot raster
-% Input:
-%     ax: axes target (If ignored, default = gca)
-%     rasterData: raster dataset, struct vector
-%         - X: x data, cell vector
-%         - Y: y data (If not specified, plot trial by trial)
-%         - color: scatter color (default="k")
-%         - marker: marker shape (default="o")
-%         - lines: lines to add to scatterplot (see mu.addLines.m)
-%     sz: scatter size (default=40)
-%     border: show borders between groups (default=false)
-% Example:
+%RASTERPLOT  Plot spike rasters
+%
+% INPUTS:
+%   REQUIRED:
+%     rasterData  - raster dataset, struct vector wiith fields:
+%                   [X]     : x data, cell vector
+%                   [Y]     : y data (If not specified, plot trial by trial)
+%                   [color] : scatter color (default="k")
+%                   [marker]: marker shape (default="o")
+%                   [lines] : lines to add to scatterplot (see mu.addLines.m)
+%   OPTIONAL:
+%     ax  - axes target (If ignored, default=gca)
+%     sz  - scatter size (default=40)
+%   NAME-VALUE:
+%     border  - show borders between groups (default=false)
+%
+% EXAMPLES:
 %     data(1).X = {[1, 2, 3, 4, 5]; []; [1.5, 2.5]}; % three trials
 %     data(1).color = [1 0 0];
 %     data(2).X = {[2, 4, 6]}; % one trial

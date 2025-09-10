@@ -1,13 +1,14 @@
 function [res, trialsData] = calchFunc(fcn, trialsData, padDir)
-% CALCHFUNC Compute function across trials data with padding if needed.
-% Input:
-%   - fcn: function handle with signature fcn(data, dim, varargin)
-%   - trialsData: cell array, each cell [nCh x ... x nTime]
-%   - padDir: 'head' or 'tail' (default 'tail')
+%CALCHFUNC  Compute function across trials data with padding if needed.
 %
-% Output:
-%   - res: result after applying fcn along trials dimension
-%   - trialsData: padded trialsData (if padding applied)
+% INPUTS:
+%     fcn         - function handle with signature fcn(data, dim, varargin)
+%     trialsData  - cell array, each cell [nCh x ... x nTime]
+%     padDir      - 'head' or 'tail' (default='tail')
+%
+% OUTPUTS:
+%     res         - result after applying fcn along trials dimension
+%     trialsData  - padded trialsData (if padding applied)
 
 if nargin < 3 || isempty(padDir)
     padDir = "tail";

@@ -1,8 +1,8 @@
 function varargout = mu_plotWaveArray(chData, window, varargin)
-% Plot multi-group waves for multi-channel data
+%MU_PLOTWAVEARRAY  Plot multi-group waves for multi-channel data.
 %--------------------------------------------------------------------------------
-% INPUT
-%   REQUIRED
+% INPUTS:
+%   REQUIRED:
 %     chData: n*1 struct of fields (* is required)
 %       - *chMean: [nCh x nSample]
 %       - chErr: [nCh x nSample], errorbar (if left empty, errorbar will not be shown)
@@ -15,7 +15,7 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %       - lineWidth: specify line width for each group (default: using the general setting)
 %     window: time window [winStart,winEnd]
 %
-%   NAME-VALUE PARAMETERS
+%   NAME-VALUE PARAMETERS:
 %   - 'GridSize': [nrow,ncol] that specifies the subplot grid to plot 
 %        (default=mu.autoplotsize(nch)).
 %
@@ -33,7 +33,7 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %        See `mu.subplot` for detail.
 %
 %-------------------------------------------------------------------------------- 
-% OUTPUT:
+% OUTPUTS:
 %     Figure handle of the wave plot.
 %
 

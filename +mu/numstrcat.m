@@ -1,7 +1,10 @@
 function result = numstrcat(numArray, connector)
-% Transfer a double array to a string of rational numbers connected with the input connector
-% e.g. Using ',' as the connector:
-% [0.2 0.2 0.2 0.2 0.2] -> "1/5,1/5,1/5,1/5,1/5"
+%NUMSTRCAT  Transfer a double array to a string of rational numbers 
+%           connected with the input connector.
+%
+% EXAMPLES:
+%     % Using ',' as the connector:
+%     [0.2 0.2 0.2 0.2 0.2] -> "1/5,1/5,1/5,1/5,1/5"
 
 numArray = reshape(numArray, [numel(numArray), 1]);
 numArrayStr = mu.rowfun(@(x) strrep(x, ' ', ''), string(rats(numArray)));

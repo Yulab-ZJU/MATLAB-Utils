@@ -1,15 +1,19 @@
 function locs = findvectorloc(X, pat, direction)
-% FINDVECTORLOC - Find location of vector [pat] in vector [X].
-%   locs = findvectorloc(X, pat)
-%   locs = findvectorloc(X, pat, direction)
+%FINDVECTORLOC  Find location of vector [pat] in vector [X].
+%
+% SYNTAX:
+%     locs = findvectorloc(X, pat)
+%     locs = findvectorloc(X, pat, direction)
 %
 % INPUTS:
-%   X         - data vector (numeric, char, or string)
-%   pat       - pattern vector (same type as X)
-%   direction - "first" (default) or "last"
+%   REQUIRED:
+%     X         - data vector (numeric, char, or string)
+%     pat       - pattern vector (same type as X)
+%   OPTIONAL:
+%     direction - "first" (default) or "last"
 %
 % OUTPUTS:
-%   locs      - indices column vector
+%     locs      - indices column vector
 
 narginchk(2, 3);
 

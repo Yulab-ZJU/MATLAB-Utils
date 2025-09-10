@@ -1,19 +1,20 @@
 function varargout = parsestruct(S, varargin)
-% PARSESTRUCT Parse fields from a struct vector.
-% Usage:
-%   mu.parsestruct(S)                  % assign all fields to caller workspace
-%   mu.parsestruct(S, 'a', 'b')         % assign selected fields to caller workspace
+%PARSESTRUCT  Parse fields from a struct vector.
+%
+% SYNTAX:
+%   mu.parsestruct(S)                     % assign all fields to caller workspace
+%   mu.parsestruct(S, 'a', 'b')           % assign selected fields to caller workspace
 %   [A, B] = mu.parsestruct(S, 'a', 'b')  % return outputs
 %
-% Input:
-%   S: struct vector
-%   varargin: optional list of field names to parse (default: all fields)
+% INPUTS:
+%   S         - struct vector
+%   varargin  - optional list of field names to parse (default: all fields)
 %
-% Output:
-%   varargout: requested fields as output arguments
+% OUTPUTS:
+%   varargout - requested fields as output arguments
 %
-% Notice:
-%   If not all field values have compatible types/sizes, outputs are returned as cell arrays.
+% NOTES:
+%   - If not all field values have compatible types/sizes, outputs are returned as cell arrays.
 
 validateattributes(S, {'struct'}, {'vector'});
 

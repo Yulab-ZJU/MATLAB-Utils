@@ -1,12 +1,15 @@
 function rgb = genGradientColors(n, c, smin)
-% Generate gradient colors from specified [c] to white.
-% Inputs:
-%   n: number of colors
-%   c: initial color
-%   smin: the minimum saturation (at the white end). Default is 0 (for white).
+%GENGRADIENTCOLORS  Generate gradient colors from specified [c] to white.
 %
-% Output:
-%   rgb: [n x 1] cell
+% INPUTS:
+%   REQUIRED:
+%     n     - Number of colors
+%   OPTIONAL:
+%     c     - Initial color
+%     smin  - Minimum saturation (at the white end). Default is 0 (for white).
+%
+% OUTPUTS:
+%     rgb   - [n x 1] cell
 
 narginchk(1, 3);
 

@@ -32,6 +32,15 @@ classdef OptionState
             
             if isa(x, 'mu.OptionState')
                 obj = x;
+            elseif isnumeric(x)
+                if ~ismember(x, [0, 1])
+                    error("Invalid input for OptionState: %d. It should either be 0 or 1.", x);
+                end
+                if x == 1
+                    obj = mu.OptionState.On;
+                else
+                    obj = mu.OptionState.Off;
+                end
             elseif islogical(x)
                 if x
                     obj = mu.OptionState.On;

@@ -1,14 +1,20 @@
 function varargout = obtainArgoutN(fcn, Ns, varargin)
-% OBTAINARGOUTN Return specific outputs of a function handle.
+%OBTAINARGOUTN  Return specific outputs of a function handle.
 %
-%   [out1, out2, ...] = mu.obtainArgoutN(fcn, Ns, varargin)
-%   - fcn: function handle
-%   - Ns: vector of desired output positions
-%   - varargin: inputs to fcn
+% SYNTAX:
+%     [out1, out2, ...] = mu.obtainArgoutN(fcn, Ns, varargin)
 %
-% Example:
-%   [res1,res2] = mu.obtainArgoutN(@size, [2,3], ones(10,20,30));
-%   >> res1 = 20, res2 = 30
+% INPUTS:
+%     fcn       - function handle
+%     Ns        - vector of desired output positions
+%     varargin  - inputs to fcn
+%
+% OUTPUTS:
+%     varargout - outputs from fcn
+%
+% EXAMPLES:
+%     [res1,res2] = mu.obtainArgoutN(@size, [2,3], ones(10,20,30));
+%     >> res1 = 20, res2 = 30
 
 nMax = max(Ns);          % total number of outputs to request
 allOut = cell(1, nMax);  % preallocate cell for all outputs

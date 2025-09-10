@@ -1,12 +1,15 @@
 function success = save(FILENAME, varargin)
-% SAVEIFNOTEXIST Save variables to file only if file does not exist
+%SAVE  Save variables to file only if file does not exist.
 %
+% SYNTAX:
 %   success = saveIfNotExist(FILENAME, var1, var2, ..., Name, Value)
-%   - FILENAME: target .mat file
-%   - varargin: variable names (string/char) from caller workspace, optionally
-%               followed by MATLAB save Name/Value pairs
 %
-% Example:
+% INPUTS:
+%     FILENAME  - target .mat file
+%     varargin  - variable names (string/char) from caller workspace, optionally
+%                 followed by MATLAB save Name/Value pairs
+%
+% EXAMPLES:
 %   x = 1; y = 2;
 %   mu.save('test.mat', 'x', 'y', '-v7.3');
 

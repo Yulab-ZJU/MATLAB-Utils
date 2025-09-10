@@ -1,5 +1,6 @@
 function S = structcat(varargin)
-% Concatenate input struct arrays, left empty for fields with conflict.
+%STRUCTCAT  Concatenate input struct arrays, left empty for fields with conflict.
+%
 % Concatenate n1*1 struct [A1] with n2*1 struct [A2] with structcat, you will
 % get an (n1+n2)*1 struct.
 % 

@@ -1,5 +1,5 @@
 function [B, I] = shuffledata(A, dim)
-% SHUFFLEDATA Randomly shuffle data along a specified dimension.
+%SHUFFLEDATA  Randomly shuffle data along a specified dimension.
 %   B = mu.shuffledata(A) shuffles vector A or, for N-D array, shuffles along
 %   the first dimension by default. Each slice along other dimensions is
 %   independently shuffled.

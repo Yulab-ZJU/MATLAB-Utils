@@ -1,6 +1,7 @@
 function varargout = mu_topoplotArray(varargin)
-% Description: remap [data] according to [topoSize] and plot color map to axes
-% Input:
+%MU_TOPOPLOTARRAY  Remap [data] according to [topoSize] and plot color map to axes.
+%
+% INPUTS:
 %     ax: target axes
 %     data: double vector, make sure that numel(data)==prod(topoSize).
 %     topoSize: [x,y], [data] will be remapped as a [x,y] matrix.
@@ -14,9 +15,9 @@ function varargout = mu_topoplotArray(varargin)
 %     contourTh: contour threshold (default=0.6)
 %     marker: add markers (e.g., 'x') to significant points (default='none')
 %     markerSize: marker size (default=36)
-% Output:
+% OUTPUTS:
 %     ax: output axes
-% Example:
+% EXAMPLES:
 %     % plot significant levels
 %     plotTopo(1-log(p), [8, 8], ...
 %              "contourOpt", "on", ...

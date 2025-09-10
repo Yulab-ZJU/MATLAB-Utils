@@ -1,19 +1,22 @@
 function Y = shiftmatrix(X, N, opt)
-% SHIFTMATRIX - Shift a 2-D matrix by [Nlr, Nud] and pad with specified method.
+%SHIFTMATRIX  Shift a 2-D matrix by [Nlr, Nud] and pad with specified method.
 %
-% Y = mu.shiftmatrix(X, N, opt)
+% SYNTAX:
+%     Y = mu.shiftmatrix(X, N, opt)
 %
 % INPUTS:
-%     X   : 2D numeric matrix
-%     N   : 1x2 integer vector [Nlr, Nud]
+%   REQUIRED:
+%     X   - 2D numeric matrix
+%     N   - 1x2 integer vector [Nlr, Nud]
 %           N(1) > 0 => shift right, < 0 => shift left
 %           N(2) > 0 => shift up,    < 0 => shift down
-%     opt : 'zero', 'replicate', 'loop' (optional, default: 'zero')
+%   OPTIONAL:
+%     opt - 'zero', 'replicate', 'loop' (optional, default: 'zero')
 %
-% OUTPUT:
-%     Y   : shifted matrix (same size as X)
+% OUTPUTS:
+%     Y   - shifted matrix (same size as X)
 % 
-% EXMAPLE:
+% EXMAPLES:
 %     X = reshape(1:16, 4, 4)
 %     mu.shiftmatrix(X, [1, 0], 'zero')       % shift right 1
 %     mu.shiftmatrix(X, [-1, 0], 'replicate') % shift left 1 with edge fill

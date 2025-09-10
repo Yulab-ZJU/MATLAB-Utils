@@ -1,30 +1,34 @@
 function [y, durs, ICIseq] = ctgen(ICIs, durs, fs, type, varargin)
-% Description: 
-%   Thie function generates regular/irregular click trains with
-%   specified [ICI1,ICI2,...ICIn] and [dur1,dur2,...,durn] for each section.
-% Inputs:
-%   Required:
-%     - [ICIs]: ICI for each section, scalar or vector, in sec
-%     - [durs]: duration for each section, must be the same size as [ICIs], in sec
-%     - [fs]: sample rate of the stimuli, in Hz
-%     - [type]: type of click train ("REG" or "IRREG")
-%   Namevalues:
-%     - "sigmas": sigma for each section, scalar or vector (if specified as a
-%                 vector, it must be the same size of [ICIs]). 
-%                 [sigma1,sigma2,...,sigman] for each section. The sigma 
-%                 value is a scale factor of standard deviation of a
-%                 Gaussian distribution (std = mean * sigma). If specified 
-%                 as a scalar, this sigma value will be applied to all 
-%                 sections. This parameter is valid only for type set as 
-%                 "IRREG". (default: 0.5)
-%     - "pulseLen": pulse duration of a click, in sec. (default: 2e-4)
-%     - "range": a vector [lower,upper] that specifies the ICI range for
-%                irregular click train, in sec.
-% Outputs:
-%   - [y]: sound stimulation, a row vector, in volt.
-%   - [durs]: the actual duration for each section, a column vector, in sec.
-%   - [ICIseq]: ICI sequence vector.
-% Example:
+%CTGEN  Generate regular/irregular click trains with specified 
+%       [ICI1,ICI2,...ICIn] and [dur1,dur2,...,durn] for each section.
+% INPUTS:
+%   REQUIRED:
+%     ICIs  - ICI for each section, scalar or vector, in sec
+%     durs  - duration for each section, must be the same size as [ICIs], in sec
+%     fs    - sample rate of the stimuli, in Hz
+%     type  - type of click train ("REG" or "IRREG")
+%   NAME-VALUE:
+%     sigmas  - sigma for each section, scalar or vector (if specified as a
+%               vector, it must be the same size of [ICIs]). 
+%               [sigma1,sigma2,...,sigman] for each section. The sigma 
+%               value is a scale factor of standard deviation of a
+%               Gaussian distribution (std = mean * sigma). If specified 
+%               as a scalar, this sigma value will be applied to all 
+%               sections. This parameter is valid only for type set as 
+%               "IRREG". (default: 0.5)
+%     pulseLen  - pulse duration of a click, in sec. (default: 2e-4)
+%     range     - a vector [lower,upper] that specifies the ICI range for
+%                 irregular click train, in sec.
+%
+% OUTPUTS:
+%     y       - sound stimulation, a row vector, in volt.
+%     durs    - the actual duration for each section, a column vector, in sec.
+%     ICIseq  - ICI sequence vector.
+%
+% NOTES:
+%   - Sound generated using this function starts with a pulse.
+%
+% EXAMPLES:
 %   % 1. Generate a 1-sec regular click train with a 4-ms ICI
 %   y = mu.ctgen(4e-3, 1, 48e3, "REG");
 %   
@@ -41,8 +45,6 @@ function [y, durs, ICIseq] = ctgen(ICIs, durs, fs, type, varargin)
 %   %    with ICI altering from 4 ms to 5 ms. Set standard deviation to be 
 %   %    0.01 of the mean ICI.
 %   y = mu.ctgen([4, 5] * 1e-3, [1, 1], 48e3, "IRREG", "sigmas", 0.01);
-% NOTICE:
-%   Sound generated using this function starts with a pulse.
 
 mIp = inputParser;
 mIp.addRequired("ICIs", @(x) validateattributes(x, {'numeric'}, {'vector', 'positive'}));

@@ -1,5 +1,5 @@
 function [p, stats, effectSize, bf10] = signrank(x, y, varargin)
-% Wilcoxon signed rank test for paired samples [x] and [y].
+%SIGNRANK  Wilcoxon signed rank test for paired samples [x] and [y].
 % [x] and [y] are vectors of the same length.
 
 x = x(:);
