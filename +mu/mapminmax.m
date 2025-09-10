@@ -1,8 +1,10 @@
 function res = mapminmax(data, ymax)
-% Map data to [-ymax, ymax] with zero point unshifted.
-% This conversion is linear.
+%MAPMINMAX  Map data to [-ymax, ymax] with zero point unshifted.
+%
+% NOTES:
+%   - This conversion is linear.
 % 
-% e.g.
+% EXAMPLES:
 %     data = [-2, -1, 0, 1, 2, 3, 4];
 %     res = mu.mapminmax(data, 1)
 % >> res = [-0.5, -0.25, 0, 0.25, 0.5, 0.75, 1]

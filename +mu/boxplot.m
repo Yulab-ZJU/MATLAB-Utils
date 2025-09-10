@@ -1,13 +1,15 @@
 function varargout = boxplot(varargin)
-% BOXPLOT Custom grouped boxplot visualization with advanced styling options
-%
+%BOXPLOT  Custom grouped boxplot visualization with advanced styling options.
+% ════════════════════════════════════════════════════════════════════════
+% SYNTAX:
 %   [ax, res] = mu.boxplot(X) creates a grouped boxplot for data in cell array X,
 %   where each cell corresponds to a group and columns within the cell are categories.
 %
 %   mu.boxplot(ax, X) draws on specified axes.
 %
 %   mu.boxplot(..., Name, Value) accepts additional options:
-%
+% ════════════════════════════════════════════════════════════════════════
+% INPUTS:
 % ════════════════════════════════════════════════════════════════════════
 %  DATA FORMAT
 % ════════════════════════════════════════════════════════════════════════
@@ -49,13 +51,13 @@ function varargout = boxplot(varargin)
 %   'OutlierParameters'   : Scatter properties for outliers
 %
 % ════════════════════════════════════════════════════════════════════════
-%  OUTPUT
+% OUTPUTS:
 % ════════════════════════════════════════════════════════════════════════
 %   ax   : Handle to axes used for plotting
 %   res  : Struct with computed box edge locations, medians, whiskers, etc.
 %
 % ════════════════════════════════════════════════════════════════════════
-%  EXAMPLE
+% EXAMPLES:
 % ════════════════════════════════════════════════════════════════════════
 %     data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories
 %     figure;

@@ -1,28 +1,28 @@
 function syncRepositories(varargin)
-%SYNCREPOSITORIES Update git repositories under a root path or specific paths.
+%SYNCREPOSITORIES  Update git repositories under a root path or specific paths.
 %
-% Usage:
+% SYNTAX:
 %   mu.syncRepositories("update functions")
 %   mu.syncRepositories("msg", "SyncOption", true)
 %   mu.syncRepositories("msg", "RepositoriesRootPath", "D:\")
 %   mu.syncRepositories("msg", "RepositoryPaths", ["D:\repos1\", "D:\repos2\"])
 %
-% Parameters:
-%   logstr                Commit message (string/char, can be empty)
-%   SyncOption            [false] Push changes after pull if true
-%   RepositoriesRootPath  Root path to search for repos (default = location of this file)
-%   RepositoryPaths       Explicit paths of repositories to update
+% INPUTS:
+%   logstr                - Commit message (string/char, can be empty)
+%   SyncOption            - [false] Push changes after pull if true
+%   RepositoriesRootPath  - Root path to search for repos (default = location of this file)
+%   RepositoryPaths       - Explicit paths of repositories to update
 
 %% Parse inputs
 mIp = inputParser;
 mIp.addOptional("logstr", '', @(x) isempty(x) || mu.isTextScalar(x));
-mIp.addParameter("SyncOption", false, @(x) islogical(x) && isscalar(x));
+mIp.addParameter("SyncOption", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.addParameter("RepositoriesRootPath", mu.getrootpath(fileparts(mfilename("fullpath")), 1), @(x) mu.isTextScalar(x));
 mIp.addParameter("RepositoryPaths", [], @(x) iscellstr(x) || isstring(x) || (ischar(x) && isStringScalar(string(x))));
 mIp.parse(varargin{:});
 
 logstr               = mIp.Results.logstr;
-SyncOption           = mIp.Results.SyncOption;
+SyncOption           = mu.OptionState.create(mIp.Results.SyncOption);
 RepositoriesRootPath = mu.getabspath(mIp.Results.RepositoriesRootPath);
 RepositoryPaths      = mIp.Results.RepositoryPaths;
 
@@ -97,7 +97,7 @@ for rIndex = 1:numel(RepositoryPaths)
         warning("git pull failed in %s\nMessage: %s", repo, msg);
     end
 
-    if SyncOption
+    if SyncOption.toLogical
         [status, msg] = system("git push");
         fprintf(msg);
         if status ~= 0

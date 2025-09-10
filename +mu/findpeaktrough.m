@@ -1,10 +1,12 @@
 function [peakIdx, troughIdx] = findpeaktrough(data, dim)
-% FINDPEAKTROUGH - Find logical indices of peaks and troughs in signals
-% INPUT:
-%   data - [nsample, nch] or [nch, nsample]
-%   dim  - Dimension along which to find peaks/troughs (default: 2)
-% OUTPUT:
-%   peakIdx, troughIdx - logical matrix same size as data
+%FINDPEAKTROUGH  Find logical indices of peaks and troughs in signals
+%
+% INPUTS:
+%   REQUIRED:
+%     data  - [nsample, nch] or [nch, nsample]
+%     dim   - Dimension along which to find peaks/troughs (default: 2)
+% OUTPUTS:
+%     peakIdx, troughIdx  - logical matrix same size as data
 
 if nargin < 2, dim = 2; end
 validateattributes(data, {'numeric'}, {'2d'});

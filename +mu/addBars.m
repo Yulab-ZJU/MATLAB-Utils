@@ -1,12 +1,20 @@
 function varargout = addBars(varargin)
-% ADDBARS adds significant areas to axes (vertical patches).
-% Input:
-%   - ax: target axes (default: gca)
-%   - xval: X values, real vector
-%   - color: color of bars (default: "k")
-%   - alpha: Face alpha value of bars (default: 0.1)
-% Output:
-%   - h: patch object(s)
+%ADDBARS  Add significant areas to axes (vertical patches).
+%
+% SYNTAX:
+%     h = mu.addBars(xval, [color], [alpha])
+%     h = mu.addBars(ax, xval, ...)
+%
+% INPUTS:
+%   REQUIRED:
+%     xval   - X values, real vector
+%   OPTIONAL:
+%     ax     - Target axes (default=gca)
+%     color  - Color of bars (default="k")
+%     alpha  - Face alpha value of bars (default=0.1)
+%
+% OUTPUTS:
+%     h      - patch object(s)
 
 if isgraphics(varargin{1}, "axes")
     ax = varargin{1};

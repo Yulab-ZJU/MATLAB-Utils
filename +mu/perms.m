@@ -1,10 +1,10 @@
 function res = perms(v, k, sortCol)
-% Return a N^k-by-k matrix containing all possible permutations of k-element 
-% for vector [v], where N=numel(v).
+%PREMS  Return a N^k-by-k matrix containing all possible permutations of k-element 
+%       for vector [v], where N=numel(v).
 % If [sortCol] is set "first", [res] is sorted ascend according to the first column.
 % If [sortCol] is set "last", [res] is sorted ascend according to the last column.
 % 
-% e.g.
+% EXAMPLES:
 %     v = 1:10;
 %     k = 3;
 %     cmb = mu.perms(v, k, "first")
@@ -18,7 +18,6 @@ function res = perms(v, k, sortCol)
 %               ...
 %               10, 10, 9
 %               10, 10, 10]
-
 
 narginchk(2, 3);
 

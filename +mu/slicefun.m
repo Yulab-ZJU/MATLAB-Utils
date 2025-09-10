@@ -1,19 +1,23 @@
 function varargout = slicefun(fcn, dim, A, varargin)
-% Description: apply [fcn] along the dimension [k] of [A] (based on cellfun)
-% Notice:
-%     Inputs can be all data type valid for mat2cell().
-%     Cell arrays can also be segmented by mat2cell().
-% Input:
-%     fcn: function handle, function to apply to each row
-%     dim: dimension along which [fcn] will be applied
-%     A: a N-D data of any type
-%     B1,...,Bn: same as [A]
-%     "UniformOutput": true/false (default=true)
-%     "ErrorHandler": function handle of error
-% Output:
+%SLICEFUN  Apply [fcn] along the dimension [k] of [A] (based on cellfun).
+%
+% INPUTS:
+%     fcn              - function handle, function to apply to each row
+%     dim              - dimension along which [fcn] will be applied
+%     A                - a N-D data of any type
+%     B1,...,Bn        - same as [A]
+%     "UniformOutput"  - true/false (default=true)
+%     "ErrorHandler"   - function handle of error
+%
+% OUTPUTS:
 %     When "UniformOutput" is set false, return size(A,1)*1 cell with results of fcn(a,...)
 %     When "UniformOutput" is set true, return size(A,1)*1 vector
-% Example:
+%
+% NOTES:
+%   - Inputs can be all data type valid for mat2cell().
+%   - Cell arrays can also be segmented by mat2cell().
+%
+% EXAMPLES:
 %     C = mu.slicefun(@mFcn, 2, A, B, "UniformOutput", false);
 
 %% Validation

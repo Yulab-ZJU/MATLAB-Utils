@@ -1,13 +1,21 @@
 function s = addfield(s, varargin)
-% ADDFIELD Add or update a field in struct array s
+%ADDFIELD  Add or update a field in struct array s.
+%
+% SYNTAX:
 %     s = mu.addfield(s, 'fName1', fVal1, 'fName2', fVal2, ...)
 %
-% s: struct array
-% fName_i: field name
-% fVal_i: [numel(s) x 1] cell array or numeric array with numel(s) rows
+% INPUTS:
+%   REQUIRED:
+%     s        - Struct array
+%     fName_i  - Field name
+%     fVal_i   - [numel(s) x 1] cell array or numeric array with numel(s) rows
 %
-% For cell fVal: assign element-wise to each struct.
-% For numeric matrix fVal: assign row-wise to each struct.
+% OUTPUTS:
+%     s        - Struct array
+%
+% NOTES:
+%   - For cell fVal: assign element-wise to each struct.
+%   - For numeric matrix fVal: assign row-wise to each struct.
 
 fNames = varargin(1:2:end);
 fVals = varargin(2:2:end);

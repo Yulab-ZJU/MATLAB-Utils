@@ -1,9 +1,12 @@
 function [p, stats, effectSize, bf10, tbl] = anovan(x, group, varargin)
-% N-way ANOVA with Bayes factor output
-% Inputs:
+%ANOVAN  N-way ANOVA with Bayes factor output.
+%
+% INPUTS:
 %   x      - S*1 vector
 %   group  - S*N cell, each column is a factor
-% Outputs:
+%   other valid parameters for built-in anovan
+%
+% OUTPUTS:
 %   p           - p-values for each main and interaction effect
 %   stats       - ANOVA table output
 %   effectSize  - eta-squared for each effect

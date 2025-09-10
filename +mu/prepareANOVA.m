@@ -1,5 +1,5 @@
 function [res, tbl] = prepareANOVA(varargin)
-% prepare group data for ANOVA
+%PREPAREANOVA  Prepare group data for ANOVA.
 
 N = cellfun(@numel, varargin);
 varargin = cellfun(@(x) x(:), varargin, "UniformOutput", false);

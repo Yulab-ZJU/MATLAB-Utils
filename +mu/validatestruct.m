@@ -1,13 +1,15 @@
 function [pass, msg] = validatestruct(s, varargin)
-% Description: validate each field of a struct vector
-% Input:
-%     s: a struct vector
-%     fieldname: field name of [s] to validate
-%     validatefcn: validate function handle
-% Output:
-%     pass: pass validation or not
-%     msg: validation failure message
-%          It shows in 'sIndex - fieldName: error msg'
+%VALIDATESTRUCT  Validate each field of a struct vector.
+%
+% INPUTS:
+%     s            - A struct vector
+%     fieldname    - Field name of [s] to validate
+%     validatefcn  - Validate function handle
+%
+% OUTPUTS:
+%     pass  - Pass validation or not
+%     msg   - Validation failure message
+%             It shows in 'sIndex - fieldName: error msg'
 
 validateattributes(s, {'struct'}, {'vector'});
 if mod(numel(varargin), 2) ~= 0

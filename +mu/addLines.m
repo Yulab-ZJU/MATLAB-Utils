@@ -1,36 +1,47 @@
 function addLines(varargin)
-% Description: add lines to all subplots in figures
-% Input:
-%     FigsOrAxes: figure object array or axes object array
-%     Lines: a struct array of [X],          % default = []
-%                              [Y],          % default = []
-%                              [color],      % default = "k"
-%                              [width],      % default = 1
-%                              [style],      % default = "--"
-%                              [marker],     % default = "none"
-%                              [markerSize], % default = 6
-%                              [legend],     % default = []
-%                              [label],      % default = [], for ConstantLine
-%                              [labelHorizontalAlignment], % default = 'right' (|'center'|'left')
-%                              [labelVerticalAlignment],   % default = 'top' (|'middle'|'bottom')
-%                              [labelOrientation],         % default = 'aligned' (|'horizontal')
-%                              and other namevalue pairs: valid to function plot
-%     ConstantLine: if set true (default), use xline/yline to create
-%                   vertical/horizontal lines when [X] or [Y] is left empty.
-%     Layer: 'top' (default) or 'bottom', layer to plot lines.
-%     IgnoreInvisible: if set true, invisible axes in the target figure
-%                      will be excluded from drawing (default=true)
-% Notice:
-%     If [X] or [Y] is left empty, then best x/y range will be used.
-%     If [X] or [Y] contains 1 element, then the line will be vertical to x or y axis.
-%     If not specified, line legend will not be shown.
-% Example:
-%     % Example 1: Draw lines to mark stimuli oneset and offset at t=0, t=1000 ms
-%     mu.addLines(Fig, struct("X", {0; 1000}));
+%ADDLINES  Add lines to all subplots in figures.
 %
-%     % Example 2: Draw a dividing line y=x for ROC in current axes
-%     syncXY(gca); % synchronize x&y range first
-%     mu.addLines(gca);
+% SYNTAX:
+%     mu.addLines(Lines, 'ConstantLine', true/false, 'Layer', 'top'/'bottom', 'IgnoreInvisible', true/false)
+%     mu.addLines(Fig, Lines, ...)
+%
+% INPUTS:
+%   REQUIRED:
+%     Lines  - Struct array with fields:
+%              [X]                       : default = []
+%              [Y]                       : default = []
+%              [color]                   : default = "k"
+%              [width]                   : default = 1
+%              [style]                   : default = "--"
+%              [marker]                  : default = "none"
+%              [markerSize]              : default = 6
+%              [legend]                  : default = []
+%              [label]                   : default = [], for ConstantLine
+%              [labelHorizontalAlignment]: default = 'right' (|'center'|'left')
+%              [labelVerticalAlignment]  : default = 'top' (|'middle'|'bottom')
+%              [labelOrientation]        : default = 'aligned' (|'horizontal')
+%              and other namevalue pairs: valid to function plot
+%   OPTIONAL:
+%     FigsOrAxes      - Figure object array or axes object array
+%   NAME-VALUE:
+%     ConstantLine    - If set true (default), use xline/yline to create
+%                       vertical/horizontal lines when [X] or [Y] is left empty.
+%     Layer           - 'top' (default) or 'bottom', layer to plot lines.
+%     IgnoreInvisible - If set true, invisible axes in the target figure
+%                       will be excluded from drawing (default=true)
+%
+% NOTES:
+%   - If [X] or [Y] is left empty, then best x/y range will be used.
+%   - If [X] or [Y] contains 1 element, then the line will be vertical to x or y axis.
+%   - If not specified, line legend will not be shown.
+%
+% EXAMPLES:
+%   % Example 1: Draw lines to mark stimuli oneset and offset at t=0, t=1000 ms
+%   mu.addLines(Fig, struct("X", {0; 1000}));
+%
+%   % Example 2: Draw a dividing line y=x for ROC in current axes
+%   syncXY(gca); % synchronize x&y range first
+%   mu.addLines(gca);
 
 if nargin > 0 && all(isgraphics(varargin{1}))
     FigsOrAxes = varargin{1};

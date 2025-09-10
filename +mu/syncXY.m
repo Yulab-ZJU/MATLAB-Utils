@@ -1,5 +1,6 @@
 function syncXY(ax)
-% link x-y range
+%SYNCXY  Link x-y range.
+
 narginchk(0, 1);
 
 if nargin < 1

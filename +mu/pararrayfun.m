@@ -1,17 +1,17 @@
 function varargout = pararrayfun(fcn, varargin)
-% PARARRAYFUN - Parallel arrayfun with block-wise processing
+%PARARRAYFUN  Parallel arrayfun with block-wise processing.
 %
-% Syntax:
+% SYNTAX:
 %   Y = mu.pararrayfun(fcn, A1, A2, ..., 'UniformOutput', true/false, 'BlockSize', N, 'ErrorHandler', @eh)
 %
-% Inputs:
+% INPUTS:
 %   fcn             - Function handle to apply to each group of elements
 %   A1, A2, ...     - Arrays of same size
 %   'UniformOutput' (optional) - logical (default: true)
 %   'BlockSize'     (optional) - scalar int, elements per block (default: auto)
 %   'ErrorHandler'  (optional) - function handle @(err) to catch errors
 %
-% Outputs:
+% OUTPUTS:
 %   varargout       - Same as arrayfun output
 
 % ---------------- Separate cell inputs ----------------

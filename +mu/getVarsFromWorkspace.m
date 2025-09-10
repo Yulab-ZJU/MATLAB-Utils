@@ -1,16 +1,16 @@
 function res = getVarsFromWorkspace(varargin)
-% GETVARSFROMWORKSPACE Search variables in caller workspace matching regex patterns
+%GETVARSFROMWORKSPACE  Search variables in caller workspace matching regex patterns.
 %
-% Usage:
+% SYNTAX:
 %   res = mu.getVarsFromWorkspace(pattern1, pattern2, ...)
 %
-% Input:
-%   varargin - 0 or more regexp pattern strings (char or string)
+% INPUTS:
+%     regexps  - 0 or more regexp pattern strings (char or string)
 %
-% Output:
-%   res - struct with fields named by matched variables and values from caller workspace
+% OUTPUTS:
+%     res  - struct with fields named by matched variables and values from caller workspace
 %
-% Example:
+% EXAMPLE:
 %   vars = fieldnames(mu.getVarsFromWorkspace('^result_', '^output_'));
 %   save('data.mat', vars{:});
 

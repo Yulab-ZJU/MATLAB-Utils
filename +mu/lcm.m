@@ -1,6 +1,6 @@
 function B = lcm(A)
-% Vectorized least common multiple for real vector A with tolerance
-% B satisfies all(abs(A./B - round(A./B)) < 1e-12), minimal positive B
+%LCM  Vectorized least common multiple for real vector A with tolerance
+%     B satisfies all(abs(A./B - round(A./B)) < 1e-12), minimal positive B.
 
 tol = 1e-12;
 maxDenominator = 1e9;

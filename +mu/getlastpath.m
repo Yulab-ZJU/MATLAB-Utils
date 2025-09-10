@@ -1,13 +1,14 @@
 function [res, folderNames, path_Nth] = getlastpath(P, N)
-% GETLASTPATH  Get last N folder levels from path P
+%GETLASTPATH  Get last N folder levels from path P.
 %
+% SYNTAX:
 %   [res, folderNames, path_Nth] = mu.getlastpath(P, N)
 %
-% Inputs:
+% INPUTS:
 %   P - input path string (file or folder), char or string
 %   N - positive integer number of folder levels to extract from the end
 %
-% Outputs:
+% OUTPUTS:
 %   res         - reconstructed path string with last N folders (fullfile format)
 %   folderNames - cell array of folder names (from higher to lower level)
 %   path_Nth    - last N-th folder name (highest in the extracted segment)

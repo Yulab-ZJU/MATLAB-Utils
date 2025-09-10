@@ -1,9 +1,15 @@
 function res = insertrows(X, rows, val)
-% Insert rows filled with [val] into 2-D matrix X at specified row indices.
+%INSERTROWS  Insert rows filled with [val] into 2-D matrix X at specified row indices.
 %
-% X: input 2D numeric matrix
-% rows: vector of row indices at which to insert new rows
-% val: scalar value to fill the inserted rows (default 0)
+% INPUTS:
+%   REQUIRED:
+%     X     - input 2D numeric matrix
+%     rows  - vector of row indices at which to insert new rows
+%   OPTIONAL:
+%     val   - scalar value to fill the inserted rows (default=0)
+%
+% OUTPUTS:
+%     res   - inserted matrix
 
 narginchk(2, 3);
 if nargin < 3
