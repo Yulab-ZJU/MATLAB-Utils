@@ -27,9 +27,9 @@ if isempty(mIp.Results.Width)
     tempPos = tempCB.Position;
     switch loc
         case {'northoutside', 'southoutside'}
-            width = tempPos(4);
+            width = min(tempPos(4), 0.02);
         case {'eastoutside', 'westoutside'}
-            width = tempPos(3);
+            width = min(tempPos(3), 0.01);
         otherwise
             error('Unsupported Location option.');
     end
