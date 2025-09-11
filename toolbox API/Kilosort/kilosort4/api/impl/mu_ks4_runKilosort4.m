@@ -11,6 +11,7 @@ for rIndex = 1:nBatch
     BLOCKPATHs = params(rIndex).BLOCKPATH;
     fs = params(rIndex).SR_AP;
     nCh = params(rIndex).chNum;
+    badChs = params(rIndex).badChannel;
 
     % Init result dir path
     [~, ~, BLOCKNUMs] = cellfun(@(x) mu.getlastpath(x, 1), BLOCKPATHs, "UniformOutput", false);
@@ -34,10 +35,13 @@ for rIndex = 1:nBatch
             continue;
         end
     end
-    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th);
+    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th, badChs);
 
     % Run kilosort4
     mu_kilosort4(settings, opts);
+
+    % Generate cluster_info.tsv
+    mu_ks_genClusterInfo(opts.results_dir, fs);
 
     % Update Excel file
     tbl.sort(str2double(tbl.ID) == sortIDs(rIndex)) = "1";

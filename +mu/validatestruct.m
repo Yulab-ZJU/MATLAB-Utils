@@ -35,7 +35,7 @@ for k = 1:numel(fIdx)
         try
             isValid = fcn(val);
         catch ME
-            if ~strcmp(ME.identifier, 'MATLAB:maxlhs')
+            if strcmp(ME.identifier, 'MATLAB:maxlhs')
                 try
                     fcn(val);
                     isValid = true;

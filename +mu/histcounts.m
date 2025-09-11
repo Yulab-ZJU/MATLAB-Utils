@@ -1,41 +1,67 @@
 function counts = histcounts(data, edges, binSize)
 %HISTCOUNTS  Count number of data points in bins centered at edges with given bin size.
 %
-% SYNTAX:
-%     counts = mu.histcounts(data, edges, binSize)
+% counts = mu.histcounts(data, edges, binSize)
 %
-% NOTES:
-%   - This function mimics the behavior of binning data into intervals centered
-%     at 'edges' with a width of 'binSize'. It uses MATLAB's built-in histcounts
-%     for better performance.
-%   - Each bin is: [edges(i) - binSize/2, edges(i) + binSize/2)
+% Each bin is treated as [edges(i) - binSize/2, edges(i) + binSize/2).
+% Overlapping bins are allowed — a data point may be counted in multiple bins.
+%
+% This implementation is efficient: it uses a single histcounts call on the
+% union of all boundaries and then sums subintervals for each bin.
 
+% Input validation
+if nargin < 3
+    error('Requires data, edges, and binSize');
+end
 if isempty(data)
-    counts = zeros(length(edges), 1);
+    counts = zeros(numel(edges), 1);
+    return;
+end
+if ~isvector(data) || ~isreal(data)
+    error('data should be a real vector');
+end
+if ~isvector(edges) || ~isreal(edges)
+    error('edges should be a real vector');
+end
+if ~isscalar(binSize) || ~isreal(binSize) || binSize <= 0
+    error('binSize must be a positive scalar');
+end
+
+% Ensure column vectors
+data = data(:);
+edges = edges(:);
+m = numel(edges);
+
+% Build left and right boundaries
+leftEdges  = edges - binSize/2;
+rightEdges = edges + binSize/2;
+
+% Combine boundaries and get unique sorted values with index mapping
+combined = [leftEdges; rightEdges];    % 2m x 1
+[allEdges, ~, ic] = unique(combined); % allEdges sorted, ic maps combined->allEdges index
+
+% If there are fewer than 2 unique boundaries, no intervals exist
+if numel(allEdges) < 2
+    counts = zeros(m,1);
     return;
 end
 
-if ~isvector(data) || ~isreal(data)
-    error("data should be a real vector");
-end
+% Fast histogram over the fine-grained partition defined by allEdges
+countsSeg = histcounts(data, allEdges); % length = numel(allEdges)-1
 
-% Construct bin edges for histcounts
-binLeftEdges = edges(:) - binSize/2;
-binRightEdges = edges(:) + binSize/2;
+% Map left/right to indices in the 'allEdges' grid
+leftIdx  = ic(1:m);
+rightIdx = ic(m+1:2*m);
 
-% Ensure no overlap / ordering
-binEdges = [binLeftEdges, binRightEdges]';
+% Build prefix sums for fast interval sum: cumsumSeg(k) = sum(countsSeg(1:k-1))
+cumsumSeg = [0, cumsum(countsSeg)]; % length = numel(allEdges)
 
-% Use discretize to find which bin each value falls into
-% Convert bin edges to full list of edges
-edgesHist = reshape(binEdges, 1, []);  % Interleaved edges
-edgesHist = sort(edgesHist);           % Ensure strictly increasing
+% For bin i, sum countsSeg(leftIdx(i) : rightIdx(i)-1) = cumsumSeg(rightIdx(i)) - cumsumSeg(leftIdx(i))
+% If rightIdx == leftIdx then sum is 0
+counts = cumsumSeg(rightIdx) - cumsumSeg(leftIdx);
 
-% Use histcounts with precomputed bin edges
-countsAll = histcounts(data, edgesHist);
-
-% Only odd-indexed bins count (our bins are [left, right), and every second one is valid)
-counts = countsAll(1:2:end)';
+% Ensure column vector and integer type
+counts = counts(:);
 
 return;
 end

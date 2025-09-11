@@ -26,11 +26,12 @@ for rIndex = 1:nBatch
 
     % ~\subject\date\Block-n
     [~, TANKNAMEs, ~] = arrayfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
+    % ~\subject\date
     TANKNAMEs = cellfun(@(x) strjoin(x(1:2), filesep), TANKNAMEs, "UniformOutput", false);
 
-    % ~\CTL_New\paradigm\date_sitePos
+    % ~\paradigm\subject\date_sitePos
     % paradigm -> Block-n
-    SAVEPATHs{rIndex} = cellfun(@(x, y) fullfile(SAVEROOTPATH, 'CTL_New', x, [y, '_', sitePos]), params(rIndex).paradigm, TANKNAMEs, "UniformOutput", false);
+    SAVEPATHs{rIndex} = arrayfun(@(x, y) fullfile(SAVEROOTPATH, x, strcat(y, '_', sitePos)), params(rIndex).paradigm, TANKNAMEs, "UniformOutput", false);
 end
 
 simThr = 0.7;

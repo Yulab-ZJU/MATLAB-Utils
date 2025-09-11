@@ -28,7 +28,11 @@ end
 
 %% Impl
 function v = getorfullImpl(s, default)
-    % Start with s (may be empty struct)
+    if isempty(s)
+        v = default;
+        return;
+    end
+
     v = s;
 
     % Add missing fields from default

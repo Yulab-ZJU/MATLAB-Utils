@@ -94,6 +94,9 @@ opts.results_dir = mu.getor(args, "results_dir", default_results_dir);
 % By default, dtype is assumed to be 'int16'
 opts.data_dtype = mu.getor(args, "data_dtype", 'int16');
 
+% If True, apply common average reference during preprocessing (recommended).
+opts.do_CAR = mu.getor(args, "do_CAR", true);
+
 % If True, save a pre-processed copy of the data (including drift
 % correction) to `temp_wh.dat` in the results directory and format Phy
 % output to use that copy of the data.

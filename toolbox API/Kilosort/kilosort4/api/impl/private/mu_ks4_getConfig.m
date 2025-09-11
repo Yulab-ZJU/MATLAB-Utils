@@ -1,8 +1,12 @@
-function [settings, opts] = mu_ks4_getConfig(filenames, resultsDir, nCh, dtype, fs, th)
-narginchk(5, 6);
+function [settings, opts] = mu_ks4_getConfig(filenames, resultsDir, nCh, dtype, fs, th, badChs)
+narginchk(5, 7);
 
 if nargin < 6
     th = [9, 8];
+end
+
+if nargin < 7
+    badChs = [];
 end
 
 chanMapRoot = fullfile(mu.getrootpath(fileparts(which('mu_kilosort4')), 2), 'chanMap');
@@ -14,12 +18,6 @@ switch dtype
         dtype = 'float32';
 end
 
-params = {'filename', filenames, ...
-          'results_dir', resultsDir, ...
-          'fs', fs, ...
-          'data_dtype', dtype, ...
-          'Th_universal', th(1), ...
-          'Th_learned', th(2)};
 switch nCh
     case 4      % 5*5*6*16 linear array
         otherparams = {'nblocks', 0, ...
@@ -65,11 +63,19 @@ switch nCh
         error('Unsupported channel number %.2f', nCh);
 end
 
+params = {'filename', filenames, ...
+          'results_dir', resultsDir, ...
+          'fs', fs, ...
+          'data_dtype', dtype, ...
+          'bad_channels', badChs, ...
+          'Th_universal', th(1), ...
+          'Th_learned', th(2)};
+probe = load(otherparams{find(matches(otherparams(1:2:end), "probe_name")) * 2});
+nChConnected = sum(probe.connected);
+if nChConnected == 1
+    params = [params, {'do_CAR', false}];
+end
 params = [params, otherparams];
-mapPath = otherparams{find(matches(otherparams(1:2:end), "probe_name")) * 2};
-load(mapPath, "connected");
-badChs = find(~connected);
-params = [params, {'bad_channels', badChs}];
 
 [settings, opts] = mu_ks4_config(params{:});
 return;

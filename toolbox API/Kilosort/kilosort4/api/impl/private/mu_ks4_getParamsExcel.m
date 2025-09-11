@@ -25,7 +25,11 @@ for i = 1:numel(ids)
 
         % type convertion
         if strcmpi(paramTypes.(paramName), 'double')
-            paramVals = cellfun(@str2double, paramVals);
+            if strcmpi(paramName, 'badChannel') && ~all(ismissing(paramVals))
+                paramVals = cellfun(@(x) evalin("caller", x), paramVals);
+            else
+                paramVals = cellfun(@str2double, paramVals);
+            end
         end
 
         params(i, 1).(paramName) = paramVals;
@@ -37,9 +41,9 @@ for i = 1:numel(ids)
     if isfield(params(i), "SR_LFP")
         params(i).SR_LFP = params(i).SR_LFP(1);
     end
-    params(i).sitePos = params(i).sitePos{1};
+    params(i).sitePos = params(i).sitePos(1);
     params(i).depth = params(i).depth(1);
-    params(i).recTech = params(i).recTech{1};
+    params(i).recTech = params(i).recTech(1);
     params(i).chNum = params(i).chNum(1);
     params(i).badChannel = params(i).badChannel(1);
     if isnan(params(i).badChannel)

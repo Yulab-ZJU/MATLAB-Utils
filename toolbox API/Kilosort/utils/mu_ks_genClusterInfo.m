@@ -5,7 +5,7 @@ function mu_ks_genClusterInfo(resultsDir, fs)
 %   mu_ks_genClusterInfo(resultsDir, fs)
 %
 % Inputs:
-%   resultsDir - folder containing spike_clusters.npy, spike_times.npy, templates.npy
+%   resultsDir - folder containing Kilosort outputs
 %   fs         - sampling frequency (Hz)
 %
 % Output:
@@ -16,23 +16,23 @@ arguments
     fs (1,1) double {mustBePositive}
 end
 
-if exist(fullfile(resultsDir, 'cluster_info.tsv'), "file")
-    fprintf('File %s already exists. Skip exporting.', fullfile(resultsDir, 'cluster_info.tsv'));
+outFile = fullfile(resultsDir, 'cluster_info.tsv');
+if exist(outFile, "file")
+    fprintf('File %s already exists. Skip exporting.\n', outFile);
+    return;
 end
 
 % Read NPY
-spike_clusters = readNPY(fullfile(resultsDir, 'spike_clusters.npy')); % N x 1
-spike_times    = readNPY(fullfile(resultsDir, 'spike_times.npy'));    % N x 1
-templates      = readNPY(fullfile(resultsDir, 'templates.npy'));      % nTemplates x nChannels x templateLength
+spike_clusters  = readNPY(fullfile(resultsDir, 'spike_clusters.npy'));   % N x 1
+spike_times     = readNPY(fullfile(resultsDir, 'spike_times.npy'));      % N x 1
+spike_templates = readNPY(fullfile(resultsDir, 'spike_templates.npy'));  % N x 1
+templates       = readNPY(fullfile(resultsDir, 'templates.npy'));        % nTemplates x nTimepoints x nChannels
+channel_map     = readNPY(fullfile(resultsDir, 'channel_map.npy'));      % nChannels x 1
 
 unique_clusters = unique(spike_clusters);
 nClusters = numel(unique_clusters);
 
-cluster_id = zeros(nClusters,1);
-ch         = zeros(nClusters,1);
-n_spikes   = zeros(nClusters,1);
-fr         = zeros(nClusters,1);
-group      = strings(nClusters,1);
+[cluster_id, ch, n_spikes, fr] = deal(zeros(nClusters, 1));
 
 durationSec = double(max(spike_times)) / fs;
 
@@ -40,25 +40,26 @@ for i = 1:nClusters
     cid = unique_clusters(i);
     cluster_id(i) = cid;
 
-    idx = find(spike_clusters == cid);
-    n_spikes(i) = numel(idx);
-
+    idx = (spike_clusters == cid);
+    n_spikes(i) = sum(idx);
     fr(i) = n_spikes(i) / durationSec;
 
-    template_idx = cid + 1;
-    if template_idx > size(templates,1)
+    % find the dominant template for this cluster
+    tmpl_ids = spike_templates(idx);
+    if isempty(tmpl_ids)
         ch(i) = -1;
     else
-        tmpl = squeeze(templates(template_idx,:,:)); % nChannels x templateLength
-        [~, ch(i)] = max(max(abs(tmpl), [], 2));     % find channel with maximum amplitude
+        dom_tmpl = mode(tmpl_ids); % most frequent template index (0-based)
+        tmpl = squeeze(templates(dom_tmpl + 1, :, :)); % [nChannels x nTimepoints]
+
+        [~, maxCh] = max(max(abs(tmpl), [], 2), [], 1); % max RMS channel
+        ch(i) = channel_map(maxCh);                     % map to physical channel
     end
 
-    group(i) = "unsorted";
 end
 
 % Output tsv file
-T = table(cluster_id, ch, n_spikes, fr, group);
-outFile = fullfile(resultsDir, 'cluster_info.tsv');
+T = table(cluster_id, ch, n_spikes, fr);
 writetable(T, outFile, 'FileType', 'text', 'Delimiter', '\t');
 
 fprintf('cluster_info.tsv saved at %s\n', outFile);
