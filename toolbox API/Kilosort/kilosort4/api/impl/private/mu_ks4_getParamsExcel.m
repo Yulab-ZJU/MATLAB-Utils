@@ -5,16 +5,18 @@ arguments
     ids (:,1) {mustBeInteger, mustBePositive}
 end
 
-tbl = readtable(recordExcelPath);
+opts = detectImportOptions(recordExcelPath);
+opts = setvartype(opts, 'string');
+tbl = readtable(recordExcelPath, opts);
 paramNames = tbl.Properties.VariableNames;
 paramTypes = tbl(1, :);
-paramTypes.ID = {'double'};
+paramTypes.ID = "double";
 
 ids = unique(ids);
 params = struct([]);
 % loop for each id
 for i = 1:numel(ids)
-    idxCurrentID = ismember(tbl.ID, ids(i));
+    idxCurrentID = ismember(str2double(tbl.ID), ids(i));
     assert(any(idxCurrentID), "No matched IDs found.");
 
     for pIndex = 1:numel(paramNames)
@@ -22,7 +24,7 @@ for i = 1:numel(ids)
         paramVals = tbl.(paramName)(idxCurrentID);
 
         % type convertion
-        if iscell(paramVals) && strcmpi(paramTypes.(paramName), 'double')
+        if strcmpi(paramTypes.(paramName), 'double')
             paramVals = cellfun(@str2double, paramVals);
         end
 
@@ -43,11 +45,11 @@ for i = 1:numel(ids)
     if isnan(params(i).badChannel)
         params(i).badChannel = [];
     end
-    params(i).cf = params(i).cf{1};
+    params(i).cf = params(i).cf(1);
     params(i).dz = params(i).dz(1);
-    params(i).ks_ChSel = params(i).ks_ChSel{1};
-    params(i).ks_ID = params(i).ks_ID{1};
-    params(i).comments = params(i).comments{1};
+    params(i).ks_ChSel = params(i).ks_ChSel(1);
+    params(i).ks_ID = params(i).ks_ID(1);
+    params(i).comments = params(i).comments(1);
 end
 
 return;

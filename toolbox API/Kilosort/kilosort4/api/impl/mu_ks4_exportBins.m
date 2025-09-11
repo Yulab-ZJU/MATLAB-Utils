@@ -8,8 +8,10 @@ nBatch = numel(params);
 [BINPATHs, TRIGPATHs] = deal(cell(nBatch, 1));
 for rIndex = 1:nBatch
     % Convert data to bin files
-    BLOCKPATHs = params(rIndex).BLOCKPATH;
-    DATAPATHs = params(rIndex).datPath;
+    BLOCKPATHs = cellstr(params(rIndex).BLOCKPATH);
+    try
+        DATAPATHs = cellstr(params(rIndex).datPath);
+    end
     recTech = params(rIndex).recTech;
 
     % normalize paths
@@ -19,7 +21,7 @@ for rIndex = 1:nBatch
     switch lower(recTech)
         case 'tdt'
             [BINPATHs{rIndex}, nch] = mu_ks4_getBins_TDT(BLOCKPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
-            TRIGPATHs{rIndex} = BLOCKPATHs{rIndex};
+            TRIGPATHs{rIndex} = BLOCKPATHs;
         case 'rhd'
             [BINPATHs{rIndex}, TRIGPATHs{rIndex}] = mu_ks4_getBins_RHD(DATAPATHs, "Format", FORMAT, "SkipExisted", skipBinExportExisted);
             nch = 128;

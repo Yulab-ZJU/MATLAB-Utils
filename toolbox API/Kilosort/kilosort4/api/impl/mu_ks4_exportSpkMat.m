@@ -1,4 +1,4 @@
-function [spikeTimes, clusterIdxs, dataTDT, TTL_Onset, tShift] = ...
+function [spikeTimes, clusterIdxs, dataTDT, tShift] = ...
     mu_ks4_exportSpkMat(EXCELPATH, ...
                         sortIDs, ...
                         SAVEROOTPATH, ...
@@ -20,12 +20,12 @@ nsamples = cellfun(@(x) cellfun(@(y) mu_ks_getBinDataLength(y, nch, FORMAT), x),
 [BLOCKPATHs, SAVEPATHs] = deal(cell(nBatch, 1));
 fs = nan(nBatch, 1);
 for rIndex = 1:nBatch
-    BLOCKPATHs{rIndex} = params(rIndex).BLOCKPATH;
+    BLOCKPATHs{rIndex} = cellstr(params(rIndex).BLOCKPATH);
     sitePos = params(rIndex).sitePos;
     fs(rIndex) = params(rIndex).SR_AP; % Hz
 
     % ~\subject\date\Block-n
-    [~, TANKNAMEs, ~] = cellfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
+    [~, TANKNAMEs, ~] = arrayfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
     TANKNAMEs = cellfun(@(x) strjoin(x(1:2), filesep), TANKNAMEs, "UniformOutput", false);
 
     % ~\CTL_New\paradigm\date_sitePos
@@ -149,8 +149,8 @@ end
 
 % Save to MAT file
 for rIndex = 1:numel(RESPATHs)
-    for pIndex = 1:numel(SAVEPATHs{index})
-        exported = params(index).spkExported(pIndex);
+    for pIndex = 1:numel(SAVEPATHs{rIndex})
+        exported = params(rIndex).spkExported(pIndex);
 
         if exported && skipSpkExportExisted
             continue;
@@ -170,8 +170,8 @@ for rIndex = 1:numel(RESPATHs)
         save(fullfile(SAVEPATHs{rIndex}{pIndex}, 'spkData.mat'), "data");
 
         % update Excel
-        idx = find(tbl.ID == sortIDs(rIndex));
-        tbl.spkExported(idx(pIndex)) = {'1'};
+        idx = find(str2double(tbl.ID) == sortIDs(rIndex));
+        tbl.spkExported(idx(pIndex)) = "1";
         writetable(tbl, EXCELPATH);
     end
 end

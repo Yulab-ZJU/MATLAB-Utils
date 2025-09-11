@@ -6,7 +6,7 @@ SAVEROOTPATH = '~\DATA\MAT DATA\';
 
 %% Parameter settings (user-specified)
 % (*) which id to sort
-sortIDs = [1, 2];
+sortIDs = 1:6;
 
 % (*) Thresholds [Th_universal, Th_learned]
 th = [9, 8];

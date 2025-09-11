@@ -68,8 +68,9 @@ for rIndex = 1:numel(RepositoryPaths)
     end
 
     % Check if repo
-    [status, ~] = system("git rev-parse --is-inside-work-tree");
+    [status, msg] = system("git rev-parse --is-inside-work-tree");
     if status ~= 0
+        disp(msg);
         warning("Not a git repository: %s", repo);
         continue;
     end

@@ -33,9 +33,9 @@ mIp.addParameter('flp'        , 300 , @(x) validateattributes(x, 'numeric', {'po
 mIp.addParameter('fhp'        , 0.5 , @(x) validateattributes(x, 'numeric', {'positive', 'scalar'}));
 mIp.addParameter('fstop'      , 360 , @(x) validateattributes(x, 'numeric', {'positive', 'scalar'}));
 mIp.addParameter('FORMAT'     , 'i16');
-mIp.addParameter('SkipPoints' , 0 , @(x) validateattributes(x, 'numeric', {'positive', 'scalar', 'integer'}));
+mIp.addParameter('SkipPoints' , 0 , @(x) validateattributes(x, 'numeric', {'nonnegative', 'scalar', 'integer'}));
 mIp.addParameter('MemoryLimit', 20, @(x) validateattributes(x, 'numeric', {'positive', 'scalar'}));
-mIp.parse(varargin{:});
+mIp.parse(binFile, outMat, nch, fs, varargin{:});
 opt = mIp.Results;
 
 opt.FORMAT = validatestring(opt.FORMAT, {'i16', 'f32'});

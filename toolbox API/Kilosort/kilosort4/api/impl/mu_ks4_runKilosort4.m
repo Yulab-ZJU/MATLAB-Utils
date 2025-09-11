@@ -11,7 +11,6 @@ for rIndex = 1:nBatch
     BLOCKPATHs = params(rIndex).BLOCKPATH;
     fs = params(rIndex).SR_AP;
     nCh = params(rIndex).chNum;
-    badChs = params(rIndex).badChannel;
 
     % Init result dir path
     [~, ~, BLOCKNUMs] = cellfun(@(x) mu.getlastpath(x, 1), BLOCKPATHs, "UniformOutput", false);
@@ -25,7 +24,7 @@ for rIndex = 1:nBatch
     end
     
     % Get kilosort configuration
-    if exist(resultDirs{rIndex}, "dir")
+    if exist(fullfile(resultDirs{rIndex}, "spike_times.npy"), "file")
         fprintf('Result folder %s already exists.\n', resultDirs{rIndex});
         if ~skipSortExisted
             disp('Delete result folder and re-sorting...');
@@ -35,13 +34,13 @@ for rIndex = 1:nBatch
             continue;
         end
     end
-    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th, badChs);
+    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th);
 
     % Run kilosort4
     mu_kilosort4(settings, opts);
 
     % Update Excel file
-    tbl.sort(tbl.ID == sortIDs(rIndex)) = {'1'};
+    tbl.sort(str2double(tbl.ID) == sortIDs(rIndex)) = "1";
     writetable(tbl, EXCELPATH);
 end
 

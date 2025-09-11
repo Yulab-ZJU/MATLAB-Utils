@@ -41,7 +41,7 @@ fid = fopen(settings_file, 'w'); fwrite(fid, settings_json); fclose(fid);
 fid = fopen(opts_file, 'w'); fwrite(fid, opts_json); fclose(fid);
 
 % python API
-pyScript = fullfile(fileparts(mfilename("fullpath")), 'kilosort4_wrapper.py');
+pyScript = fullfile(fileparts(mfilename("fullpath")), 'wrapper', 'kilosort4_wrapper.py');
 
 % construct command line script
 cmd = sprintf('"%s" "%s" "%s" "%s"', pythonExe, pyScript, settings_file, opts_file);

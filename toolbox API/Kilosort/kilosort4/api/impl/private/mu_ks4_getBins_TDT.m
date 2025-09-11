@@ -47,6 +47,7 @@ for blk = 1:numel(BLOCKPATHs)
             end
         else
             disp('Skip exporting existed binary file');
+            continue;
         end
     end
 
