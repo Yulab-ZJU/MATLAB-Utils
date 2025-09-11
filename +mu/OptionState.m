@@ -47,12 +47,12 @@ classdef OptionState
                 else
                     obj = mu.OptionState.Off;
                 end
-            elseif ischar(x) || isstring(x)
+            elseif mu.isTextScalar(x)
                 s = lower(string(x));
                 switch s
-                    case {"on", "true", "show", "yes"}
+                    case {"on", "true", "show", "yes", "1"}
                         obj = mu.OptionState.On;
-                    case {"off", "false", "hide", "no"}
+                    case {"off", "false", "hide", "no", "0"}
                         obj = mu.OptionState.Off;
                     otherwise
                         error("Invalid input for OptionState: %s", x);
