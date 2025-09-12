@@ -1,5 +1,6 @@
 function success = print(target, FILENAME, formattype, resolution)
-% Check whether FILE exists and if it does, do nothing
+%PRINT  Check whether FILE exists before printing. If it does, do nothing.
+
 narginchk(2, 4);
 
 if nargin < 3

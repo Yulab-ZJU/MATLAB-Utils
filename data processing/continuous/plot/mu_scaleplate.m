@@ -1,4 +1,4 @@
-classdef Scaleplate < handle
+classdef mu_scaleplate < handle
     properties
         % figure handle
         Figure
@@ -36,7 +36,7 @@ classdef Scaleplate < handle
     end
     
     methods
-        function obj = Scaleplate(varargin)
+        function obj = mu_scaleplate(varargin)
 
             if isscalar(varargin{1}) && isa(varargin{1}, "matlab.ui.Figure")
                 Fig = varargin{1};

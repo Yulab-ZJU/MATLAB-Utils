@@ -21,14 +21,14 @@ for rIndex = 1:nBatch
     
     % Init paths
     % BLOCKPATH is '~\subject\date\Block-n'
-    [~, TANKNAMEs, ~] = cellfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
+    [~, TANKNAMEs, ~] = arrayfun(@(x) mu.getlastpath(x, 3), params(rIndex).BLOCKPATH, "UniformOutput", false);
     TANKNAMEs = cellfun(@(x) strjoin(x(1:2), filesep), TANKNAMEs, "UniformOutput", false);
-    % SAVEPATH is '~\CTL_New\paradigm\date_sitePos\lfpData.mat', where 'paradigm' refers to 'Block-n'
-    SAVEPATHs = cellfun(@(x, y) fullfile(SAVEROOTPATH, 'CTL_New', x, [y, '_', sitePos]), params(rIndex).paradigm, TANKNAMEs, "UniformOutput", false);
+    % SAVEPATH is '~\paradigm\subject\date_sitePos\lfpData.mat', where 'paradigm' refers to 'Block-n'
+    SAVEPATHs = arrayfun(@(x, y) fullfile(SAVEROOTPATH, x, strcat(y, '_', sitePos)), params(rIndex).paradigm, TANKNAMEs, "UniformOutput", false);
 
     % Export LFP: loop for each block
     for pIndex = 1:numel(SAVEPATHs)
-        if params(index).spkExported(pIndex) && skipLfpExportExisted
+        if params(rIndex).lfpExported(pIndex) && skipLfpExportExisted
             continue;
         end
 
@@ -49,8 +49,8 @@ for rIndex = 1:nBatch
         mf.data = data;
 
         % update Excel
-        idx = find(tbl.ID == sortIDs(rIndex));
-        tbl.spkExported(idx(pIndex)) = {'1'};
+        idx = find(str2double(tbl.ID) == sortIDs(rIndex));
+        tbl.lfpExported(idx(pIndex)) = "1";
         writetable(tbl, EXCELPATH);
     end
 

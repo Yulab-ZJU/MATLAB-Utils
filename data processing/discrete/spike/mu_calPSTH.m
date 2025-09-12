@@ -6,7 +6,7 @@ function [psth, edges] = mu_calPSTH(trials, windowPSTH, binSize, step)
 % [windowPSTH] is a two-element vector in millisecond.
 % [binSize] and [step] are in millisecond.
 
-validateattributes(windowFR, 'numeric', {'numel', 2, 'increasing'});
+validateattributes(windowPSTH, 'numeric', {'numel', 2, 'increasing'});
 validateattributes(binSize, 'numeric', {'scalar', 'positive'});
 validateattributes(step, 'numeric', {'scalar', 'positive'});
 
@@ -26,7 +26,7 @@ switch class(trials)
 
         trials = cellfun(@(x) x(:), trials, "UniformOutput", false);
         temp = cat(1, trials{:});
-        nTrials = length(trials);
+        nTrials = numel(trials);
         psth = mu.histcounts(temp, edges, binSize) / (binSize / 1000) / nTrials; % Hz
     case 'struct'
         if any(arrayfun(@(x) ~isvector(x.spike), trials))
@@ -34,7 +34,7 @@ switch class(trials)
         end
 
         temp = arrayfun(@(x) x.spike(:), trials, "UniformOutput", false);
-        psth = mu.histcounts(cat(1, temp{:}), edges, binSize) / (binSize / 1000) / length(trials); % Hz
+        psth = mu.histcounts(cat(1, temp{:}), edges, binSize) / (binSize / 1000) / numel(trials); % Hz
 end
 
 return;

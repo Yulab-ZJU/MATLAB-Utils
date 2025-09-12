@@ -1,31 +1,36 @@
 function varargout = scaleAxes(varargin)
-% mu.scaleAxes(axisName)
-% mu.scaleAxes(axisName, axisRange)
-% mu.scaleAxes(axisName, axisRange, cutoffRange)
-% mu.scaleAxes(axisName, axisRange, cutoffRange, symOpt)
-% mu.scaleAxes(axisName, autoScale, cutoffRange, symOpt)
-% mu.scaleAxes(..., namevalueOptions)
-% mu.scaleAxes(FigsOrAxes, ...)
-% axisRange = mu.scaleAxes(...)
+%SCALEAXES  Link axis range of subplots.
 %
-% Description: apply the same scale settings to all subplots in figures
-% Input:
-%     FigsOrAxes: figure object array or axis object array
-%     axisName: axis name - "x", "y", "z" or "c"
-%     autoScale: "on" or "off"
-%     axisRange: axis limits, specified as a two-element vector. If
-%                given value -Inf or Inf, or left empty, the best range
-%                will be used.
-%     cutoffRange: if axisRange exceeds cutoffRange, axisRange will be
-%                  replaced by cutoffRange.
-%     symOpt: symmetrical option - "min" or "max"
-%     uiOpt: "show" or "hide", call a UI control for scaling (default="hide")
-%     IgnoreInvisible: if set true, invisible axes in the target figure
-%                      will be excluded from scaling (default=true)
-%     autoTh: quantiles of range for auto scaling (default=[0.01,0.99] for 
-%             "c" scaling and [0,1] for "y" scaling)
-% Output:
-%     axisRange: axis limits applied
+% SYNTAX:
+%     mu.scaleAxes(axisName)
+%     mu.scaleAxes(axisName, axisRange)
+%     mu.scaleAxes(axisName, axisRange, cutoffRange)
+%     mu.scaleAxes(axisName, axisRange, cutoffRange, symOpt)
+%     mu.scaleAxes(axisName, autoScale, cutoffRange, symOpt)
+%     mu.scaleAxes(..., namevalueOptions)
+%     mu.scaleAxes(FigsOrAxes, ...)
+%     axisRange = mu.scaleAxes(...)
+%
+% INPUTS:
+%   REQUIRED:
+%     axisName    - axis name - "x", "y", "z" or "c"
+%   OPTIONAL:
+%     FigsOrAxes  - figure object array or axis object array
+%     autoScale   - "on" or "off"
+%     axisRange   - axis limits, specified as a two-element vector. If
+%                   given value -Inf or Inf, or left empty, the best range
+%                   will be used.
+%   NAME-VALUE:
+%     cutoffRange      - if axisRange exceeds cutoffRange, axisRange will be
+%                        replaced by cutoffRange.
+%     symOpt           - symmetrical option - "min" or "max"
+%     uiOpt            - "show" or "hide", call a UI control for scaling (default="hide")
+%     IgnoreInvisible  - if set true, invisible axes in the target figure
+%                        will be excluded from scaling (default=true)
+%     autoTh           - quantiles of range for auto scaling (default=[0.01,0.99] for 
+%                        "c" scaling and [0,1] for "y" scaling)
+% OUTPUTS:
+%     axisRange  - axis limits applied
 
 if nargin > 0 && all(isgraphics(varargin{1}), "all")
     FigsOrAxes = varargin{1};

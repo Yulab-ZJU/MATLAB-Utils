@@ -1,4 +1,6 @@
 function rgb = mixColors(color1, color2, ratio)
+%MIXCOLORS  Mix two colors with a ratio.
+
 narginchk(2, 3);
 
 if nargin < 3

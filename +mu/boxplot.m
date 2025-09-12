@@ -1,13 +1,15 @@
 function varargout = boxplot(varargin)
-% BOXPLOT Custom grouped boxplot visualization with advanced styling options
-%
+%BOXPLOT  Custom grouped boxplot visualization with advanced styling options.
+% ════════════════════════════════════════════════════════════════════════
+% SYNTAX:
 %   [ax, res] = mu.boxplot(X) creates a grouped boxplot for data in cell array X,
 %   where each cell corresponds to a group and columns within the cell are categories.
 %
 %   mu.boxplot(ax, X) draws on specified axes.
 %
 %   mu.boxplot(..., Name, Value) accepts additional options:
-%
+% ════════════════════════════════════════════════════════════════════════
+% INPUTS:
 % ════════════════════════════════════════════════════════════════════════
 %  DATA FORMAT
 % ════════════════════════════════════════════════════════════════════════
@@ -49,13 +51,13 @@ function varargout = boxplot(varargin)
 %   'OutlierParameters'   : Scatter properties for outliers
 %
 % ════════════════════════════════════════════════════════════════════════
-%  OUTPUT
+% OUTPUTS:
 % ════════════════════════════════════════════════════════════════════════
 %   ax   : Handle to axes used for plotting
 %   res  : Struct with computed box edge locations, medians, whiskers, etc.
 %
 % ════════════════════════════════════════════════════════════════════════
-%  EXAMPLE
+% EXAMPLES:
 % ════════════════════════════════════════════════════════════════════════
 %     data = {randn(50,3), randn(60,3)}; % 2 groups, 3 categories
 %     figure;
@@ -609,14 +611,14 @@ function setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, Group
     boxCenters = (boxEdgeLeft + boxEdgeRight) / 2; % [nCategory × nGroup]
 
     if hasGroupLabels && ~hasCategoryLabels
-        set(ax, 'XTick', sort(boxCenters(:), "ascend"), ...
-                'XTickLabel', repmat(GroupLabels(:)', 1, nCategory));
+        set(ax, "XTick", sort(boxCenters(:), "ascend"), ...
+                "XTickLabel", repmat(GroupLabels(:)', 1, nCategory));
     elseif ~hasGroupLabels && hasCategoryLabels
-        set(ax, 'XTick', mean(boxCenters, 2), ...
-                'XTickLabel', CategoryLabels);
+        set(ax, "XTick", mean(boxCenters, 2), ...
+                "XTickLabel", CategoryLabels);
     elseif hasGroupLabels && hasCategoryLabels
         % remove current xticklabels
-        set(ax, 'XTick', sort(boxCenters(:), "ascend"), 'XTickLabel', []);
+        set(ax, "XTick", sort(boxCenters(:), "ascend"), "XTickLabel", []);
 
         % current axes positions
         pos = get(ax, "Position");
@@ -630,21 +632,21 @@ function setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, Group
         for gIndex = 1:nGroup
             for cIndex = 1:nCategory
                 text(labelAx, boxCenters(cIndex, gIndex), labelPosY_group, GroupLabels{gIndex}, ...
-                     'HorizontalAlignment', 'center', ...
-                     'VerticalAlignment', 'middle', ...
+                     "HorizontalAlignment", "center", ...
+                     "VerticalAlignment", "middle", ...
                      "FontName", "Arial", ...
-                     'FontSize', get(ax, 'FontSize'));
+                     "FontSize", get(ax, "FontSize"));
             end
         end
 
         % category labels (secondary labels)
         for cIndex = 1:nCategory
             text(labelAx, cIndex, labelPosY_category, CategoryLabels{cIndex}, ...
-                 'HorizontalAlignment', 'center', ...
-                 'VerticalAlignment', 'middle', ...
+                 "HorizontalAlignment", "center", ...
+                 "VerticalAlignment", "middle", ...
                  "FontName", "Arial", ...
-                 'FontWeight', 'bold', ...
-                 'FontSize', get(ax, 'FontSize'));
+                 "FontWeight", "bold", ...
+                 "FontSize", get(ax, "FontSize"));
         end
 
         xlim(labelAx, xlim(ax));

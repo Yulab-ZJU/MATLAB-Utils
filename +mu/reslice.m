@@ -1,18 +1,19 @@
 function out = reslice(C, dim)
-% RESLICE - Reslice a cell array of multi-dimensional arrays along a specified dimension.
+%RESLICE  Reslice a cell array of multi-dimensional arrays along a specified dimension.
 %
-% out = mu.reslice(C, dim)
+% SYNTAX:
+%     out = mu.reslice(C, dim)
 % 
 % INPUTS:
-%     C : nt x 1 cell array. Each cell contains an n-dimensional array of the same size.
-%     dim : The dimension along which to reslice the data (an integer between 1 and n).
+%     C    - nt x 1 cell array. Each cell contains an n-dimensional array of the same size.
+%     dim  - The dimension along which to reslice the data (an integer between 1 and n).
 % 
-% OUTPUT:
-%     out : ki x 1 cell array, where ki is the size of the `dim`-th dimension.
-%           Each output cell contains data of size:
-%           [k1, ..., k_{dim-1}, nt, k_{dim+1}, ..., kn],
-%           i.e., the `nt` data slices are combined along a new dimension,
-%           and the result is sliced along the original `dim`-th dimension.
+% OUTPUTS:
+%     out  -  ki x 1 cell array, where ki is the size of the `dim`-th dimension.
+%             Each output cell contains data of size:
+%             [k1, ..., k_{dim-1}, nt, k_{dim+1}, ..., kn],
+%             i.e., the `nt` data slices are combined along a new dimension,
+%             and the result is sliced along the original `dim`-th dimension.
 
 sz = size(C{1});
 nd = ndims(C{1});

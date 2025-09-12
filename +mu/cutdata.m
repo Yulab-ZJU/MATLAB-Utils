@@ -1,5 +1,5 @@
 function [trialsData, window] = cutdata(trialsData, windowOld, windowNew)
-% CUTDATA Extracts a time window from trial data.
+%CUTDATA  Extract a time window from trial data.
 %
 % This function trims trial data to a specified new time window, given the original time window.
 % Both time windows are specified in milliseconds. The function supports both single-trial
@@ -18,7 +18,7 @@ function [trialsData, window] = cutdata(trialsData, windowOld, windowNew)
 %   - If the new window exceeds the original window, it will be limited to the original range.
 %   - For cell arrays, empty cells are ignored.
 %
-% Example:
+% EXAMPLES:
 %   [dataCut, win] = mu.cutdata(data, [-200, 800], [0, 500]);
 
 if windowNew(2) > windowOld(2)

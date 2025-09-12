@@ -1,29 +1,8 @@
 function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
-% Description: this function returns cwt results of multi-channel and
-%              multi-trial data using parallel computation on GPU.
-% Parameters:
-%     The input [trialsData] is a nTrial*1 cell, or a nCh*nTime matrix for a single trial.
-%     The input data should be type 'double'.
+%CWT  Perfrom continuous wavelet transform (cwt) on multi-channel and
+%     multi-trial data using parallel computation on GPU.
 %
-%     The input [segNum] specifies the number of waves to combine for
-%     computation in a single loop. (default = 10)
-%     If the input [segNum] is set 1, work in non-parallel mode, which
-%     use "CPU" only and this setting is prior to [mode].
-%
-%     If the input [mode] is set "auto", mu.cwt tries GPU first and then turn to CPU.
-%     If the input [mode] is set "CPU", use CPU only for computation.
-%     If the input [mode] is set "GPU", use GPU first and then turn to CPU for the rest part.
-%
-%     The input [tPad] specifies the total duration of two-sided zero
-%     padding, in sec (empty for no padding, default).
-%
-%     The output [cwtres] is a nTrial*nCh*nFreq*nTime matrix.
-%         If the input [outType] is "raw" (default), [cwtres] is a complex double matrix.
-%         If the input [outType] is "power", [cwtres] is returned as abs(cwtres).
-%         If the input [outType] is "phase", [cwtres] is returned as angle(cwtres).
-%     The output [f] is a descendent column vector.
-%
-% Example:
+% SYNTAX:
 %     [cwtres, f, coi] = mu.cwt(...)
 %     mu.cwt(trialsData, fs)
 %     mu.cwt(trialsData, fs, segNum)
@@ -31,18 +10,40 @@ function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
 %     mu.cwt(..., "outType", "raw | power | phase")
 %     mu.cwt(..., "tPad", tPad)
 %
-% Additional information:
-%     1. The wavelet used here is 'morlet'. For other wavelet types, please edit private\cwtMulti
-%     2. There are potential risks of spectrum leakage resulted by coi at low frequencies,
-%        especially at the borders. To avoid undesired results, tailor and pad your data.
-%        (Update 20241228: padding procedure is now available using name-value input "tPad")
+% INPUTS:
+%   REQUIRED:
+%     trialsData  - A nTrial*1 cell, or a nCh*nTime matrix for a single trial.
+%                   The input data should be type 'double'.
+%   OPTIONAL:
+%     segNum  - The number of waves to combine for computation in a single loop. (default=10)
+%               If set 1, work in non-parallel mode, which uses "CPU" only and is prior to [mode].
+%   NAME-VALUE:
+%     mode     - Work mode
+%                "auto": try GPU first and then turn to CPU. (default)
+%                "CPU" : use CPU only for computation.
+%                "GPU" : use GPU first and then turn to CPU for the rest part.
+%     tPad     - The total duration of two-sided zero padding, in sec (default=[] for no padding)
+%     outType  - The output [cwtres] is a nTrial*nCh*nFreq*nTime matrix.
+%                "raw"  : [cwtres] is a complex double matrix. (default)
+%                "power": [cwtres] is returned as abs(cwtres).
+%                "phase": [cwtres] is returned as angle(cwtres).
 %
-% %% WARNING ISSUES %%
-%    If the error CUDA_ERROR_OUT_OF_MEMORY occurs, restart your computer and delete the
-%    recent-created folders 'Jobx' in:
-%    'C:\Users\[your account]\AppData\Roaming\MathWorks\MATLAB\local_cluster_jobs\R20xxx\'.
-%    The setting files in these folders may not allow you to connect to the parallel pool,
-%    which is used in this function. Tailor your data then, to avoid this problem.
+% OUTPUTS:
+%     cwtres  - [nTrial x nCh x nFreq x nTime] matrix, depending on 'outType'
+%     f       - Frequency column vector, in descending order
+%     coi     - Cone of influence ([nTime x 1])
+%
+% NOTES:
+%   1. The wavelet used here is 'morlet'. For other wavelet types, please edit private\cwtMulti
+%   2. There are potential risks of spectrum leakage resulted by coi at low frequencies,
+%      especially at the borders. To avoid undesired results, tailor and pad your data.
+%      (Update 20241228: padding procedure is now available using name-value input "tPad")
+%   3. WARNING ISSUES
+%      If the error CUDA_ERROR_OUT_OF_MEMORY occurs, restart your computer and delete the
+%      recent-created folders 'Jobx' in:
+%      'C:\Users\[your account]\AppData\Roaming\MathWorks\MATLAB\local_cluster_jobs\R20xxx\'.
+%      The setting files in these folders may not allow you to connect to the parallel pool,
+%      which is used in this function. Tailor your data then, to avoid this problem.
 
 mIp = inputParser;
 mIp.addRequired("trialsData");
@@ -63,7 +64,7 @@ switch class(trialsData)
     case "cell"
         trialsData = trialsData(:);
         nTrial = numel(trialsData);
-        [nCh, nTime0] = size(trialsData{1});
+        [nCh, nTime0] = mu.checkdata(trialsData);
         trialsData = cat(1, trialsData{:});
     case "double"
         nTrial = 1;
@@ -77,11 +78,10 @@ if size(trialsData, 1) < segNum
     segNum = size(trialsData, 1);
 end
 
-if mod(nTrial * nCh, segNum) == 0
-    segIdx = segNum * ones(floor(nTrial * nCh / segNum), 1);
-else
-    segIdx = [segNum * ones(floor(nTrial * nCh / segNum), 1); mod(nTrial * nCh, segNum)];
-end
+nTotal = nTrial * nCh;
+nBlocks = ceil(nTotal / segNum);
+segIdx = repmat(segNum, nBlocks, 1);
+segIdx(end) = nTotal - sum(segIdx(1:end - 1));
 trialsData = mat2cell(trialsData, segIdx);
 
 % Pad data
@@ -91,7 +91,7 @@ if ~isempty(tPad)
         error("Total duration of padding should not be shorter than data duration.");
     end
 
-    nPad = fix((tPad * fs - nTime0) / 2); % nPad for one side
+    nPad = ceil((tPad * fs - nTime0) / 2); % nPad for one side
     trialsData = cellfun(@(x) wextend(2, 'zpd', x, [0, nPad]), trialsData, "UniformOutput", false);
     nTime = nTime0 + 2 * nPad;
 else
@@ -164,11 +164,8 @@ else % parallel
 end
 
 nFreq = size(cwtres, 2);
-temp = zeros(nTrial, nCh, nFreq, nTime);
-for index = 1:size(temp, 1)
-    temp(index, :, :, :) = cwtres(nCh * (index - 1) + 1:nCh * index, :, :);
-end
-cwtres = temp;
+cwtres = reshape(cwtres, [nCh, nTrial, nFreq, nTime]);
+cwtres = permute(cwtres, [2, 1, 3, 4]);
 
 if ~isempty(tPad)
     cwtres = cwtres(:, :, :, nPad + 1:nPad + nTime0);

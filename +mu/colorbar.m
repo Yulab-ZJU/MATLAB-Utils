@@ -1,5 +1,6 @@
-function cb = colorbar(varargin)
-% COLORBAR Create colorbar outside tightPosition (IncludeLabels true).
+function varargout = colorbar(varargin)
+%COLORBAR  Create colorbar outside tightPosition (IncludeLabels true).
+%
 % SYNTAX:
 %   cb = colorbar(ax, 'Location', loc, 'Interval', interval, 'Width', width, 'Label', label, ...)
 %   If ax omitted, defaults to gca.
@@ -26,9 +27,9 @@ if isempty(mIp.Results.Width)
     tempPos = tempCB.Position;
     switch loc
         case {'northoutside', 'southoutside'}
-            width = tempPos(4);
+            width = min(tempPos(4), 0.02);
         case {'eastoutside', 'westoutside'}
-            width = tempPos(3);
+            width = min(tempPos(3), 0.01);
         otherwise
             error('Unsupported Location option.');
     end
@@ -68,6 +69,10 @@ end
 
 if strcmpi(loc, 'northoutside') || strcmpi(loc, 'southoutside')
     cb.TickLength = width / 5;
+end
+
+if nargout > 0
+    varargout{1} = cb;
 end
 
 return;

@@ -1,24 +1,27 @@
 function [A, f, phase, psd] = fft(X, fs, varargin)
-% FFT Compute single-sided amplitude and phase spectrum of input data
+%FFT  Compute single-sided amplitude and phase spectrum of input data.
 %
+% SYNTAX:
 %   [A, f, phase, psd] = mu.fft(X, fs, N, dim, 'foi', foi)
 %
 % INPUTS:
-%   X   - Input data (vector, matrix, or N-D array) (in volt, persume)
-%   fs  - Sampling frequency (in Hz, persume)
-%   N   - FFT length ([] for length, 'nextpow2' for next power of 2)
-%   dim - Dimension to perform FFT along (default: first non-singleton)
-%   foi - Frequency of interest (scalar or [min max])
+%   REQUIRED:
+%     X   - Input data (vector, matrix, or N-D array) (in volt, persume)
+%     fs  - Sampling frequency (in Hz, persume)
+%   OPTIONAL:
+%     N   - FFT length ([] for length, 'nextpow2' for next power of 2)
+%     dim - Dimension to perform FFT along (default: first non-singleton)
+%     foi - Frequency of interest (scalar or [min max])
 %
 % OUTPUTS:
-%   A     - Amplitude spectrum (single-sided) (in Volt)
-%   f     - Frequency vector
-%   phase - Phase spectrum (single-sided) (-pi~pi)
-%   psd   - Power spectral density (single-sided) (in V^2/Hz)
+%     A     - Amplitude spectrum (single-sided) (in Volt)
+%     f     - Frequency vector
+%     phase - Phase spectrum (single-sided) (-pi~pi)
+%     psd   - Power spectral density (single-sided) (in V^2/Hz)
 % 
 % NOTES:
-%   Single-sided PSD estimation is equivalent to using `periodogram`, 
-%   which computes PSD using a rectangular window.
+%   - Single-sided PSD estimation is equivalent to using `periodogram`, 
+%     which computes PSD using a rectangular window.
 
 % ---- Parse inputs ----
 p = inputParser;

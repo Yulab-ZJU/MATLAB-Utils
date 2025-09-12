@@ -1,13 +1,14 @@
 function ROOTPATH = getrootpath(P, N)
-% GETROOTPATH Return the root path N levels up from path P
+%GETROOTPATH Return the root path N levels up from path P.
 %
+% SYNTAX:
 %   ROOTPATH = mu.getrootpath(P, N)
 %
-% Inputs:
+% INPUTS:
 %   P      - input path (file or folder), char or string scalar
 %   N      - positive integer, how many folder levels to go up
 %
-% Output:
+% OUTPUTS:
 %   ROOTPATH - root path N levels above P
 
 arguments

@@ -1,4 +1,4 @@
-function [outbins, nch] = mu_ks4_getBins_TDT(BLOCKPATHs, varargin)
+function [outbins, nch, fs] = mu_ks4_getBins_TDT(BLOCKPATHs, varargin)
 %% Validate inputs
 mIp = inputParser;
 mIp.addParameter("Channel", [], @(x) validateattributes(x, 'numeric', {'vector', 'integer', 'positive'}));
@@ -47,6 +47,7 @@ for blk = 1:numel(BLOCKPATHs)
             end
         else
             disp('Skip exporting existed binary file');
+            continue;
         end
     end
 

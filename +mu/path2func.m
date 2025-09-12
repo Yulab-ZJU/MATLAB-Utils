@@ -1,5 +1,5 @@
 function fcn = path2func(P)
-% PATH2FUNC Get function handle from full path or name of an M-file.
+%PATH2FUNC  Get function handle from full path or name of an M-file.
 %   FCN = mu.path2func(P) returns a function handle given the full path
 %   of an .m file or the name of a built-in function.
 

@@ -1,8 +1,8 @@
 function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
-% Plot multi-group waves for multi-channel EEG data
+%MU_PLOTWAVEEEG  Plot multi-group waves for multi-channel EEG data.
 %--------------------------------------------------------------------------------
-% INPUT
-%   REQUIRED
+% INPUTS:
+%   REQUIRED:
 %     chData: n*1 struct of fields (* is required)
 %       - *chMean: [nCh x nSample]
 %       - chErr: [nCh x nSample], errorbar (if left empty, errorbar will not be shown)
@@ -16,7 +16,7 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %     window: time window [winStart,winEnd]
 %     EEGPos: EEG position struct. See EEGPos_Neuracle64.m
 %
-%   NAME-VALUE PARAMETERS
+%   NAME-VALUE PARAMETERS:
 %   - 'LineWidth': General line width setting (default=1)
 %   - 'Scaleplate' : Hide x, y ticks and show a scaleplate instead. This option only works when
 %                    plotting in actual electrode positions. (default='hide')
@@ -25,7 +25,7 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %        See `mu.subplot` for detail.
 %
 %--------------------------------------------------------------------------------
-% OUTPUT:
+% OUTPUTS:
 %     Fig: Figure handle of the wave plot.
 %     sp : scaleplate class
 

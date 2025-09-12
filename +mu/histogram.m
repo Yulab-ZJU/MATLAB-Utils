@@ -1,34 +1,35 @@
 function varargout = histogram(varargin)
-% HISTOGRAM  Grouped histogram with flexible inputs and display options
+%HISTOGRAM  Grouped histogram with flexible inputs and display options.
 %
-% Usage:
+% SYNTAX:
+%   mu.histogram(X)
 %   H = mu.histogram(X)
 %   H = mu.histogram(X, edges)
 %   H = mu.histogram(..., 'BinWidth', val, 'FaceColor', {...}, ...)
 %   [H, N, edges] = mu.histogram(...)
 %
-% Inputs:
-%   X           - numeric vector, matrix (each row = group), or cell vector of numeric vectors
-%   edges       - optional numeric vector of bin edges
+% INPUTS:
+%   REQUIRED:
+%     X      - numeric vector, matrix (each row = group), or cell vector of numeric vectors
+%     edges  - optional numeric vector of bin edges
+%   NAME-VALUE:
+%     LineWidth          - Bar edge linewidth, default=0.5
+%     FaceColor          - Cell array of colors or 'none', per group
+%     EdgeColor          - Cell array of colors or 'none', per group
+%     GroupSpace         - Normalized space between groups, default=0
+%     BinSpace           - Normalized space between bars, default=0
+%     DisplayName        - Cell array of legend strings per group
+%     BinWidth           - Scalar bin width (overrides BinMethod)
+%     BinMethod          - Method for automatic binning (default='auto')
+%     DistributionCurve  - 'show' or 'hide' (default='hide')
+%     FitCurveLineWidth  - Line width of fitting curves, default=1
 %
-% Name-Value Pairs:
-%   'LineWidth'         - bar edge linewidth, default 0.5
-%   'FaceColor'         - cell array of colors or 'none', per group
-%   'EdgeColor'         - cell array of colors or 'none', per group
-%   'GroupSpace'        - Normalized space between groups, default 0
-%   'BinSpace'          - Normalized space between bars, default 0
-%   'DisplayName'       - cell array of legend strings per group
-%   'BinWidth'          - scalar bin width (overrides BinMethod)
-%   'BinMethod'         - method for automatic binning (default 'auto')
-%   'DistributionCurve' - 'show' or 'hide' (default 'hide')
-%   'FitCurveLineWidth' - Line width of fitting curves, default 1
+% OUTPUTS:
+%     H       - bar handles array
+%     N       - histogram counts matrix (#bins x #groups)
+%     edges   - bin edges
 %
-% Outputs:
-%   H       - bar handles array
-%   N       - histogram counts matrix (#bins x #groups)
-%   edges   - bin edges
-%
-% Example:
+% EXAMPLE:
 %   x1 = [2 2 3 4];
 %   x2 = [1 2 6 8];
 %   X = [x1; x2];

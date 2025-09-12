@@ -1,5 +1,5 @@
 function [minVal, t] = min(X, T, dim)
-% return minimum value of time series data X and the corresponding time t
+%MIN  Find minimum value of time series data X and the corresponding time t.
 
 narginchk(2, 3);
 

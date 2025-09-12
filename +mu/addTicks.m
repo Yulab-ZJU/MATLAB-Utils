@@ -1,5 +1,17 @@
 function addTicks(varargin)
-% mu.addTicks(ax, axisName, vals, labelStrs)
+%ADDTICKS  Add special ticks and tick labels to axes.
+%
+% SYNTAX:
+%     mu.addTicks(axisName, vals, [labelStrs])
+%     mu.addTicks(ax, axisName, vals, [labelStrs])
+%
+% INPUTS:
+%   REQUIRED:
+%     axisName   - 'x', 'y', or 'z'
+%     vals       - Values for special ticks
+%   OPTIONAL:
+%     ax         - Target axes (default=gca)
+%     labelStrs  - (Optional) labels for special ticks
 
 if strcmp(class(varargin{1}), "matlab.graphics.axis.Axes")
     ax = varargin{1};
@@ -24,6 +36,10 @@ end
 for index = 1:numel(vals)
     tickVals = get(ax, strcat(axisName, "Tick"));
     tickLabels = get(ax, strcat(axisName, "TickLabels"));
+
+    if ismember(vals(index), tickVals)
+        continue;
+    end
 
     idx = find(tickVals > vals(index), 1);
 

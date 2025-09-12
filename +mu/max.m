@@ -1,5 +1,5 @@
 function [maxVal, t] = max(X, T, dim)
-% return maximum value of time series data X and the corresponding time t
+%MAX  Find maximum value of time series data X and the corresponding time t.
 
 narginchk(2, 3);
 

@@ -1,5 +1,5 @@
 function copyaxes(source, target)
-% Copy the content of one axes to the other
+%COPYAXES  Copy the content of one axes to the other
 
 targetFigure = get(target, "Parent");
 obj = copyobj(source, targetFigure);

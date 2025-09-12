@@ -1,19 +1,19 @@
 function [xv, yv, lines] = genPolygon(ax)
-% GENPOLYGON Interactive polygon drawing on 2D axes.
+%GENPOLYGON  Interactive polygon drawing on 2D axes.
 %
 % Left-click: add point
 % 'Z' key: undo last point
 % Enter or Return: close polygon
 % ESC: cancel and exit
 %
-% Inputs:
+% INPUTS:
 %   ax - axes handle (default gca)
 %
-% Outputs:
+% OUTPUTS:
 %   xv, yv - polygon vertices coordinates (column vectors)
 %   lines  - array of Line objects representing polygon edges
 %
-% Example:
+% EXAMPLES:
 %   pointsX = 10 * rand(20, 1);
 %   pointsY = 10 * rand(20, 1);
 %   figure;
@@ -24,7 +24,6 @@ function [xv, yv, lines] = genPolygon(ax)
 %   plot(ax, pointsX(in), pointsY(in), 'ro', 'DisplayName', 'Inside Points');
 %   legend('Location', 'best');
 %   title('Polygon Drawing and Point Inclusion Test');
-%
 
 if nargin < 1 || isempty(ax)
     ax = gca;

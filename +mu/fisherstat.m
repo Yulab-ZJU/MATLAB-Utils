@@ -1,10 +1,12 @@
 function [H, pFisher, chi_square_stat, sigLevel] = fisherstat(p, dim, alphaVal)
-% FISHERSTAT Combine p-values using Fisher's method along a specified dimension
+%FISHERSTAT  Combine p-values using Fisher's method along a specified dimension
 %
 % INPUTS:
-%   p        - N-D array of p-values (numeric, 0 < p <= 1)
-%   dim      - dimension along which to combine (default: 1)
-%   alphaVal - significance threshold (default: 0.05)
+%   REQUIRED:
+%     p        - N-D array of p-values (numeric, 0 < p <= 1)
+%   OPTIONAL:
+%     dim      - dimension along which to combine (default: 1)
+%     alphaVal - significance threshold (default: 0.05)
 %
 % OUTPUTS:
 %   H               - logical array, true if combined p < alphaVal

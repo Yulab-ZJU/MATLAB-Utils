@@ -1,5 +1,6 @@
 function exportgraphics(targets, varargin)
-% This function is an extension of built-in function exportgraphics
+%EXPOORTGRAPHICS  An extension of built-in function exportgraphics.
+%
 % It aims to export multiple axes by creating a new figure and copying
 % objects (your axes or panels) into that new figure.
 

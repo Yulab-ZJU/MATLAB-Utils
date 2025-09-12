@@ -1,5 +1,5 @@
 function sp = mu_addScaleplate(varargin)
-% MU_ADDSCALEPLATE Create scaleplate axes in a figure
+%MU_ADDSCALEPLATE  Create scaleplate axes in a figure.
 % Example:
 %   sp = mu_addScaleplate(gcf, 'Position', [0.05 0.05 0.05 0.05])
 
@@ -10,6 +10,6 @@ else
     Fig = gcf;
 end
 
-sp = Scaleplate(Fig, varargin{:});
+sp = mu_scaleplate(Fig, varargin{:});
 return;
 end

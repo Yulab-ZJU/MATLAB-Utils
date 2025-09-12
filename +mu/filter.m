@@ -1,5 +1,5 @@
 function data = filter(data, fs, varargin)
-% FILTER General zero-phase multi-channel filter for trial or matrix data.
+%FILTER  General zero-phase multi-channel filter for trial or matrix data.
 %
 % This function applies zero-phase filtering to multi-channel data using the FieldTrip toolbox
 % and MATLAB built-in functions (`filtfilt` and `designNotchPeakIIR`, MATLAB R2023b or newer).
@@ -7,14 +7,15 @@ function data = filter(data, fs, varargin)
 % that filter type will not be applied.
 %
 % INPUTS:
-%   data    - Cell array of trial data, or a 2D matrix [nch, nsample]
-%   fs      - Sampling rate in Hz
-%   Name-Value pairs:
-%     "fhp"    - High-pass filter cutoff frequency (Hz, scalar)
-%     "flp"    - Low-pass filter cutoff frequency (Hz, scalar)
-%     "fnotch" - Notch filter stop frequency (Hz, vector)
-%     "order"  - Butterworth filter order (integer, default: 3)
-%     "BW"     - Notch filter bandwidth (Hz, default: 1)
+%   REQUIRED:
+%     data    - Cell array of trial data, or a 2D matrix [nch, nsample]
+%     fs      - Sampling rate in Hz
+%   NAME-VALUE:
+%     fhp     - High-pass filter cutoff frequency (Hz, scalar)
+%     flp     - Low-pass filter cutoff frequency (Hz, scalar)
+%     fnotch  - Notch filter stop frequency (Hz, vector)
+%     order   - Butterworth filter order (integer, default: 3)
+%     BW      - Notch filter bandwidth (Hz, default: 1)
 %
 % OUTPUT:
 %   data    - Filtered data, same type as input
@@ -73,7 +74,7 @@ if ~isempty(fhp) || ~isempty(flp)
     cfg.trials = 'all';
     dataTemp.trial = data(:)';
     dataTemp.time = repmat({t}, 1, ntrial);
-    dataTemp.label = arrayfun(@num2str, (1:nch)', "UniformOutput", false);
+    dataTemp.label = compose('%d', (1:nch)');
     dataTemp.fsample = fs;
     dataTemp = ft_selectdata(cfg, dataTemp);
 

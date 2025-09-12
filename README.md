@@ -130,6 +130,8 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ​	\*`mu.getrootpath` Gets N-backward root path of path [P].
 
+​	`mu.isTextScalar` Judges whether the input is a text scalar (string or char).
+
 #### 2.5 function_handle
 
 ​	`mu.obtainArgoutN` Returns the [fcn] outputs of specified ordinal numbers.
@@ -276,7 +278,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ### 6. UI
 
-​	\*`ccc` Equals to `clear;close all;clc;`
+​	\*`ccc` Equals to `clear;close all;clc;`.
 
 ​	`validateinput` Loops input until validation passes.
 
@@ -294,7 +296,7 @@ git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
 
 ### 7. callback handler function
 
-Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`, `mu.par***fun`
+Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`, `mu.par***fun`.
 
 ​	`errNAN`, `errEmpty` Returns []/NAN if error occurs.
 

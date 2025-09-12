@@ -17,7 +17,7 @@ t = linspace(window(1), window(2), size(trialsData{1}, 2)) / 1000; % s
 channels = (1:size(trialsData{1}, 1))';
 
 if nargin < 4
-    channelNames = arrayfun(@num2str, channels, "UniformOutput", false);
+    channelNames = compose('%d', channels);
 else
 
     if numel(channelNames) ~= numel(channels)

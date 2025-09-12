@@ -25,7 +25,7 @@ for rIndex = 1:nBatch
     end
     
     % Get kilosort configuration
-    if exist(resultDirs{rIndex}, "dir")
+    if exist(fullfile(resultDirs{rIndex}, "spike_times.npy"), "file")
         fprintf('Result folder %s already exists.\n', resultDirs{rIndex});
         if ~skipSortExisted
             disp('Delete result folder and re-sorting...');
@@ -40,8 +40,11 @@ for rIndex = 1:nBatch
     % Run kilosort4
     mu_kilosort4(settings, opts);
 
+    % Generate cluster_info.tsv
+    mu_ks_genClusterInfo(opts.results_dir, fs);
+
     % Update Excel file
-    tbl.sort(tbl.ID == sortIDs(rIndex)) = {'1'};
+    tbl.sort(str2double(tbl.ID) == sortIDs(rIndex)) = "1";
     writetable(tbl, EXCELPATH);
 end
 

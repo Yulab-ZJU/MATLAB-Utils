@@ -1,7 +1,11 @@
 function A = cell2mat(C)
-% CELL2MAT Convert cell array to matrix with support for mixed types
-%   Supports cell/string/numeric types in input cells
-%   Optimized version using rowfun for consistent behavior
+%CELL2MAT  Convert cell array to matrix with support for mixed types
+%
+% NOTES:
+%   - This is an optimized version using rowfun for consistent behavior.
+%   - Supports cell/string/numeric types in input cells.
+
+validateattributes(C, 'cell', {'2d'});
 
 [a, b] = size(C);
 
@@ -17,6 +21,8 @@ else % Handle 2-D case using rowfun
     % Vertical concatenation of rows
     A = cat(1, temp{:});
 end
+
+return;
 end
 
 %% Helper function to ensure uniform output type
@@ -28,4 +34,5 @@ function y = convertToUniformType(x)
     else
         y = x;
     end
+    return;
 end

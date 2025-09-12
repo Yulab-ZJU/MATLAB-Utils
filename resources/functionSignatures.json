@@ -503,15 +503,14 @@
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]},
-                    {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]}
+                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
                 ],
                 [
                     {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]},
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]},
-                    {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]}
+                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
                 ]
             ]},
+            {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]},
             {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]},
             {"name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
             {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'"},
@@ -524,6 +523,40 @@
             {"name": "FitCurveLineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 1"}
         ],
         "description": "Create a histogram with various customization options"
+    },
+
+    "mu.polarhistogram": {
+        "inputs": [
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        { "name": "theta", "kind": "required", "type": [["numeric"], ["cell"]] }
+                    ],
+                    [
+                        { "name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"] },
+                        { "name": "theta", "kind": "required", "type": [["numeric"], ["cell"]] }
+                    ]
+                ]
+            },
+            { "name": "edges", "kind": "ordered", "type": ["numeric", "vector"] },
+
+            { "name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.5" },
+            { "name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]] },
+            { "name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'" },
+            { "name": "DisplayName", "kind": "namevalue", "type": ["cell"] },
+            { "name": "BinWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"] },
+            { "name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"], "purpose": "default: 'auto'" },
+            { "name": "FaceAlpha", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.7" },
+            { "name": "Normalization", "kind": "namevalue", "type": ["choices = {'count', 'probability', 'pdf', 'countdensity'}"], "purpose": "default: 'count'" },
+            { "name": "Center", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0 (radian)" },
+            { "name": "GroupSpacing", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1" },
+            { "name": "RTicks", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "radial tick values (in plotted units)" },
+            { "name": "RTickLabel", "kind": "namevalue", "type": ["cell"], "purpose": "labels for RTicks; default auto (numbers or %)" },
+            { "name": "ThetaTicks", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "default: 0:30:330 (degrees)" },
+            { "name": "ThetaTickLabel", "kind": "namevalue", "type": ["cell"], "purpose": "labels for ThetaTicks; default auto" },
+            { "name": "RTickLabelPlacement", "kind": "namevalue", "type": [["choices = {'auto'}"], ["numeric", "scalar"]], "purpose": "default: 'auto' (place labels at emptiest angle); numeric gives angle in degrees" }
+        ],
+        "description": "Create a grouped polar histogram with separated bars per bin on a custom polar grid; supports normalization, binning, colors, spacing, custom/automatic radial & angular ticks, and auto-placement of radial tick labels to avoid bars."
     },
 
     "mu.rasterplot": {
@@ -576,26 +609,18 @@
     "mu.subplot": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
+                [],
                 [
-                    {"name": "row", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "col", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "index", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "nSize", "kind": "ordered", "type": ["numeric", "vector"]},
-                    {"name": "margins", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-                    {"name": "paddings", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-                    {"name": "shape", "kind": "ordered", "type": ["choices = {'auto', 'square-min', 'square-max', 'fill'}"]}
-                ],
-                [
-                    {"name": "Fig", "kind": "required", "type": ["@(args) all(isgraphics(args))"]},
-                    {"name": "row", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "col", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "index", "kind": "required", "type": ["scalar", "positive", "integer"]},
-                    {"name": "nSize", "kind": "ordered", "type": ["numeric", "vector"]},
-                    {"name": "margins", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-                    {"name": "paddings", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-                    {"name": "shape", "kind": "ordered", "type": ["choices = {'auto', 'square-min', 'square-max', 'fill'}"]}
+                    {"name": "Fig", "kind": "required", "type": ["@(args) all(isgraphics(args))"]}
                 ]
             ]},
+            {"name": "row", "kind": "required", "type": ["scalar", "positive", "integer"]},
+            {"name": "col", "kind": "required", "type": ["scalar", "positive", "integer"]},
+            {"name": "index", "kind": "required", "type": ["vector", "positive", "integer"]},
+            {"name": "nSize", "kind": "ordered", "type": ["numeric", "vector"]},
+            {"name": "margins", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
+            {"name": "paddings", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
+            {"name": "shape", "kind": "ordered", "type": ["choices = {'auto', 'square-min', 'square-max', 'fill'}"]},
             {"name": "nSize", "kind": "namevalue", "type": ["numeric", "vector"]},
             {"name": "margins", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"], "purpose": "[left,right,bottom,top]([.05,.05,.08,.05])"},
             {"name": "paddings", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"], "purpose": "[left,right,bottom,top]([.03,.03,.08,.05])"},

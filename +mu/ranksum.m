@@ -1,5 +1,5 @@
 function [p, stats, effectSize, bf10] = ranksum(x, y, varargin)
-% Wilcoxon rank sum test (Mann-Whitney U test)
+%RANKSUM  Wilcoxon rank sum test (Mann-Whitney U test)
 % [x] and [y] are vectors, not necessary of the same size.
 
 idx = find(matches(varargin, 'method', 'IgnoreCase', true));

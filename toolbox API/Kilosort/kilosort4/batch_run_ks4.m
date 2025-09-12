@@ -6,7 +6,7 @@ SAVEROOTPATH = '~\DATA\MAT DATA\';
 
 %% Parameter settings (user-specified)
 % (*) which id to sort
-sortIDs = [1, 2];
+sortIDs = 1:6;
 
 % (*) Thresholds [Th_universal, Th_learned]
 th = [9, 8];
@@ -25,6 +25,8 @@ fsLFP = 1e3;
 FORMAT = 'i16';
 
 sortIDs = unique(sortIDs);
+EXCELPATH = mu.getabspath(EXCELPATH);
+SAVEROOTPATH = mu.getabspath(SAVEROOTPATH);
 
 %% Step-1 Convert to binary data file
 [BINPATHs, TRIGPATHs, nch] = ...
@@ -57,7 +59,7 @@ RESPATHs = mu_ks4_runKilosort4(BINPATHs, ...
 
 % --------------- Export LFP -----------------
 % [tShift] represents time shift (in sec) from the first rising edge of TTL (recording system)
-% to TDT data.epocs.Swep.onset(1)
+% to TDT data.epocs.Swep.onset(1) (stimulus system)
 mu_ks4_exportLfpMat(EXCELPATH, ...
                     sortIDs, ...
                     SAVEROOTPATH, ...

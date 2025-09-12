@@ -1,6 +1,18 @@
 function [nch, nsample] = checkdata(varargin)
-% Check whether all trialsData_i are of the same size.
-% Each of the input should contain the same nch and nsample.
+%CHECKDATA  Check whether all trialsData_i are of the same size.
+%
+% SYNTAX:
+%     [nch, nsample] = mu.checkdata(trialsData1, trialsData2, ...)
+%
+% INPUTS:
+%     trialsData  - ntrial*1 cell containing [nch x nsample] data
+%
+% OUTPUTS:
+%     nch      - the number of channels
+%     nsample  - the number of samples
+%
+% NOTES:
+%   - Each of the input should contain the same nch and nsample.
 
 % data type should be cell
 if ~all(cellfun(@iscell, varargin))
