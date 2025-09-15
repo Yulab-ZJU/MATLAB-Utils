@@ -1,5 +1,5 @@
 function mu_ks_openPhyGUI(path)
-% mu_ks_openPhyGUI  Open Phy GUI for Kilosort results
+%MU_KS_OPENPHYGUI  Open Phy GUI for Kilosort results.
 %
 % Usage:
 %   mu_ks_openPhyGUI(path)

@@ -1,9 +1,10 @@
 function mu_kilosort4(settings, opts)
-% MU_KILOSORT4 runs kilosort-4 in MATLAB via python API.
+%MU_KILOSORT4  Run kilosort-4 in MATLAB via python API.
 %
 % NOTES:
 %   Run mu_ks4_config.m first for [settings] and [opts].
 %
+%   The following configuration is a copy from README file of kilosort4:
 %   *Conda env kilosort is a MUST:
 %   1. Create env kilosort with python=3.x (e.g., 3.10 or 3.11)
 %     conda create --name kilosort python=3.10
@@ -24,7 +25,6 @@ function mu_kilosort4(settings, opts)
 %   3. Install the development version of phy:
 %     pip install git+https://github.com/cortex-lab/phy.git
 %   To open phy GUI via MATLAB, see mu_ks_openPhyGUI.m
-%
 
 % python interpreter
 pythonExe = opts.pythonExe;
