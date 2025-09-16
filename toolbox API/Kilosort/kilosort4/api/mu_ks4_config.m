@@ -1,6 +1,7 @@
 function [settings, opts] = mu_ks4_config(varargin)
-% Configuration of kilosort4
+%MU_KS4_CONFIG  Configuration for kilosort4.
 % Items marked with (*) are a must.
+% Refer to `https://kilosort.readthedocs.io/en/latest/` for a full list of parameters.
 %
 % E.g.,
 %   [settings, opts] = mu_ks4_config(...
@@ -44,7 +45,7 @@ else
 end
 
 %% settings
-% See .\wrapper\parameters.py for a full list of parameters
+% See ~\wrapper\parameters.py for a full list of parameters
 %%% Main parameters %%%
 % number of channels, must be specified here (*)
 settings.n_chan_bin = args.n_chan_bin;
@@ -94,7 +95,8 @@ opts.results_dir = mu.getor(args, "results_dir", default_results_dir);
 % By default, dtype is assumed to be 'int16'
 opts.data_dtype = mu.getor(args, "data_dtype", 'int16');
 
-% If True, apply common average reference during preprocessing (recommended).
+% If True, apply common average reference during preprocessing (recommended)
+% For single channel sorting, set this option FALSE
 opts.do_CAR = mu.getor(args, "do_CAR", true);
 
 % If True, save a pre-processed copy of the data (including drift
