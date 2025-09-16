@@ -124,33 +124,43 @@ for rIndex = 1:numel(RESPATHs)
         dataTDT{rIndex}{pIndex} = TDTbin2mat(BLOCKPATHs{rIndex}{pIndex}, 'TYPE', {'epocs'});
         if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
             load(TRIGPATHs{rIndex}{pIndex}, "TTL");
-            trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.Swep.onset);
+            epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
+            if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
+                tempField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
+            else
+                tempField = "Swep";
+            end
+
+            trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset);
+            TDTStim  = dataTDT{rIndex}{pIndex}.epocs.(tempField);
             TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
+            TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
 
             if trialNum ~= numel(TTL_Onset_temp)
-                TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
-                assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
+                TTL_Temp   = TTL_Onset_temp' / fs; % for checking
+                checkPool1 = [{TTL_Temp}, {TDTStim.onset}]; % stim time point; column 1: recording; column 2: TDT
+                checkPool2 = [{diff(TTL_Temp)}', {diff(TDTStim.onset)}]; % ISI; column 1: recording; column 2: TDT
+                % Correct variable [TTL_Onset_temp]
+                keyboard;
+                isContinue = validateInput('Continue? (y/n): ',  @(x) matches(x, ["n", "y"], "IgnoreCase", true), 's');
+                if matches(isContinue, ["n", "N"])
+                    assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
+                end
             end
 
             % Align TDT trigger with TTL trigger
-            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.Swep.onset(1) * fs(rIndex), 0);
+            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset(1) * fs(rIndex), 0);
             TTL_Onset{rIndex}{pIndex} = (TTL_Onset_temp - nShift) / fs(rIndex); % sec
 
         else % Use TDT trigger
             nShift = 0;
-            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.Swep.onset; % sec
+            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.(tempField).onset; % sec
         end
 
         spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex); % sec
         clusterIdxs{rIndex}{pIndex} = clusterIdx;
         tShift{rIndex}(pIndex) = nShift / fs(rIndex); % sec
-    end
 
-end
-
-% Save to MAT file
-for rIndex = 1:numel(RESPATHs)
-    for pIndex = 1:numel(SAVEPATHs{rIndex})
         exported = params(rIndex).spkExported(pIndex);
 
         if exported && skipSpkExportExisted
