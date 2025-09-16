@@ -263,8 +263,8 @@
         "inputs": [
             {"name": "s", "kind": "required", "type": ["struct", "vector"]},
             {"tuple": [
-                {"name": "fName", "kind": "ordered", "type": [["char"], ["string"]]},
-                {"name": "fVal", "kind": "ordered", "type": [["cell"], ["numeric"]]}
+                {"name": "fName", "kind": "required", "type": [["char"], ["string"]]},
+                {"name": "fVal", "kind": "required", "type": [["cell"], ["numeric"]]}
             ]}
         ]
     },
