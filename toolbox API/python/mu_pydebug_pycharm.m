@@ -1,4 +1,4 @@
-function status = mu_pydebug_pycharm(pyscriptPATH, pyexePATH, varargin)
+function [status, cmdout] = mu_pydebug_pycharm(pyscriptPATH, pyexePATH, varargin)
 %MU_PYDEBUG_PYCHARM  Run python script via MATLAB and debug in PyCharm (via debug server).
 %
 % INPUTS:
@@ -12,6 +12,7 @@ function status = mu_pydebug_pycharm(pyscriptPATH, pyexePATH, varargin)
 %
 % OUTPUTS:
 %     status        - 0: success, other values: failed
+%     cmdout        - Output information from command line
 %
 % NOTES:
 %   1. Install pydevd-pycharm in your python environment (in conda env or base):
@@ -102,7 +103,7 @@ else
     cmd = sprintf('%s %s %s',    q(pyexePATH), q(launcher), q(pyscriptPATH));
 end
 fprintf('[mu_pydebug_pycharm] Exec: %s\n', cmd);
-status = system(cmd);
+[status, cmdout] = system(cmd);
 
 if status ~= 0
     warning('mu_pydebug_pycharm:NonZeroExit','Python script execution failed: %d', status);

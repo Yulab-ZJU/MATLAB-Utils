@@ -1,4 +1,4 @@
-function mu_kilosort4(settings, opts)
+function mu_kilosort4(settings, opts, RunInDebugMode)
 %MU_KILOSORT4  Run kilosort-4 in MATLAB via python API.
 %
 % NOTES:
@@ -26,6 +26,14 @@ function mu_kilosort4(settings, opts)
 %     pip install git+https://github.com/cortex-lab/phy.git
 %   To open phy GUI via MATLAB, see mu_ks_openPhyGUI.m
 
+narginchk(2, 3);
+
+if nargin < 3
+    RunInDebugMode = mu.OptionState.Off;
+else
+    RunInDebugMode = mu.OptionState.create(RunInDebugMode);
+end
+
 % python interpreter
 pythonExe = opts.pythonExe;
 opts = rmfield(opts, "pythonExe");
@@ -44,10 +52,14 @@ fid = fopen(opts_file, 'w'); fwrite(fid, opts_json); fclose(fid);
 pyScript = fullfile(fileparts(mfilename("fullpath")), 'wrapper', 'kilosort4_wrapper.py');
 
 % construct command line script
-cmd = sprintf('"%s" "%s" "%s" "%s"', pythonExe, pyScript, settings_file, opts_file);
-
-% run python script via command line
-[status, cmdout] = system(cmd);
+if RunInDebugMode.toLogical
+    [status, cmdout] = mu_pydebug_pycharm(pyScript, pythonExe, settings_file, opts_file);
+else
+    cmd = sprintf('"%s" "%s" "%s" "%s"', pythonExe, pyScript, settings_file, opts_file);
+    
+    % run python script via command line
+    [status, cmdout] = system(cmd);
+end
 
 % clear temp files
 delete(settings_file);
@@ -57,4 +69,5 @@ if status ~= 0
     error('Python script execution failed:\n%s', cmdout);
 end
 
+return;
 end

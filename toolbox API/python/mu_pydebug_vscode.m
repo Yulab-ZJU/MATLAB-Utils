@@ -1,4 +1,4 @@
-function status = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
+function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %MU_PYDEBUG_VSCODE  Run python script via MATLAB and debug in VS Code (via debugpy).
 %
 % SYNTAX：
@@ -16,6 +16,7 @@ function status = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %
 % OUTPUTS:
 %     status        - 0: success, other values: failed
+%     cmdout        - Output information from command line
 %
 % NOTES:
 %   - Make sure that VS Code uses the same python version as pyexePATH specifies.
@@ -121,7 +122,7 @@ else
 end
 
 fprintf('[mu_pydebug_vscode] Exec: %s\n', fullCmd);
-status = system(fullCmd);
+[status, cmdout] = system(fullCmd);
 
 if status ~= 0
     warning('mu_pydebug_vscode:NonZeroExit','Python script execution failed: %d', status);
