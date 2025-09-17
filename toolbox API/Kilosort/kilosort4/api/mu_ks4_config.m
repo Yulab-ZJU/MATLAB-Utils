@@ -22,7 +22,7 @@ if isempty(args) || any(~isfield(args, {'n_chan_bin', 'fs', 'probe_name', 'filen
     error("Input name-value pairs should at least contain: 'n_chan_bin', 'fs', 'probe_name', 'filename'");
 end
 
-if iscellstr(args.filename)
+if iscellstr(args.filename) || mu.isTextScalar(args.filename)
     args.filename = string(args.filename);
 end
 args.filename = arrayfun(@(x) string(mu.getabspath(x)), args.filename);

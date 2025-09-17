@@ -123,7 +123,8 @@ for rIndex = 1:numel(RESPATHs)
         % Read from Trigger file
         dataTDT{rIndex}{pIndex} = TDTbin2mat(BLOCKPATHs{rIndex}{pIndex}, 'TYPE', {'epocs'});
         if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
-            load(TRIGPATHs{rIndex}{pIndex}, "TTL");
+            load(TRIGPATHs{rIndex}{pIndex}, "board_dig_in_data", "TTL");
+            try TTL = board_dig_in_data; end
             epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
             if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
                 tempField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
@@ -142,7 +143,7 @@ for rIndex = 1:numel(RESPATHs)
                 checkPool2 = [{diff(TTL_Temp)}', {diff(TDTStim.onset)}]; % ISI; column 1: recording; column 2: TDT
                 % Correct variable [TTL_Onset_temp]
                 keyboard;
-                isContinue = validateInput('Continue? (y/n): ',  @(x) matches(x, ["n", "y"], "IgnoreCase", true), 's');
+                isContinue = validateInput('Continue? (y/n): ', @(x) matches(x, ["n", "y"], "IgnoreCase", true), 's');
                 if matches(isContinue, ["n", "N"])
                     assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
                 end

@@ -55,6 +55,10 @@ if ~isOverlap
     isInWin = mod(binIdx, 2) == 0 & binIdx > 0 & binIdx <= 2 * numEvt;
     binIdx = binIdx(isInWin);
     spikeTimes = spikeTimes(isInWin);
+    if isempty(spikeTimes)
+        out = repmat({[]}, numEvt, 1);
+        return
+    end
     if hasCluster
         clusters = clusters(isInWin);
     end
