@@ -1,9 +1,6 @@
 import json
 import sys
 from kilosort import run_kilosort
-import numpy as np
-import pandas as pd
-from pathlib import Path
 
 def main():
     if len(sys.argv) < 3:
