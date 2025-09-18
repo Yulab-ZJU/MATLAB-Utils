@@ -16,6 +16,10 @@ untitled*
 /slprj/
 **/MATLAB Add-Ons/
 
+%ignore idea folder
+*/.idea/
+/.idea/
+
 #ignore resources folder
 /resources/*
 !/resources/functionSignatures.json
