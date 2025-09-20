@@ -1,6 +1,8 @@
 function mu_kilosort4(settings, opts, RunInDebugMode)
 %MU_KILOSORT4  Run kilosort-4 in MATLAB via python API.
 %
+% Set [RunInDebugMode] true to debug in PyCharm.
+%
 % NOTES:
 %   Run mu_ks4_config.m first for [settings] and [opts].
 %
