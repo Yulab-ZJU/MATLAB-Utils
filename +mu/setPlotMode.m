@@ -66,18 +66,6 @@ switch plotMode
         % Marker size
         set(groot, 'DefaultLineMarkerSize' , 1);
         set(groot, 'DefaultScatterSizeData', 1); % this only works for `mu.boxplot`
-
-        % Axes
-        set(groot, 'DefaultAxesTickDir'   , 'out');
-        set(groot, 'DefaultAxesTickLength', [0.01, 0.01]);
-        set(groot, 'DefaultAxesFontName'  , 'Arial');
-        set(groot, 'DefaultAxesFontSize'  , 7);
-        set(groot, 'DefaultAxesFontWeight', 'bold');
-        set(groot, 'DefaultAxesBox'       , 'off');
-        set(groot, 'DefaultAxesLineWidth' , 0.75);
-        set(groot, 'DefaultAxesXColor'    , [0, 0, 0]);
-        set(groot, 'DefaultAxesYColor'    , [0, 0, 0]);
-        set(groot, 'DefaultAxesLayer'     , 'top');
 end
 
 % --- Apply Unmateched params ---
