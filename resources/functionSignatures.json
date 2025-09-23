@@ -641,6 +641,17 @@
         "description": "Create a subplot with specified rows, columns, and index, with various layout options"
     },
 
+    "mu.setPlotMode": {
+        "inputs": [
+            {"name": "plotMode", "kind": "ordered", "type": ["choices = {'matlab', 'pdf'}"], "purpose": "default: 'pdf'"},
+            {"tuple": [
+                {"name": "pName", "kind": "required", "type": [["char"], ["string"]]},
+                {"name": "pVal", "kind": "required", "type": [["cell"], ["numeric"]]}
+            ]}
+        ],
+        "description": "Set plot mode for figures with predefined styles"
+    },
+
     "mu.ctgen": {
         "inputs": [
             {"name": "ICIs", "kind": "required", "type": ["numeric", "vector"]},
