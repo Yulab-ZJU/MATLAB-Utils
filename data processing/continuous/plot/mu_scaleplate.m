@@ -7,6 +7,14 @@ classdef mu_scaleplate < handle
         Axes
         Position
 
+        % option
+        ShowXScale
+        ShowYScale
+
+        % fix x,y val
+        XVal
+        YVal
+
         % scaleplate x,y scales
         XRange
         YRange
@@ -47,7 +55,7 @@ classdef mu_scaleplate < handle
 
             mIp = inputParser;
             mIp.addRequired("Fig");
-            mIp.addParameter("Position", [], @(x) validateattributes(x, 'numeric', {'numel', 4, 'vector', 'real'}));
+            mIp.addParameter("Position", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'vector', 'real'}));
             mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
             mIp.addParameter("LineStyle", "-");
             mIp.addParameter("LineColor", [0, 0, 0]);
@@ -57,8 +65,12 @@ classdef mu_scaleplate < handle
             mIp.addParameter("FontName", []);
             mIp.addParameter("FontColor", [0, 0, 0]);
             mIp.addParameter("FixScale", mu.OptionState.Off);
+            mIp.addParameter("XVal", [], @(x) validateattributes(x,'numeric', {'scalar', 'real'}));
+            mIp.addParameter("YVal", [], @(x) validateattributes(x,'numeric', {'scalar', 'real'}));
             mIp.addParameter("XScaleUnit", '', @mustBeTextScalar);
             mIp.addParameter("YScaleUnit", '', @mustBeTextScalar);
+            mIp.addParameter("ShowXScale", mu.OptionState.On, @mu.OptionState.validate);
+            mIp.addParameter("ShowYScale", mu.OptionState.On, @mu.OptionState.validate);
             mIp.parse(Fig, varargin{:});
 
             obj.Figure = Fig;
@@ -80,16 +92,23 @@ classdef mu_scaleplate < handle
             obj.FontColor  = validatecolor(mIp.Results.FontColor);
             
             obj.FixScale = mu.OptionState.create(mIp.Results.FixScale);
+            obj.XVal = mIp.Results.XVal;
+            obj.YVal = mIp.Results.YVal;
 
             obj.XScaleUnit = mIp.Results.XScaleUnit;
             obj.YScaleUnit = mIp.Results.YScaleUnit;
 
-            pos = mIp.Results.Position;
-            if isempty(pos)
+            obj.ShowXScale = mu.OptionState.create(mIp.Results.ShowXScale).toLogical;
+            obj.ShowYScale = mu.OptionState.create(mIp.Results.ShowYScale).toLogical;
+
+            posXY = mIp.Results.Position(:)'; % [x, y]
+            temp = cat(1, axesAll.Position);
+            axPos = get(axesAll(1), 'Position');
+            if isempty(posXY)
                 % set left-bottom as default position
-                temp = cat(1, axesAll.Position);
-                axPos = get(axesAll(1), 'Position');
                 pos = [min(temp(:, 1)), min(temp(:, 2)), axPos(3), axPos(4)];
+            else
+                pos = [posXY, axPos(3), axPos(4)];
             end
             
             obj.Position = pos;
@@ -109,6 +128,14 @@ classdef mu_scaleplate < handle
             cla(obj.Axes);
             obj.getScale();
 
+            if ~isempty(obj.XVal)
+                obj.XScale = obj.XVal; % use user-specified value
+            end
+
+            if ~isempty(obj.YVal)
+                obj.YScale = obj.YVal; % use user-specified value
+            end
+
             xlim(obj.Axes, obj.XRange);
             ylim(obj.Axes, obj.YRange);
 
@@ -116,20 +143,25 @@ classdef mu_scaleplate < handle
             textParams = {'FontSize', obj.FontSize, 'Color', obj.FontColor, 'FontWeight', obj.FontWeight, 'FontAngle', obj.FontAngle, 'FontName', obj.FontName};
             
             % x scale
-            xtext = mu.ifelse(isempty(obj.XScaleUnit), num2str(obj.XScale), [num2str(obj.XScale), ' ', obj.XScaleUnit]);
-            line(obj.Axes, [-obj.XScale / 2, obj.XScale / 2] + mean(obj.XRange), [0, 0] + mean(obj.YRange) - obj.YScale / 2, ...
-                 lineParams{:});
-            text(obj.Axes, mean(obj.XRange), mean(obj.YRange) - obj.YScale / 2 * 1.2, xtext, ...
-                 'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', ...
-                 textParams{:});
+            if obj.ShowXScale
+                xtext = mu.ifelse(isempty(obj.XScaleUnit), num2str(obj.XScale), [num2str(obj.XScale), ' ', char(obj.XScaleUnit)]);
+                line(obj.Axes, [-obj.XScale / 2, obj.XScale / 2] + mean(obj.XRange), [0, 0] + mean(obj.YRange) - obj.YScale / 2, ...
+                     lineParams{:});
+                text(obj.Axes, mean(obj.XRange), mean(obj.YRange) - obj.YScale / 2 * 1.2, xtext, ...
+                     'HorizontalAlignment', 'center', 'VerticalAlignment', 'top', ...
+                     textParams{:});
+            end
             
             % y scale
-            ytext = mu.ifelse(isempty(obj.YScaleUnit), num2str(obj.YScale), [num2str(obj.YScale), ' ', obj.YScaleUnit]);
-            line(obj.Axes, [0, 0] + mean(obj.XRange) - obj.XScale / 2, [-obj.YScale / 2, obj.YScale / 2] + mean(obj.YRange), ...
-                 lineParams{:});
-            text(obj.Axes, mean(obj.XRange) - obj.XScale / 2 * 1.1, mean(obj.YRange), ytext, ...
-                 'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', ...
-                 textParams{:});
+            if obj.ShowYScale
+                ytext = mu.ifelse(isempty(obj.YScaleUnit), num2str(obj.YScale), [num2str(obj.YScale), ' ', char(obj.YScaleUnit)]);
+                line(obj.Axes, [0, 0] + mean(obj.XRange) - obj.XScale / 2, [-obj.YScale / 2, obj.YScale / 2] + mean(obj.YRange), ...
+                     lineParams{:});
+                text(obj.Axes, mean(obj.XRange) - obj.XScale / 2 * 1.1, mean(obj.YRange), ytext, ...
+                     'HorizontalAlignment', 'right', 'VerticalAlignment', 'middle', ...
+                     textParams{:});
+            end
+
             return;
         end
 
@@ -146,6 +178,18 @@ classdef mu_scaleplate < handle
                 % do not use fixed scales
                 obj.XScale = mode(diff(xticks(axesAll(1))));
                 obj.YScale = mode(diff(yticks(axesAll(1))));
+            end
+
+            % xticks missing
+            if isempty(obj.XScale)
+                % use xlim/2
+                obj.XScale = diff(obj.XRange) / 2;
+            end
+
+            % yticks missing
+            if isempty(obj.YScale)
+                % use ylim/2
+                obj.YScale = diff(obj.YRange) / 2;
             end
 
             if obj.XScale > diff(obj.XRange) || obj.YScale > diff(obj.YRange)

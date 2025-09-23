@@ -35,7 +35,7 @@ mIp.addOptional("C", "k");
 mIp.addOptional("Alpha", 0.3, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', '<=', 1}));
 mIp.parse(ax, varargin{:});
 
-t = mIp.Results.t;
+t = mIp.Results.t(:)';
 Y = mIp.Results.Y;
 E = mIp.Results.E;
 C = validatecolor(mIp.Results.C);
