@@ -137,17 +137,17 @@ for rIndex = 1:numel(RESPATHs)
             TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
             TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
 
-            if trialNum ~= numel(TTL_Onset_temp)
-                TTL_Temp   = TTL_Onset_temp' / fs; % for checking
-                checkPool1 = [{TTL_Temp}, {TDTStim.onset}]; % stim time point; column 1: recording; column 2: TDT
-                checkPool2 = [{diff(TTL_Temp)}', {diff(TDTStim.onset)}]; % ISI; column 1: recording; column 2: TDT
-                % Correct variable [TTL_Onset_temp]
-                keyboard;
-                isContinue = validateInput('Continue? (y/n): ', @(x) matches(x, ["n", "y"], "IgnoreCase", true), 's');
-                if matches(isContinue, ["n", "N"])
-                    assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
-                end
-            end
+            % if trialNum ~= numel(TTL_Onset_temp)
+            %     TTL_Temp   = TTL_Onset_temp' / fs; % for checking
+            %     checkPool1 = [{TTL_Temp}, {TDTStim.onset}]; % stim time point; column 1: recording; column 2: TDT
+            %     checkPool2 = [{diff(TTL_Temp)}', {diff(TDTStim.onset)}]; % ISI; column 1: recording; column 2: TDT
+            %     % Correct variable [TTL_Onset_temp]
+            %     keyboard;
+            %     isContinue = validateInput('Continue? (y/n): ', @(x) matches(x, ["n", "y"], "IgnoreCase", true), 's');
+            %     if matches(isContinue, ["n", "N"])
+            %         assert(trialNum == numel(TTL_Onset_temp), "The TTL sync signal does not match the TDT epocs [Swep] store!");
+            %     end
+            % end
 
             % Align TDT trigger with TTL trigger
             nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset(1) * fs(rIndex), 0);

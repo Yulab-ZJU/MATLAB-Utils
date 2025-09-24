@@ -89,7 +89,7 @@ if strcmp(method,'memmap')
         lfp = filt;
     end
 
-    save(outMat,'lfp','-v7.3');
+    save(outMat, 'lfp', 'fs', '-v7.3');
     fprintf('Done. LFP size [%d x %d]\n', size(lfp,1), size(lfp,2));
     return;
 end
@@ -107,9 +107,10 @@ nRemaining = nSamples;
 chunkIdx = 0;
 
 % Pre-allocate MAT file
-mf = matfile(outMat,'Writable',true);
+mf = matfile(outMat, 'Writable', true);
 nSamplesLFP = ceil(nSamples / decimFactor);
 mf.lfp = zeros(nch, nSamplesLFP, 'double');
+mf.fs = fs;
 
 writeStart = 1;
 while nRemaining > 0

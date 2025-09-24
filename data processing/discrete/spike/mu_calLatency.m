@@ -37,7 +37,7 @@ switch class(trials)
         if any(~cellfun(@isvector, trials))
             error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
-        
+
         temp = cellfun(@(x) x(:), trials, "UniformOutput", false);
     case "struct"
         if any(arrayfun(@(x) ~isvector(x.spike), trials))
@@ -55,8 +55,11 @@ spikes = spikes(nStart:end);
 lambda = numel(trials) * sprate * spikes / 1000;
 
 % Vectorized calculation of Poisson cumulative probability
-P = 1 - poisscdf(n' - 1, lambda);
-
-latency = spikes(find(P < th & spikes < tTh, 1));
+if ~isempty(n)
+    P = 1 - poisscdf(n' - 1, lambda);
+    latency = spikes(find(P < th & spikes < tTh, 1));
+else
+    latency = tTh;
+end
 return;
 end
