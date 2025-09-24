@@ -158,10 +158,12 @@ for rIndex = 1:numel(RESPATHs)
             TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.(tempField).onset; % sec
         end
 
+        % Trigger aligment
         spikeTimes{rIndex}{pIndex} = (spikeIdx - nShift) / fs(rIndex); % sec
         clusterIdxs{rIndex}{pIndex} = clusterIdx;
         tShift{rIndex}(pIndex) = nShift / fs(rIndex); % sec
 
+        % Export to MAT
         exported = params(rIndex).spkExported(pIndex);
 
         if exported && skipSpkExportExisted

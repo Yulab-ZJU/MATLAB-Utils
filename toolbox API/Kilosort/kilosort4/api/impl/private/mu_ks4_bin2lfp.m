@@ -76,8 +76,8 @@ decimFactor = round(fs / opt.fsLFP);
 %% ----------------- Memmap method -----------------
 if strcmp(method,'memmap')
     fprintf('Using memmap processing...\n');
-    m = memmapfile(binFile, 'Format',{precision,[nch, nTotalSamples],'raw'});
-    raw = double(m.Data.raw(:, opt.SkipPoints+1:end));
+    m = memmapfile(binFile, 'Format',{precision, [nch, nTotalSamples], 'raw'});
+    raw = double(m.Data.raw(:, opt.SkipPoints + 1:end));
 
     % Filtering
     filt = filtfilt(d_bp, raw')';
@@ -96,10 +96,10 @@ end
 
 %% ----------------- Chunked method -----------------
 fprintf('Using chunked processing with on-the-fly MAT writing...\n');
-fid = fopen(binFile,'r');
-assert(fid>=0,'Cannot open bin file');
+fid = fopen(binFile, 'r');
+assert(fid>=0, 'Cannot open bin file');
 cleanup = onCleanup(@() fclose(fid));
-fseek(fid, opt.SkipPoints*nch*bytesPerSample,'bof');
+fseek(fid, opt.SkipPoints*nch*bytesPerSample, 'bof');
 
 chunkSec = 30;  % seconds per chunk
 chunkSamples = chunkSec*fs;
