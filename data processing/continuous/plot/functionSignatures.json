@@ -94,7 +94,7 @@
                     {"name": "Fig", "kind": "required", "type": ["@(args) isa(args, 'matlab.ui.Figure')"]}
                 ]
             ]},
-            {"name": "Position", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"]},
+            {"name": "Position", "kind": "namevalue", "type": ["numeric", "vector", "numel=2"], "purpose": "[x,y]"},
             {"name": "LineColor", "kind": "namevalue", "type": [["numeric"], ["string"], ["char"]], "purpose": "default=[0, 0, 0]"},
             {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "default=1"},
             {"name": "LineStyle", "kind": "namevalue", "type": ["choices = {'-', '--', ':', '-.'}"], "purpose": "default='-'"},
@@ -104,8 +104,12 @@
             {"name": "FontWeight", "kind": "namevalue", "type": ["choices = {'normal', 'bold'}"], "purpose": "default='normal'"},
             {"name": "FontAngle", "kind": "namevalue", "type": ["choices = {'normal', 'italic'}"], "purpose": "default='normal'"},
             {"name": "FixScale", "kind": "namevalue", "type": ["choices = {'on', 'off'}"], "purpose": "default='off'"},
+            {"name": "XVal", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "user-specified x value"},
+            {"name": "YVal", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "user-specified y value"},
             {"name": "XScaleUnit", "kind": "namevalue", "type": [["string"], ["char"]]},
-            {"name": "YScaleUnit", "kind": "namevalue", "type": [["string"], ["char"]]}
+            {"name": "YScaleUnit", "kind": "namevalue", "type": [["string"], ["char"]]},
+            {"name": "ShowXScale", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default=true"},
+            {"name": "ShowYScale", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default=true"}
         ]
     }
 

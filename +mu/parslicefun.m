@@ -60,7 +60,7 @@ nout = nargout;
 outCell = cell(nBlocks, nout);
 
 % ---------------- Parallel block loop ----------------
-for bIndex = 1:nBlocks
+parfor bIndex = 1:nBlocks
     % Slice inputs for this block
     startIdx = (bIndex - 1) * blockSize + 1;
     endIdx = min(bIndex * blockSize, nDimSize);
