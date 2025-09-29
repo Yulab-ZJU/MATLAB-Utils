@@ -9,9 +9,9 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm)
 
 arguments
     figHandle   matlab.ui.Figure
-    filename    char
-    width_mm    double
-    height_mm   double
+    filename    {mustBeTextScalar}
+    width_mm    (1,1) double
+    height_mm   (1,1) double
 end
 
 % convert mm to inches
