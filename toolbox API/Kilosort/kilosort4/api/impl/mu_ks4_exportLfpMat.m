@@ -11,7 +11,7 @@ function mu_ks4_exportLfpMat(EXCELPATH, ...
 
 % Read parameters from Excel file
 sortIDs = unique(sortIDs);
-[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+[params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
 nBatch = numel(params);
 
 % loop for each sort ID

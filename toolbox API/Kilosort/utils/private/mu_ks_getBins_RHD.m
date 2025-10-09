@@ -1,4 +1,4 @@
-function [outbins, triggers] = mu_ks4_getBins_RHD(rhdPATHs, varargin)
+function [outbins, triggers] = mu_ks_getBins_RHD(rhdPATHs, varargin)
 % read_Intan_RHD2000_file and export to binary data files and MAT trigger files
 rhdPATHs = cellstr(rhdPATHs);
 outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), rhdPATHs, "UniformOutput", false);

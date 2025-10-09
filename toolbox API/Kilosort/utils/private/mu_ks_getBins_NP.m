@@ -1,4 +1,4 @@
-function [datPATHs, TRIGPATHs] = mu_ks4_getBins_NP(datPATHs, skipBinExportExisted)
+function [datPATHs, TRIGPATHs] = mu_ks_getBins_NP(datPATHs, skipBinExportExisted)
 
 datPATHs = cellstr(datPATHs);
 TRIGPATHs = cell(numel(datPATHs), 1);

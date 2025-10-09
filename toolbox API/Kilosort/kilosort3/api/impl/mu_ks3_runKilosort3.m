@@ -1,7 +1,7 @@
 function resultDirs = mu_ks3_runKilosort3(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
 % Read parameters from Excel file
 sortIDs = unique(sortIDs);
-[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+[params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
 nBatch = numel(params);
 
 % Loop for each sort ID
@@ -23,8 +23,7 @@ for rIndex = 1:nBatch
     if all(sorted) && skipSortExisted
         continue;
     end
-    
-    % Get kilosort configuration
+
     if exist(fullfile(resultDirs{rIndex}, "spike_times.npy"), "file")
         fprintf('Result folder %s already exists.\n', resultDirs{rIndex});
         if ~skipSortExisted
@@ -35,7 +34,13 @@ for rIndex = 1:nBatch
             continue;
         end
     end
-    [settings, opts] = mu_ks4_getConfig(BINPATHs{rIndex}, resultDirs{rIndex}, nCh, FORMAT, fs, th, badChs);
+
+    % Generate merge bin file
+    MERGEPATH = fullfile(resultDirs{rIndex}, 'MergeWave.bin');
+    mu_ks_mergeBinFiles(MERGEPATH, BINPATHs{rIndex}{:});
+
+    % Get kilosort3 configuration
+    
 
     % Run kilosort4
     mu_kilosort4(settings, opts);

@@ -1,7 +1,7 @@
 function resultDirs = mu_ks4_runKilosort4(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
 % Read parameters from Excel file
 sortIDs = unique(sortIDs);
-[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+[params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
 nBatch = numel(params);
 
 % Loop for each sort ID

@@ -11,7 +11,7 @@ function [spikeTimes, clusterIdxs, dataTDT, tShift] = ...
 
 % Get params
 sortIDs = unique(sortIDs);
-[params, tbl] = mu_ks4_getParamsExcel(EXCELPATH, sortIDs);
+[params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
 nBatch = numel(params);
 
 % Get data length of each binary file
