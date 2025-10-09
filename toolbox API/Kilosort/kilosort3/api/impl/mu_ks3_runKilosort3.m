@@ -1,4 +1,4 @@
-function resultDirs = mu_ks3_runKilosort3(BINPATHs, EXCELPATH, sortIDs, th, skipSortExisted)
+function resultDirs = mu_ks3_runKilosort3(BINPATHs, EXCELPATH, sortIDs, th, skipSortExisted, keepWhFile)
 % Read parameters from Excel file
 sortIDs = unique(sortIDs);
 [params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
@@ -48,7 +48,7 @@ for rIndex = 1:nBatch
                         "Th", th);
 
     % Run kilosort3
-    mu_kilosort3(MERGEPATH, ops, resultDirs{rIndex});
+    mu_kilosort3(MERGEPATH, ops, resultDirs{rIndex}, "KeepWhFile", keepWhFile);
 
     % Generate cluster_info.tsv
     mu_ks_genClusterInfo(resultDirs{rIndex}, fs);

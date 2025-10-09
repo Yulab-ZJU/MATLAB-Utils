@@ -1,8 +1,8 @@
 ccc;
 
 %% Path settings
-EXCELPATH = 'D:\Education\Lab\Repositories\kilosort files\test\test.xlsx';
-SAVEROOTPATH = 'D:\Education\Lab\Repositories\kilosort files\test\res';
+EXCELPATH = '~\temp.xlsx';
+SAVEROOTPATH = '~\DATA\MAT DATA\';
 
 %% Parameter settings (user-specified)
 % (*) which id to sort
@@ -16,6 +16,8 @@ skipBinExportExisted = true;
 skipSortExisted = true;
 skipSpkExportExisted = true;
 skipLfpExportExisted = true;
+
+keepWhFile = false;
 
 %% Parameter settings (fixed)
 % Sample rate of LFP, Hz
@@ -40,7 +42,8 @@ RESPATHs = mu_ks3_runKilosort3(BINPATHs, ...
                                EXCELPATH, ...
                                sortIDs, ...
                                th, ...
-                               skipSortExisted);
+                               skipSortExisted, ...
+                               keepWhFile);
 
 %% Step-3 Export sort results to MAT
 % ------------ Export spikes ---------------
