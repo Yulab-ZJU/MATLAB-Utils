@@ -22,43 +22,43 @@ ops.NchanTOT = args.NchanTOT;
 ops.fs = args.fs;
 
 % waveform length
-ops.nt0 = 61;
+ops.nt0 = mu.getor(args, "nt0", 61);
 
 % time range to sort
-ops.trange = [0 Inf];
+ops.trange = mu.getor(args, "trange", [0 Inf]);
 
 % threshold on projections (like in Kilosort1, can be different for last pass like [10 4])
-ops.Th = [8 7];
+ops.Th = mu.getor(args, "Th", [8 7]);
 
 % frequency for high pass filtering (150)
-ops.fshigh = 300;
+ops.fshigh = mu.getor(args, "fshigh", 300);
 
 % minimum firing rate on a "good" channel (0 to skip)
-ops.minfr_goodchannels = 0.1;
+ops.minfr_goodchannels = mu.getor(args, "minfr_goodchannels", 0.1);
 
 % how important is the amplitude penalty (like in Kilosort1, 0 means not used, 10 is average, 50 is a lot)
-ops.lam = 10;
+ops.lam = mu.getor(args, "lam", 10);
 
 % splitting a cluster at the end requires at least this much isolation for each sub-cluster (max = 1)
-ops.AUCsplit = 0.9;
+ops.AUCsplit = mu.getor(args, "AUCsplit", 0.9);
 
 % minimum spike rate (Hz), if a cluster falls below this for too long it gets removed
-ops.minFR = 1/50;
+ops.minFR = mu.getor(args, "minFR", 1/50);
 
 % number of samples to average over (annealed from first to second value)
-ops.momentum = [20 400];
+ops.momentum = mu.getor(args, "momentum", [20 400]);
 
 % spatial constant in um for computing residual variance of spike
-ops.sigmaMask = 30;
+ops.sigmaMask = mu.getor(args, "sigmaMask", 30);
 
 % threshold crossings for pre-clustering (in PCA projection space)
-ops.ThPre = 8;
+ops.ThPre = mu.getor(args, "ThPre", 8);
 
 % spatial smoothness constant for registration
-ops.sig = 20;
+ops.sig = mu.getor(args, "sig", 20);
 
 % blocks for registration. 0 turns it off, 1 does rigid registration. Replaces "datashift" option.
-ops.nblocks = 1;
+ops.nblocks = mu.getor(args, "nblocks", 1);
 
 %% danger, changing these settings can lead to fatal errors
 % options for determining PCs

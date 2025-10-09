@@ -1,4 +1,4 @@
-function resultDirs = mu_ks3_runKilosort3(BINPATHs, EXCELPATH, sortIDs, FORMAT, th, skipSortExisted)
+function resultDirs = mu_ks3_runKilosort3(BINPATHs, EXCELPATH, sortIDs, th, skipSortExisted)
 % Read parameters from Excel file
 sortIDs = unique(sortIDs);
 [params, tbl] = mu_ks_getParamsExcel(EXCELPATH, sortIDs);
@@ -36,21 +36,29 @@ for rIndex = 1:nBatch
     end
 
     % Generate merge bin file
-    MERGEPATH = fullfile(resultDirs{rIndex}, 'MergeWave.bin');
-    mu_ks_mergeBinFiles(MERGEPATH, BINPATHs{rIndex}{:});
+    [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(resultDirs{rIndex}, 'MergeWave.bin'), BINPATHs{rIndex}{:});
 
     % Get kilosort3 configuration
-    
+    ops = mu_ks3_config("NchanTOT", nCh, ...
+                        "fs", fs, ...
+                        "chanMap", mu_ks3_getChanMap(nCh, badChs), ...
+                        "Th", th);
 
-    % Run kilosort4
-    mu_kilosort4(settings, opts);
+    % Run kilosort3
+    mu_kilosort3(MERGEPATH, ops, resultDirs{rIndex});
 
     % Generate cluster_info.tsv
-    mu_ks_genClusterInfo(opts.results_dir, fs);
+    mu_ks_genClusterInfo(resultDirs{rIndex}, fs);
 
     % Update Excel file
     tbl.sort(str2double(tbl.ID) == sortIDs(rIndex)) = "1";
     writetable(tbl, EXCELPATH);
+
+    % Delete merge bin file
+    if isMerged
+        delete(MERGEPATH);
+    end
+    
 end
 
 return;
