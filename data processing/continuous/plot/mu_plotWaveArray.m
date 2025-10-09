@@ -38,7 +38,7 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %
 
 mIp = inputParser;
-mIp.addRequired("chData", @(x) isstruct(x));
+mIp.addRequired("chData", @isstruct);
 mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'increasing'}));
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));

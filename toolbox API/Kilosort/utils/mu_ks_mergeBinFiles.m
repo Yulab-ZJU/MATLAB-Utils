@@ -1,4 +1,4 @@
-function mu_ks_mergeBinFiles(outFile, varargin)
+function [outFile, isMerged] = mu_ks_mergeBinFiles(outFile, varargin)
 % mu_ks_mergeBinFiles Concatenate multiple binary files using Windows CMD copy /b
 %
 %   mu_ks_mergeBinFiles(OUTFILE, FILE1, FILE2, ...) concatenates FILE1, FILE2, ...
@@ -13,6 +13,13 @@ if nargin < 2
 end
 cellfun(@(x) assert(exist(x, "file"), sprintf('File %s does not exist.', x)), varargin);
 mustBeTextScalar(outFile);
+
+isMerged = true;
+if isscalar(varargin)
+    outFile = varargin{1};
+    isMerged = false;
+    return;
+end
 
 % Wrap with ""
 quotedFiles = strcat('"', varargin, '"');

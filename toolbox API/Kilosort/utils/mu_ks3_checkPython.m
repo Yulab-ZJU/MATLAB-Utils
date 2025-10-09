@@ -1,5 +1,5 @@
 function mu_ks3_checkPython()
-%MU_KS3_CHECKPYTHON Checks and sets the Python version in the system PATH for Kilosort 3 compatibility.
+%MU_KS3_CHECKPYTHON  Check and set the Python version in the system PATH for Kilosort 3 compatibility.
 %
 % This function scans all Python paths in the system PATH environment variable,
 % detects their versions, and ensures that Python 3.7 is used (required by Kilosort 3).

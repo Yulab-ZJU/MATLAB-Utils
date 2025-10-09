@@ -1,5 +1,5 @@
-function mu_ks4_bin2lfp(binFile, outMat, nch, fs, varargin)
-% mu_ks4_bin2lfp - Convert raw binary electrophysiology data to LFP
+function mu_ks_bin2lfp(binFile, outMat, nch, fs, varargin)
+% mu_ks_bin2lfp - Convert raw binary electrophysiology data to LFP
 %
 % This function converts a single raw binary file into band-pass filtered
 % LFP. It automatically selects the fastest processing method:

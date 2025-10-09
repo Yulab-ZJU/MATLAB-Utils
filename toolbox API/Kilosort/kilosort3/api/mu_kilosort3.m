@@ -1,13 +1,13 @@
-function mu_kilosort3(binFullPath, ops, SAVEPATH)
-% mu_kilosort3 Runs the Kilosort 3 spike sorting pipeline on binary data.
+function mu_kilosort3(binFullPath, ops, resultsDir)
+%MU_KILOSORT3  Run the Kilosort 3 spike sorting pipeline on binary data.
 %
 % This function executes the full Kilosort 3 workflow for spike sorting neural data.
 % It preprocesses the input binary file, runs all main Kilosort steps, and saves results.
 %
 % Inputs:
-%   binFullPath - Full path to the input .bin file containing neural data.
-%   ops        - Structure with Kilosort parameters.
-%   SAVEPATH   - (Optional) Output folder path for results. Defaults to the .bin file's folder.
+%   binFullPath  - Full path to the input .bin file containing neural data.
+%   ops          - Structure with Kilosort parameters.
+%   resultsDir   - (Optional) Output folder path for results. Defaults to the .bin file's folder.
 %
 % Example:
 %   Th = [10, 6]; % specify threshold
@@ -25,10 +25,10 @@ function mu_kilosort3(binFullPath, ops, SAVEPATH)
 
 narginchk(2, 3);
 
-% checkPyVersion;
+mu_ks3_checkPython;
 
 if nargin < 3
-    SAVEPATH = fileparts(binFullPath);
+    resultsDir = fileparts(binFullPath);
 end
 
 ops.fproc = fullfile(fileparts(binFullPath), 'temp_wh.dat'); % proc file on a fast SSD
@@ -36,21 +36,12 @@ ops.fbinary = binFullPath;
 
 %% this block runs all the steps of the algorithm
 if ~exist(fullfile(fileparts(binFullPath), 'wh_rez.mat'), "file")
-    rez   = preprocessDataSub(ops);
+    rez = preprocessDataSub(ops);
     save(fullfile(fileparts(binFullPath), 'wh_rez.mat'), "rez");
 else
     load(fullfile(fileparts(binFullPath), 'wh_rez.mat'), "rez");
 end
 
-try
-    customInfo = evalin("base", "customInfo");
-catch
-    customInfo = [];
-end
-
-if mu.getor(customInfo, "reMerge", false)
-    return
-end
 rez = datashift2(rez, 1);
 
 [rez, st3, tF] = extract_spikes(rez);
@@ -67,10 +58,11 @@ catch
     rez = find_merges(rez, 1);
 end
 
-mkdir(SAVEPATH)
-save(fullfile(SAVEPATH, "kiloRez.mat"), "rez", "-v7.3");
-rezToPhy2(rez, SAVEPATH);
+if ~exist(resultsDir, "dir")
+    mkdir(resultsDir);
+end
 
-% cd(SAVEPATH);
-% system('phy template-gui params.py');
+rezToPhy2(rez, resultsDir);
+
+return;
 end
