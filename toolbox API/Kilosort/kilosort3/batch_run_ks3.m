@@ -1,12 +1,12 @@
 ccc;
 
 %% Path settings
-EXCELPATH = '~\temp.xlsx';
-SAVEROOTPATH = '~\DATA\MAT DATA\';
+EXCELPATH = 'D:\Education\Lab\Repositories\kilosort files\test\test.xlsx';
+SAVEROOTPATH = 'D:\Education\Lab\Repositories\kilosort files\test\res';
 
 %% Parameter settings (user-specified)
 % (*) which id to sort
-sortIDs = 1:6;
+sortIDs = 1;
 
 % (*) Thresholds [Th_universal, Th_learned]
 th = [9, 8];

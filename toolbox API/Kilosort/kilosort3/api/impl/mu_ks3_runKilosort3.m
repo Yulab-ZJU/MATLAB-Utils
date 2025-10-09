@@ -36,6 +36,9 @@ for rIndex = 1:nBatch
     end
 
     % Generate merge bin file
+    if ~exist(resultDirs{rIndex}, "dir")
+        mkdir(resultDirs{rIndex});
+    end
     [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(resultDirs{rIndex}, 'MergeWave.bin'), BINPATHs{rIndex}{:});
 
     % Get kilosort3 configuration

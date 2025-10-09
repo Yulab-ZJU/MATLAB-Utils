@@ -25,7 +25,7 @@ function mu_kilosort3(binFullPath, ops, resultsDir)
 
 narginchk(2, 3);
 
-mu_ks3_checkPython;
+% mu_ks3_checkPython;
 
 if nargin < 3
     resultsDir = fileparts(binFullPath);
