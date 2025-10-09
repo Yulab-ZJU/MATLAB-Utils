@@ -8,12 +8,15 @@ function mu_kilosort3(binFullPath, ops, varargin)
 %   binFullPath  - Full path to the input .bin file containing neural data.
 %   ops          - Structure with Kilosort parameters.
 %   resultsDir   - (Optional) Output folder path for results. Defaults to the .bin file's folder.
+%   keepWhFile   - (Namevalue) Keep whitened binary file after sorting (default=true).
 %
 % Example:
-%   Th = [10, 6]; % specify threshold
-%   run('.\config\mu_ks3_config_LA32Rat.m'); % returns ops
-%   ops.Th = Th;
-%   mu_kilosort3('data.bin', ops);
+%   ops = mu_ks3_config("chanMap", "probe.mat", ...
+%                       "fs", 30e3, ...
+%                       "NchanTOT", 128, ...
+%                       "Th", [9, 8]);
+%   resultsDir = 'kilosort3';
+%   mu_kilosort3('data.bin', ops, resultsDir);
 %
 % The function will:
 %   - Preprocess the data
@@ -21,7 +24,7 @@ function mu_kilosort3(binFullPath, ops, varargin)
 %   - Learn templates
 %   - Track and sort spikes
 %   - Perform final clustering and merging
-%   - Save results for further analysis (e.g., with Phy)
+%   - Save results for further analysis (e.g., with Phy2)
 
 mIp = inputParser;
 mIp.addRequired("binFullPath", @mustBeTextScalar);
