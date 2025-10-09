@@ -9,7 +9,7 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %   REQUIRED:
 %     pyscriptPATH  - Full path of python script to run
 %     pyexePATH     - Full path of python exe
-%                     Must be same as your PyCharm setting
+%                     Must be same as your VS Code setting
 %   NAMEVALUE:
 %     Port          - Port number of debug server (default=5678)
 %     Other name-value inputs for python script
