@@ -52,6 +52,12 @@ spikes = sort(spikes(spikes >= windowOnset(1) & spikes <= windowOnset(2)), "asce
 
 n = nStart:numel(spikes);
 spikes = spikes(nStart:end);
+if isempty(spikes)
+    latency = [];
+    P = [];
+    warning('No spikes detected');
+    return;
+end
 lambda = numel(trials) * sprate * spikes / 1000;
 
 % Vectorized calculation of Poisson cumulative probability

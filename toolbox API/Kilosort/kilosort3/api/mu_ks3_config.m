@@ -1,6 +1,11 @@
 function ops = mu_ks3_config(varargin)
 %MU_KS4_CONFIG  Configuration for kilosort3.
 % Items marked with (*) are a must.
+% e.g.
+%   ops = mu_ks3_config("chanMap", "probe.mat", ...
+%                       "fs", 30e3, ...
+%                       "NchanTOT", 128, ...
+%                       "Th", [9, 8]);
 
 args = [];
 for index = 1:2:nargin

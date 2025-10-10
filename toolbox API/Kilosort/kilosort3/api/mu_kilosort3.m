@@ -1,4 +1,4 @@
-function mu_kilosort3(binFullPath, ops, resultsDir)
+function mu_kilosort3(binFullPath, ops, varargin)
 %MU_KILOSORT3  Run the Kilosort 3 spike sorting pipeline on binary data.
 %
 % This function executes the full Kilosort 3 workflow for spike sorting neural data.
@@ -8,12 +8,15 @@ function mu_kilosort3(binFullPath, ops, resultsDir)
 %   binFullPath  - Full path to the input .bin file containing neural data.
 %   ops          - Structure with Kilosort parameters.
 %   resultsDir   - (Optional) Output folder path for results. Defaults to the .bin file's folder.
+%   keepWhFile   - (Namevalue) Keep whitened binary file after sorting (default=true).
 %
 % Example:
-%   Th = [10, 6]; % specify threshold
-%   run('.\config\mu_ks3_config_LA32Rat.m'); % returns ops
-%   ops.Th = Th;
-%   mu_kilosort3('data.bin', ops);
+%   ops = mu_ks3_config("chanMap", "probe.mat", ...
+%                       "fs", 30e3, ...
+%                       "NchanTOT", 128, ...
+%                       "Th", [9, 8]);
+%   resultsDir = 'kilosort3';
+%   mu_kilosort3('data.bin', ops, resultsDir);
 %
 % The function will:
 %   - Preprocess the data
@@ -21,15 +24,17 @@ function mu_kilosort3(binFullPath, ops, resultsDir)
 %   - Learn templates
 %   - Track and sort spikes
 %   - Perform final clustering and merging
-%   - Save results for further analysis (e.g., with Phy)
+%   - Save results for further analysis (e.g., with Phy2)
 
-narginchk(2, 3);
+mIp = inputParser;
+mIp.addRequired("binFullPath", @mustBeTextScalar);
+mIp.addRequired("ops", @(x) validateattributes(x, 'struct', {'scalar'}));
+mIp.addOptional("resultsDir", fileparts(binFullPath), @mustBeTextScalar);
+mIp.addParameter("KeepWhFile", mu.OptionState.On, @mu.OptionState.validate);
+mIp.parse(binFullPath, ops, varargin{:});
 
-mu_ks3_checkPython;
-
-if nargin < 3
-    resultsDir = fileparts(binFullPath);
-end
+resultsDir = mIp.Results.resultsDir;
+KeepWhFile = mu.OptionState.create(mIp.Results.KeepWhFile);
 
 ops.fproc = fullfile(fileparts(binFullPath), 'temp_wh.dat'); % proc file on a fast SSD
 ops.fbinary = binFullPath;
@@ -52,17 +57,17 @@ rez = template_learning(rez, tF, st3);
 
 rez = final_clustering(rez, tF, st3);
 
-try
-    rez = find_merges(rez, evalin("base", "customInfo.kilosortAutoMerge"));
-catch
-    rez = find_merges(rez, 1);
-end
+rez = find_merges(rez, 1);
 
 if ~exist(resultsDir, "dir")
     mkdir(resultsDir);
 end
 
 rezToPhy2(rez, resultsDir);
+
+if ~KeepWhFile.toLogical
+    delete(ops.fproc);
+end
 
 return;
 end

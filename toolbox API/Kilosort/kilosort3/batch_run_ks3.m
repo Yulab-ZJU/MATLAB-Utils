@@ -6,7 +6,7 @@ SAVEROOTPATH = '~\DATA\MAT DATA\';
 
 %% Parameter settings (user-specified)
 % (*) which id to sort
-sortIDs = 1:6;
+sortIDs = 1;
 
 % (*) Thresholds [Th_universal, Th_learned]
 th = [9, 8];
@@ -16,6 +16,8 @@ skipBinExportExisted = true;
 skipSortExisted = true;
 skipSpkExportExisted = true;
 skipLfpExportExisted = true;
+
+keepWhFile = false;
 
 %% Parameter settings (fixed)
 % Sample rate of LFP, Hz
@@ -40,7 +42,8 @@ RESPATHs = mu_ks3_runKilosort3(BINPATHs, ...
                                EXCELPATH, ...
                                sortIDs, ...
                                th, ...
-                               skipSortExisted);
+                               skipSortExisted, ...
+                               keepWhFile);
 
 %% Step-3 Export sort results to MAT
 % ------------ Export spikes ---------------

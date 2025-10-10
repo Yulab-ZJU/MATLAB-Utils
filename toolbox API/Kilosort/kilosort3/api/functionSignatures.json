@@ -1,0 +1,14 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_kilosort3": {
+        "inputs": [
+            {"name": "binFullPath", "kind": "required", "type": ["file"], "purpose": "full path of binary data"},
+            {"name": "ops", "kind": "required", "type": ["struct", "scalar"]},
+            {"name": "resultsDir", "kind": "ordered", "type": [["string"], ["char"]], "purpose": "output directory"},
+            {"name": "KeepWhFile", "kind": "namevalue", "type": ["logical", "scalar"]}
+        ],
+        "description": "Run kilosort3"
+    }
+
+}
