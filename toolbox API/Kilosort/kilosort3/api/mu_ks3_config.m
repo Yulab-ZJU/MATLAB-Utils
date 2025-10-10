@@ -1,5 +1,5 @@
 function ops = mu_ks3_config(varargin)
-%MU_KS4_CONFIG  Configuration for kilosort3.
+%MU_KS3_CONFIG  Configuration for kilosort3.
 % Items marked with (*) are a must.
 % e.g.
 %   ops = mu_ks3_config("chanMap", "probe.mat", ...
