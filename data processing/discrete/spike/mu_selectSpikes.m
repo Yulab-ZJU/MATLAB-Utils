@@ -1,4 +1,4 @@
-function out = mu_selectSpikes(sortdata, trialAllOrtEvt, window)
+function out = mu_selectSpikes(sortdata, trialAllOrtEvt, window, clus)
 % Efficient spike extraction around events with automatic overlap detection.
 %
 % - Uses fast histcounts method if no window overlap
@@ -8,19 +8,32 @@ function out = mu_selectSpikes(sortdata, trialAllOrtEvt, window)
 %   sortdata:       [N × 2] (spikeTime, cluster) or [N × 1] (spikeTime only)
 %   trialAllOrtEvt: struct with .onset field, or [tEvt] vector
 %   window:         [start, end], relative to event
+%   clus:           cluster index, empty for all (if exist)
 %
 % OUTPUT:
 %   If input is struct: returns with added .spike field
 %   Else: returns cell array of spike data per event
 
+narginchk(3, 4);
+
+if nargin < 4
+    clus = [];
+else
+    validateattributes(clus, 'numeric', {'vector', 'integer'});
+end
+
 % Sort spikeTimes
 hasCluster = size(sortdata, 2) > 1;
 if hasCluster
+    sortdata = mu.ifelse(isempty(clus), sortdata, sortdata(ismember(sortdata(:, 2), clus), :));
     sortdata = sortrows(sortdata, 1, "ascend");
     spikeTimes = sortdata(:, 1);
     clusters = sortdata(:, 2);
 else
     spikeTimes = sort(sortdata, "ascend");
+    if ~isempty(clus)
+        warning('No cluster information found');
+    end
 end
 
 % Parse input events
