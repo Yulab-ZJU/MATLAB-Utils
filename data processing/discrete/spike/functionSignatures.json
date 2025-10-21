@@ -1,0 +1,23 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_selectSpikes": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [
+                    {"name": "sortdata", "kind": "required", "type": ["numeric"], "description": "[N×2] (spikeTime,cluster) or [N×1] (spikeTime only)"},
+                    {"name": "trialAllOrtEvt", "kind": "required", "type": [["numeric", "vector"], ["struct"]], "description": "struct with .onset field, or [tEvt] vector"},
+                    {"name": "window", "kind": "required", "type": ["numeric", "numel=2"], "description": "[tPre tPost] in seconds around event onset"},
+                    {"name": "clus", "kind": "ordered", "type": ["numeric"], "description": "cluster IDs to select (e.g. [1 2 3])"},
+                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "default=true"}
+                ],
+                [
+                    {"name": "trial", "kind": "required", "type": [["struct"], ["cell"]], "description": "trial data"},
+                    {"name": "clus", "kind": "ordered", "type": ["numeric"], "description": "cluster IDs to select (e.g. [1 2 3])"},
+                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "default=false"}
+                ]
+            ]}
+        ]
+    }
+
+}

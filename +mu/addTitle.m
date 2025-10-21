@@ -61,6 +61,8 @@ T = text(ax, pos(1), pos(2), str, ...
 uistack(ax, "bottom");
 set(ax, "Visible", "off");
 ax.Toolbar.Visible = "off";
+set(ax, 'HitTest', 'off', 'PickableParts', 'none');
+set(T,  'HitTest', 'off', 'PickableParts', 'none');
 
 return;
 end
