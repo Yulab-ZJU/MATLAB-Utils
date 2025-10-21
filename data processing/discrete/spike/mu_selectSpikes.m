@@ -151,7 +151,7 @@ elseif iscell(varargin{1}) || isstruct(varargin{1})
     % Select spikes for specific clusters from trials
     trial = varargin{1};
     clus = varargin{2};
-    keepClus = mu.ifelse(nargin < 3, mu.OptionState.On, @() mu.OptionState.create(varargin{3}));
+    keepClus = mu.ifelse(nargin < 3, mu.OptionState.Off, @() mu.OptionState.create(varargin{3}));
     keepClus = keepClus.toLogical;
 
     out = selectTrialClus(trial, clus, keepClus);
