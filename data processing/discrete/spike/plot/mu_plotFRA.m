@@ -1,4 +1,4 @@
-function varargout = plotFRA(trialAll, window, clus, windowOnset)
+function varargout = mu_plotFRA(trialAll, window, clus, windowOnset)
 % trialAll(i).spike should be a vector
 % Unit: ms
 
