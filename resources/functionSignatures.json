@@ -443,7 +443,8 @@
                     {"name": "E", "kind": "required", "type": ["numeric", "vector"]}
                 ]
             ]},
-            {"name": "C", "kind": "ordered", "type": [["choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"], ["numeric", "vector"]]}
+            {"name": "Color", "kind": "namevalue", "type": [["choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"], ["numeric", "vector"]]},
+            {"name": "Alpha", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 0.3"}
         ],
         "description": "Add wave error to a plot"
     },
