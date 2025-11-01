@@ -113,10 +113,10 @@ if strcmpi(icaOpt, "on") && nargout >= 4
         end
         
         if isempty(nMaxIcaTrial)
-            idx = 1:length(trialsEEG);
+            idx = 1:numel(trialsEEG);
         else
-            idx = 1:length(trialsEEG);
-            idx = idx(randperm(length(trialsEEG), min(length(trialsEEG), nMaxIcaTrial)));
+            idx = 1:numel(trialsEEG);
+            idx = idx(randperm(numel(trialsEEG), min(numel(trialsEEG), nMaxIcaTrial)));
         end
         
         [comp, ICs] = mu_ica(trialsEEG(idx), window, fs, EEGPos, "chs2doICA", channels);
@@ -153,7 +153,7 @@ latency(exIdx) = [];
 if exist("trialAll", "var")
     trialAll(exIdx) = [];
 else
-    trialAll = struct("trialNum", num2cell((1:length(trialsEEG))'));
+    trialAll = struct("trialNum", num2cell((1:numel(trialsEEG))'));
 end
 
 % convert latency to time, unit: sec

@@ -16,7 +16,7 @@ for rIndex = 1:pltsz(1)
         end
 
         ax = mu.subplot(Fig, pltsz(1), pltsz(2), ICNum);
-        mu_topoplotEEG(ax, topo(:, ICNum), EEGPos);
+        mu_topoplotEEG(ax, topo(:, ICNum), EEGPos, "MarkerSize0", 1);
         title(ax, ['IC ', num2str(ICNum)], "FontSize", fontSize * titleFontSize, "FontWeight", "bold");
         colorbar;
     end

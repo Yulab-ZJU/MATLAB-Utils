@@ -46,6 +46,8 @@ pIDs0 = cellfun(@(x) str2double(mu.getlastpath(x, 1)), DATAPATHs);
 
 if ~isempty(pIDs)
     DATAPATHs = DATAPATHs(ismember(pIDs0, pIDs));
+else
+    pIDs = pIDs0;
 end
 
 [~, ~, SUBJECTsAll] = cellfun(@(x) mu.getlastpath(x, 2), DATAPATHs, "UniformOutput", false);
