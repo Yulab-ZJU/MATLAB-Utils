@@ -5,20 +5,20 @@ function out = mu_selectSpikes(varargin)
 % - Switches to binary search (discretize) if overlap detected
 % - Segment trials by triggers or select spikes for specific clusters from trials
 %
-%     trial = mu_selectSpikes(sortdata, trialAllOrtEvt, window, [clus], [keepClus])
+%     trial = mu_selectSpikes(sortdata, trialOrtEvt, window, [clus], [keepClus])
 %     trial = mu_selectSpikes(trial, clus, [keepClus])
 %
 % INPUT:
 %   1. Segment trials by triggers
-%      sortdata      : [N × 2] (spikeTime, cluster) or [N × 1] (spikeTime only)
-%      trialAllOrtEvt: struct with .onset field, or [tEvt] vector
-%      window        : [start, end], relative to event
-%      clus          : cluster index, empty for all (if exist)
-%      keepClus      : default=true
+%      sortdata    : [N × 2] (spikeTime, cluster) or [N × 1] (spikeTime only)
+%      trialOrtEvt : struct with .onset field, or [tEvt] vector
+%      window      : [start, end], relative to event
+%      clus        : cluster index, empty for all (if exist)
+%      keepClus    : default=true
 %   2. Select spikes for specific clusters from trials
-%      trial         : trial spike data (cell or struct)
-%      clus          : cluster index, empty for all (if exist)
-%      keepClus      : default=false
+%      trial       : trial spike data (cell or struct)
+%      clus        : cluster index, empty for all (if exist)
+%      keepClus    : default=false
 %
 % OUTPUT:
 %   1. Segment trials by triggers
@@ -51,23 +51,21 @@ if isnumeric(varargin{1})
     else
         spikeTimes = sort(sortdata, "ascend");
         if ~isempty(clus)
-            warning('No cluster information found');
+            warning("No cluster information found");
         end
     end
 
     % Parse input events
     switch class(trialAllOrtEvt)
         case 'struct'
-            if ~isfield(trialAllOrtEvt, "onset")
-                error("Struct must contain 'onset' field.");
-            end
+            assert(isfield(trialAllOrtEvt, "onset"), "Input trial (struct) must contain 'onset' field.");
             tEvt = double([trialAllOrtEvt.onset]');
             isStruct = true;
         case {'double', 'single'}
             tEvt = double(trialAllOrtEvt(:));
             isStruct = false;
         otherwise
-            error("Invalid input type.");
+            error("Invalid input type");
     end
 
     numEvt = numel(tEvt);

@@ -20,16 +20,16 @@ switch class(trials)
 
         psth = mu.histcounts(trials, edges, binSize) / (binSize / 1000); % Hz
     case 'cell'
-        if any(~cellfun(@isvector, trials))
+        if any(~cellfun(@(x) isvector(x) || isempty(x), trials))
             error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
 
+        nTrials = numel(trials);
         trials = cellfun(@(x) x(:), trials, "UniformOutput", false);
         temp = cat(1, trials{:});
-        nTrials = numel(trials);
         psth = mu.histcounts(temp, edges, binSize) / (binSize / 1000) / nTrials; % Hz
     case 'struct'
-        if any(arrayfun(@(x) ~isvector(x.spike), trials))
+        if any(~arrayfun(@(x) isvector(x.spike) || isempty(x.spike), trials))
             error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
 

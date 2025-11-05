@@ -1,9 +1,17 @@
 classdef dispstate < handle
+%DISPSTATE  Overwrite messages in command line
+% SYNTAX:
+%    pb = mu.dispstate(msg)
+%    pb.update(newmsg)
+%    pb.finish()
+%
+
     properties (Access = public)
         str
     end
 
     methods (Access = public)
+
         function update(obj, newstr)
             mustBeTextScalar(newstr);
             newstr = char(newstr);
@@ -32,5 +40,7 @@ classdef dispstate < handle
             fprintf('\n');
             obj.str = '';
         end
+
     end
+
 end
