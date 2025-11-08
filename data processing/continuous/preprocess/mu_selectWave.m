@@ -2,10 +2,10 @@ function trialsData = mu_selectWave(data, fs, segTime, window, scaleFactor)
 % Segment multi-channel time-series data (e.g., LFP/ECoG/EEG)
 %
 % Inputs:
-%   data      : [nch × ntime] double
-%   fs        : Sampling frequency (Hz)
-%   segTime   : [ntrial × 1] event times (ms)
-%   window    : [preEvent, postEvent] (ms)
+%   data       : [nch × ntime] double
+%   fs         : Sampling frequency (Hz)
+%   segTime    : [ntrial × 1] event times (ms)
+%   window     : [preEvent, postEvent] (ms)
 %   scaleFactor: optional scaling (default = 1)
 % Output:
 %   trialsData: {ntrial × 1} cell array, each [nch × winLength]
@@ -16,8 +16,8 @@ if nargin < 5
 end
 
 % Convert ms -> samples
-windowSamples = round(window / 1e3 * fs);   % [pre, post]
-segSamples    = round(segTime(:) / 1e3 * fs); 
+windowSamples = floor(window / 1e3 * fs);   % [pre, post]
+segSamples    = floor(segTime(:) / 1e3 * fs); 
 
 % Dimensions
 [nch, ntime] = size(data);

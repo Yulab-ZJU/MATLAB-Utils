@@ -51,7 +51,9 @@ data = ft_selectdata(cfg, data);
 cfg = [];
 cfg.method = method;
 cfg.channel = chs2doICA;
-cfg.numcomponent = numel(chs2doICA) - (nch - rank(trialsData{1})); % in case of 'CAR'
+if rank(trialsData{1}) < nch
+    cfg.numcomponent = numel(chs2doICA) - (nch - rank(trialsData{1})); % in case of 'CAR'
+end
 comp = ft_componentanalysis(cfg, data);
 
 disp("ICA done.");

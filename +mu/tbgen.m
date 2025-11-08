@@ -1,4 +1,38 @@
-function [y, durs, ICIseq] = tbgen(ICIs, durs, f, fs, type, varargin)
+function [y, durs, ICIseq, tbSeg] = tbgen(ICIs, durs, f, fs, type, varargin)
+%TBGEN  Generate tone burst train with specified [ICI1,ICI2,...ICIn],
+%       [f1,f2,...,fn] and [dur1,dur2,...,durn] for each section.
+%
+% INPUTS:
+%   REQUIRED:
+%     ICIs  - ICI for each section, scalar or vector, in sec
+%     durs  - duration for each section, must be the same size as [ICIs], in sec
+%     f     - Fundamental frequency for each section, scalar or vector, in Hz.
+%     fs    - sample rate of the stimuli, in Hz
+%     type  - type of tone burst train ("REG" or "IRREG")
+%   NAME-VALUE:
+%     sigmas    - sigma for each section, scalar or vector (if specified as a
+%                 vector, it must be the same size of [ICIs]). 
+%                 [sigma1,sigma2,...,sigman] for each section. The sigma 
+%                 value is a scale factor of standard deviation of a
+%                 Gaussian distribution (std = mean * sigma). If specified 
+%                 as a scalar, this sigma value will be applied to all 
+%                 sections. This parameter is valid only for type set as 
+%                 "IRREG". (default: 0.5)
+%     pulseLen  - pulse duration of a click, in sec. (default: 2e-4)
+%     range     - a vector [lower,upper] that specifies the ICI range for
+%                 irregular click train, in sec.
+%     fsDevice  - Sample rate of the device to play the audio file, in Hz. (default=fs)
+%     harmonics - Harmonics that form complex tone (default=1, pure tone)
+%     rfTime    - Rise-fall time, in sec. (default=5e-3)
+%                 If [f] contains zero values (for tone burst), this will 
+%                 be applied to every section.
+%                 If [f] does not contain zero value (for continuous
+%                 sound), this will be applied to the whole sound.
+% OUTPUTS:
+%     y         - Sound stimulation, a row vector, in volt.
+%     durs      - The actual duration for each section, a column vector, in sec.
+%     ICIseq    - ICI sequence vector.
+%     tbSeg     - tone burst segment for each base frequency.
 
 mIp = inputParser;
 mIp.addRequired("ICIs", @(x) validateattributes(x, {'numeric'}, {'vector', 'positive'}));
