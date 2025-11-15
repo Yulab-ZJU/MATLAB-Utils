@@ -68,10 +68,11 @@ if isempty(Channels)
 else
     if isvector(Channels)
         assert(numel(Channels) <= prod(GridSize), "The number of channels should not exceed grid size");
-        Channels = [Channels(:); nan(prod(GridSize) - numel(Channels), 1)];
-    else % matrix
+        Channels0 = reshape([Channels(:); nan(prod(GridSize) - numel(Channels), 1)], flip(GridSize))';
+        Channels0(~ismember(Channels0, Channels)) = nan;
+        Channels = Channels0;
+    else % matrix [x,y]
         assert(isequal(size(Channels), GridSize), "Size of Channels should be equal to GridSize");
-        Channels = Channels';
     end
 end
 Channels(Channels > nch) = nan;

@@ -50,6 +50,8 @@ fontSize = mIp.Results.FontSize;
 fontWeight = validatestring(mIp.Results.FontWeight, {'normal', 'bold'});
 interpreter = validatestring(mIp.Results.Interpreter, {'none', 'tex', 'latex'});
 
+ax0 = get(Fig, 'CurrentAxes');
+
 ax = mu.subplot(Fig, 1, 1, 1);
 ax.XLim = [0, 1];
 ax.YLim = [0, 1];
@@ -63,6 +65,8 @@ set(ax, "Visible", "off");
 ax.Toolbar.Visible = "off";
 set(ax, 'HitTest', 'off', 'PickableParts', 'none');
 set(T,  'HitTest', 'off', 'PickableParts', 'none');
+
+axes(ax0);
 
 return;
 end

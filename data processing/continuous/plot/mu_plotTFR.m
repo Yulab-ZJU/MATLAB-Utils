@@ -167,13 +167,13 @@ if isempty(Channels)
 else
     if isvector(Channels)
         assert(numel(Channels) <= prod(GridSize), "The number of channels should not exceed grid size");
-        Channels = [Channels(:); nan(prod(GridSize) - numel(Channels), 1)];
-    else % matrix
+        Channels0 = reshape([Channels(:); nan(prod(GridSize) - numel(Channels), 1)], flip(GridSize))';
+        Channels0(~ismember(Channels0, Channels)) = nan;
+        Channels = Channels0;
+    else % matrix [x,y]
         assert(isequal(size(Channels), GridSize), "Size of Channels should be equal to GridSize");
-        Channels = Channels';
     end
 end
-Channels = Channels(:);
 Channels(Channels > nch) = nan;
 
 % plot
@@ -181,7 +181,7 @@ Fig = figure("WindowState", "maximized");
 for rIndex = 1:GridSize(1)
 
     for cIndex = 1:GridSize(2)
-        ch = Channels((rIndex - 1) * GridSize(2) + cIndex);
+        ch = Channels(rIndex, cIndex);
 
         if isnan(ch)
             continue;
@@ -210,7 +210,9 @@ for rIndex = 1:GridSize(1)
     end
 end
 
-colorbar('position', [1 - paddings(2) * 1.2, 0.1, 0.01, 0.8]);
+axAll = findobj(Fig, "Type", "Axes");
+temp = cat(1, axAll.Position);
+colorbar('position', [min(max(temp(:, 1)) + temp(1, 3) + 0.005, 0.97), 0.1, 0.01, 0.8]);
 mu.scaleAxes(Fig, "c");
 
 if ~isempty(coi)

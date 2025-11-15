@@ -201,6 +201,8 @@ mu.scaleAxes(Fig, "y");
 
 % legends
 if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
+    legendHandles = gobjects(1, ngroup);
+
     if isempty(locs)
         ax = mu.subplot(1, 1, 1, "paddings", zeros(1, 4), "margins", zeros(1, 4));
     else
