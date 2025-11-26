@@ -147,8 +147,8 @@ for sIndex = 1:length(SUBJECTs)
         trialAll = trialAll0;
         trialsEEG = trialsEEG0;
 
-        mkdir(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pIDs, '_'))]));
-        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pIDs, '_'))], "ICA res.mat"), "comp");
-        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pIDs, '_'))], "data.mat"), "trialAll", "trialsEEG", "window", "badChs", "fs");
+        mkdir(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))]));
+        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))], "ICA res.mat"), "comp");
+        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))], "data.mat"), "trialAll", "trialsEEG", "window", "badChs", "fs");
     end
 end
