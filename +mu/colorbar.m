@@ -8,16 +8,24 @@ function varargout = colorbar(varargin)
 mIp = inputParser;
 mIp.KeepUnmatched = true;
 mIp.addOptional('ax', gca, @(x) isa(x, 'matlab.graphics.axis.Axes'));
-mIp.addParameter('Location', 'eastoutside', @(x) ischar(x) || isStringScalar(x));
+mIp.addParameter('Location', 'eastoutside', @mustBeTextScalar);
 mIp.addParameter('Interval', 0.01, @(x) isnumeric(x) && isscalar(x));
 mIp.addParameter('Width', [], @(x) isnumeric(x) && isscalar(x));
-mIp.addParameter('Label', [], @(x) isempty(x) || ischar(x) || isStringScalar(x));
+mIp.addParameter('Label', [], @mustBeTextScalar);
+mIp.addParameter('ShowLimOnly', false, @(x) validateattributes(x, 'logical', {'scalar'}));
+mIp.addParameter('Format', 'default', @mustBeTextScalar);
+mIp.addParameter('ScaleFactor', 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
 mIp.parse(varargin{:});
 
 ax = mIp.Results.ax;
 loc = lower(string(mIp.Results.Location));
 interval = mIp.Results.Interval;
-label = mIp.Results.Label;
+label = char(mIp.Results.Label);
+showLimOnly = mIp.Results.ShowLimOnly;
+format = mIp.Results.Format;
+scaleFactor = mIp.Results.ScaleFactor;
+
+assert(fix(log10(scaleFactor)) == log10(scaleFactor), "Scale factor should be power of 10.");
 
 pos0 = ax.tightPosition("IncludeLabels", true);
 pos = ax.Position;
@@ -55,6 +63,35 @@ args = namedargs2cell(mIp.Unmatched);
 cb = colorbar(ax, args{:});
 cb.Location = loc;
 cb.Position = cbPos;
+cb.FontName = 'Arial';
+cb.FontWeight = 'normal';
+cb.Color = [0 0 0];
+
+if strcmpi(loc, 'northoutside') || strcmpi(loc, 'southoutside')
+    cb.TickLength = width / 5;
+end
+
+if showLimOnly
+    cb.Ticks = cb.Limits;
+end
+
+if strcmpi(format, 'default')
+    cb.TickLabels = compose('%g', cb.Ticks * scaleFactor);
+else
+    try
+        cb.TickLabels = compose(format, cb.Ticks * scaleFactor);
+    catch e
+        disp(e.message);
+    end
+end
+
+if scaleFactor ~= 1
+    if ~isempty(label)
+        label = [label, ' (\timesE^{', num2str(-log10(scaleFactor)), '})'];
+    else
+        label = ['\timesE^{', num2str(-log10(scaleFactor)), '}'];
+    end
+end
 
 if ~isempty(label)
     cb.Label.String = label;
@@ -65,10 +102,6 @@ if ~isempty(label)
         cb.Label.Rotation = 90;
         cb.Label.VerticalAlignment = "baseline";
     end
-end
-
-if strcmpi(loc, 'northoutside') || strcmpi(loc, 'southoutside')
-    cb.TickLength = width / 5;
 end
 
 if nargout > 0
