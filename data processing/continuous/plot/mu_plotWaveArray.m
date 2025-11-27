@@ -149,18 +149,19 @@ mu.scaleAxes(Fig, "y");
 if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
     legendHandles = gobjects(1, ngroup);
 
-    ax = mu.subplot(1, 1, 1, "paddings", zeros(1, 4), "margins", zeros(1, 4));
+    ax1 = mu.subplot(1, 1, 1, "paddings", zeros(1, 4), "margins", zeros(1, 4));
     for gIndex = 1:ngroup
         if isempty(chData(gIndex).legend)
             continue;
         end
-        legendHandles(gIndex) = line(ax, nan, nan, ...
+        legendHandles(gIndex) = line(ax1, nan, nan, ...
                                      "Color", chData(gIndex).color, ...
                                      "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
     end
     idx = isgraphics(legendHandles);
-    legend(ax, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');
-    set(ax, "Visible", "off");
+    legend(ax1, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');
+    set(ax1, "Visible", "off");
+    axes(ax);
 end
 
 if nargout == 1

@@ -36,7 +36,7 @@ end
 
 mIp = inputParser;
 mIp.addRequired("ax", @(x) isgraphics(x, "axes"));
-mIp.addRequired("t", @(x) validateattributes(x, 'numeric', {'vector', 'increasing'}));
+mIp.addRequired("t", @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
 mIp.addRequired("Y", @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
 mIp.addRequired("E", @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
 mIp.addParameter("Color", "k");

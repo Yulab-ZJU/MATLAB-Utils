@@ -38,8 +38,10 @@ mIp.addParameter("ContourOpt", "on");
 mIp.addParameter("Resolution", 5, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
 mIp.addParameter("ContourVal", [], @(x) validateattributes(x, {'numeric', 'logical'}, {'vector'}));
 mIp.addParameter("ContourTh", 0.6, @(x) validateattributes(x, {'numeric'}, {'scalar', 'real'}));
+mIp.addParameter("ContourLineWidth", 1, @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("Marker", "none");
 mIp.addParameter("MarkerSize", 36, @(x) validateattributes(x, {'numeric'}, {'positive', 'scalar', 'real'}));
+mIp.addParameter("MarkerLineWidth", 1, @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.parse(ax, varargin{:})
 
 data = mIp.Results.data;
@@ -48,8 +50,10 @@ ContourOpt = validatestring(mIp.Results.ContourOpt, {'on', 'off'});
 N = mIp.Results.Resolution;
 ContourVal = mIp.Results.ContourVal;
 ContourTh = mIp.Results.ContourTh;
+ContourLineWidth = mIp.Results.ContourLineWidth;
 Marker = mIp.Results.Marker;
 MarkerSize = mIp.Results.MarkerSize;
+MarkerLineWidth = mIp.Results.MarkerLineWidth;
 
 if numel(data) ~= prod(topoSize)
     error("numel(data) ~= prod(topoSize)");
@@ -83,7 +87,7 @@ if strcmpi(ContourOpt, "on")
         if isnumeric(ContourVal)
             % for each contour level
             for index = 1:numel(ContourVal)
-                contour(ax, X, Y, C, [ContourVal(index), ContourVal(index)], "LineColor", [0, 0, 0], "LineWidth", 1);
+                contour(ax, X, Y, C, [ContourVal(index), ContourVal(index)], "LineColor", [0, 0, 0], "LineWidth", ContourLineWidth);
             end
 
         elseif islogical(ContourVal)
@@ -97,12 +101,12 @@ if strcmpi(ContourOpt, "on")
                 C = padarray(C, [1, 1], "replicate");
                 C = interp2(C, N);
                 C = imgaussfilt(C, 8);
-                contour(ax, X, Y, C, [ContourTh, ContourTh], "LineColor", "k", "LineWidth", 1);
+                contour(ax, X, Y, C, [ContourTh, ContourTh], "LineColor", "k", "LineWidth", ContourLineWidth);
             end
 
             if ~strcmpi(Marker, "none")
                 [ytemp, xtemp] = find(flipud(reshape(ContourVal, topoSize)'));
-                scatter(ax, xtemp, ytemp, MarkerSize, "black", "Marker", Marker, "LineWidth", 2);
+                scatter(ax, xtemp, ytemp, MarkerSize, "black", "Marker", Marker, "LineWidth", MarkerLineWidth);
             end
 
         end
@@ -115,7 +119,8 @@ set(ax, "XLimitMethod", "tight");
 set(ax, "YLimitMethod", "tight");
 set(ax, "Box", "on");
 set(ax, "BoxStyle", "full");
-set(ax, "LineWidth", 3);
+set(ax, "XColor", [0, 0, 0]);
+set(ax, "YColor", [0, 0, 0]);
 set(ax, "XTickLabels", '');
 set(ax, "YTickLabels", '');
 set(ax, "CLim", cRange); % reset c limit

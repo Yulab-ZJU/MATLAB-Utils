@@ -18,12 +18,12 @@ end
 
 if strcmpi(varargin{1}, "default")
     set(target, "TickDir", "out");
-    set(target, "TickLength", [0.01, 0.01]);
+    set(target, "TickLength", [0.02, 0.01]);
     set(target, "FontName", "Arial");
-    set(target, "FontSize", 7);
-    set(target, "FontWeight", "bold");
+    set(target, "FontSize", 8);
+    set(target, "FontWeight", "normal");
     set(target, "Box", "off");
-    set(target, "LineWidth", 0.75);
+    set(target, "LineWidth", 0.3);
     set(target, "XColor", [0, 0, 0]);
     set(target, "YColor", [0, 0, 0]);
     set(target, "Layer", "top");

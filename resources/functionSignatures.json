@@ -495,7 +495,10 @@
             {"name": "Location", "kind": "namevalue", "type": ["choices = {'northoutside', 'southoutside', 'eastoutside', 'westoutside'}"]},
             {"name": "Interval", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default:0.01"},
             {"name": "Width", "kind": "namevalue", "type": ["scalar", "numeric"]},
-            {"name": "Label", "kind": "namevalue", "type": [["string"], ["char"]]}
+            {"name": "Label", "kind": "namevalue", "type": [["string"], ["char"]]},
+            {"name": "ShowLimOnly", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default=false"},
+            {"name": "Format", "kind": "namevalue", "type": [["char"], ["string"]], "purpose": "Tick label format (e.g., '%2g')"},
+            {"name": "ScaleFactor", "kind": "namevalue", "type": ["scalar", "positive"]}
         ],
         "description": "Add a colorbar to a figure with specified location and properties"
     },

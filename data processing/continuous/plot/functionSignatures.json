@@ -65,8 +65,10 @@
             {"name": "Resolution", "kind": "namevalue", "type": ["scalar", "positive", "integer"], "purpose": "default=5"},
             {"name": "ContourVal", "kind": "namevalue", "type": ["vector"]},
             {"name": "ContourTh", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default=0.6"},
+            {"name": "ContourLineWidth", "kind": "namevalue", "type": ["scalar", "numeric", "positive"], "purpose": "default=1"},
             {"name": "Marker", "kind": "namevalue", "type": ["choices = {'o', 'x', 'pentagram', '+', 'none'}"]},
-            {"name": "MarkerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=36"}
+            {"name": "MarkerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=36"},
+            {"name": "MarkerLineWidth", "kind": "namevalue", "type": ["scalar", "numeric", "positive"], "purpose": "default=2"}
         ]
     },
 
