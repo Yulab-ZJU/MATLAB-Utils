@@ -114,7 +114,8 @@ chData = mu.addfield(chData, "errColor", errColor);
 chData = mu.addfield(chData, "errAlpha", errAlpha);
 
 % plot
-Fig = figure("WindowState", "maximized");
+% Fig = figure("WindowState", "maximized");
+Fig = figure("WindowState", "normal");
 for rIndex = 1:GridSize(1)
 
     for cIndex = 1:GridSize(2)
