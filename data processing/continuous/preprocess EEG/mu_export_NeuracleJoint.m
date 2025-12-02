@@ -104,7 +104,7 @@ for sIndex = 1:length(SUBJECTs)
     DATAPATHsTemp = DATAPATHs(strcmp(SUBJECTsAll, SUBJECTs{sIndex}));
     [~, ~, pID_temp] = cellfun(@(x) mu.getlastpath(x, 1), DATAPATHsTemp, "UniformOutput", false);
 
-    if opts.skipExisted && ((opts.joint_save && exist(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pIDs, '_'))], "data.mat"), "file")) || ...
+    if opts.skipExisted && ((opts.joint_save && exist(fullfile(SAVEPATHs{sIndex}, ['joint ', mu.cellcat(1, join(pID_temp, '_'))], "data.mat"), "file")) || ...
        all(cellfun(@(x) exist(fullfile(SAVEPATHs{sIndex}, x, "data.mat"), "file"), pID_temp)))
         continue;
     end
@@ -147,8 +147,8 @@ for sIndex = 1:length(SUBJECTs)
         trialAll = trialAll0;
         trialsEEG = trialsEEG0;
 
-        mkdir(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))]));
-        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))], "ICA res.mat"), "comp");
-        save(fullfile(SAVEPATHs{sIndex}, ['joint ', char(mu.numstrcat(pID_temp, '_'))], "data.mat"), "trialAll", "trialsEEG", "window", "badChs", "fs");
+        mkdir(fullfile(SAVEPATHs{sIndex}, ['joint ', mu.cellcat(1, join(pID_temp, '_'))]));
+        save(fullfile(SAVEPATHs{sIndex}, ['joint ', mu.cellcat(1, join(pID_temp, '_'))], "ICA res.mat"), "comp");
+        save(fullfile(SAVEPATHs{sIndex}, ['joint ', mu.cellcat(1, join(pID_temp, '_'))], "data.mat"), "trialAll", "trialsEEG", "window", "badChs", "fs");
     end
 end
