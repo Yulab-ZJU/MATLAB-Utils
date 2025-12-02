@@ -1,4 +1,4 @@
-function T = addTitle(varargin)
+function addTitle(varargin)
 %ADDTITILE  Add a total title to the figure.
 %
 % SYNTAX:
@@ -9,7 +9,6 @@ function T = addTitle(varargin)
 %                      'FontSize', FontSize, ...
 %                      'FontWeight', 'bold'/'normal', ...
 %                      'Interpreter', 'none'/'latex'/'tex')
-%     T = mu.addTitle(...)
 %
 % INPUTS:
 %   REQUIRED:
@@ -22,9 +21,6 @@ function T = addTitle(varargin)
 %     FontSize             - default=14
 %     FontWeight           - 'bold'/'normal' (defaul='bold')
 %     Interpreter          - 'none'/'latex'/'tex' (default='none')
-%
-% OUTPUTS:
-%     T  - text object
 
 if strcmp(class(varargin{1}), "matlab.ui.Figure")
     Fig = varargin{1};

@@ -26,6 +26,8 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %        numel(Channels)<prod(GridSize) is okay. The last several subplots
 %        are hided. numel(Channels)>prod(GridSize) reports an error.
 %
+%   - 'Labels': a nch*1 cell array of channel labels (default=compose('CH %d', Channels)).
+%
 %   - 'LineWidth': General line width setting (default=1)
 %
 %   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
@@ -35,13 +37,13 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %-------------------------------------------------------------------------------- 
 % OUTPUTS:
 %     Figure handle of the wave plot.
-%
 
 mIp = inputParser;
 mIp.addRequired("chData", @isstruct);
 mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'increasing'}));
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
+mIp.addParameter("Labels", [], @iscellstr);
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("paddings", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
@@ -49,6 +51,7 @@ mIp.parse(chData, window, varargin{:});
 
 GridSize = mIp.Results.GridSize;
 Channels = mIp.Results.Channels;
+Labels = mIp.Results.Labels;
 defaultLineWidth = mIp.Results.LineWidth;
 margins = mIp.Results.margins;
 paddings = mIp.Results.paddings;
@@ -76,6 +79,20 @@ else
     end
 end
 Channels(Channels > nch) = nan;
+
+if isempty(Labels)
+    Labels = compose('CH %d', Channels);
+else
+    if isvector(Labels)
+        assert(numel(Labels) == sum(~isnan(Channels), "all"), "The number of Labels should be equal to the number of Channels");
+        Labels0 = reshape(compose('%d', 1:prod(GridSize)), flip(GridSize));
+        Labels0(~isnan(Channels')) = Labels;
+        Labels = Labels0';
+    else % [x,y]
+        assert(isequal(size(Labels), GridSize), "Size of Labels should be equal to GridSize");
+    end
+    assert(isequal(size(Labels), size(Channels)), "Size of Labels should be equal to size of Channels");
+end
 
 % colors
 if ~isfield(chData, "color")
@@ -129,7 +146,7 @@ for rIndex = 1:GridSize(1)
         end
 
         xlim(ax, window);
-        title(ax, ['CH ', num2str(ch)]);
+        title(ax, Labels{rIndex, cIndex});
 
         if ~mod(((rIndex - 1) * GridSize(2) + cIndex - 1), GridSize(2)) == 0
             yticklabels(ax, '');
