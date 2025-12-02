@@ -503,6 +503,14 @@
         "description": "Add a colorbar to a figure with specified location and properties"
     },
 
+    "mu.groupFigures": {
+        "inputs": [
+            {"name": "Figs", "kind": "ordered", "type": ["@(args) isempty(x) || all(isgraphics(args))"]},
+            {"name": "TabLocation", "kind": "namevalue", "type": ["choices = {'top', 'left', 'right', 'bottom'}"], "purpose": "default: 'top'"}
+        ],
+        "description": "Group multiple figure windows under a single tabbed interface"
+    },
+
     "mu.histogram": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
