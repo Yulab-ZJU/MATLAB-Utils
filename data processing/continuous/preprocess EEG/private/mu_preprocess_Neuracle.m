@@ -27,10 +27,8 @@ end
 % read motion signal from edf data
 if opts.load_speed && exist(fullfile(ROOTPATH, 'mems.edf'), "file")
     motiondata = readedf(fullfile(ROOTPATH, 'mems.edf')); % a(t)
-    sensor = 2; % which sensor to use, 1 for left/right, 2 for up/down, 3 for forward/backward
-    speed = cumsum(motiondata(sensor, :)) * 1/fsSensor; % v(t)
-    speed = mu.filter(speed, fsSensor, "fhp", 0.5, "flp", 2);
-    varargout{2} = speed;
+    sensor = 1:3; % which sensor to use, 1 for left/right, 2 for up/down, 3 for forward/backward
+    varargout{2} = motiondata(sensor, :);
 else
     disp("No mem.edf found.");
     varargout{2} = [];
