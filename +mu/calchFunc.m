@@ -66,5 +66,7 @@ else
     end
 end
 
+res = squeeze(res);
+
 return;
 end

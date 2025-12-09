@@ -220,7 +220,9 @@ if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
     end
     idx = isgraphics(legendHandles);
     legend(ax, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');
-    set(ax, "Visible", "off");
+    set(ax, "Visible", "off", ...
+            "HitTest", "off", ...
+            "PickableParts", "none");
 end
 
 % scaleplate

@@ -631,7 +631,10 @@ function setupAxisLabels(ax, nGroup, nCategory, boxEdgeLeft, boxEdgeRight, Group
 
         % current axes positions
         pos = get(ax, "Position");
-        labelAx = axes("Position", [pos(1), pos(2) - pos(4) * 0.15, pos(3), pos(4) * 0.15], "Visible", "off");
+        labelAx = axes("Position", [pos(1), pos(2) - pos(4) * 0.15, pos(3), pos(4) * 0.15], ...
+                       "Visible", "off", ...
+                       "HitTest", "off", ...
+                       "PickableParts", "none");
 
         % label position
         labelPosY_group = 0.8;
