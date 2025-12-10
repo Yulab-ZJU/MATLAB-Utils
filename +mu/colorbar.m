@@ -76,7 +76,10 @@ if showLimOnly
 end
 
 if strcmpi(format, 'default')
-    cb.TickLabels = compose('%g', cb.Ticks * scaleFactor);
+    if scaleFactor ~= 1
+        cb.TickLabels = compose('%g', cb.Ticks * scaleFactor);
+        cb.TickLabelsMode = "auto";
+    end
 else
     try
         cb.TickLabels = compose(format, cb.Ticks * scaleFactor);
