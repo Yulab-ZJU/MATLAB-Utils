@@ -30,16 +30,16 @@ function varargout = boxplot(varargin)
 % ════════════════════════════════════════════════════════════════════════
 %  BOX APPEARANCE
 % ════════════════════════════════════════════════════════════════════════
-%   'Positions'          : Vector of category center positions (length = nCategory)
-%   'BoxEdgeType'        : 'SE', 'STD', or [low high] percentiles (default: [25, 75])
-%   'Notch'              : 'on' or 'off' (default: 'off')
-%   'Whisker'            : Scalar (×IQR) or [low high] percentiles (default: 1.5)
-%   'Colors'             : Color spec: single RGB row, group-level RGBs (nGroup×3), 
-%                          or full map (nGroup×nCategory×3)
-%   'BoxParameters'      : Patch property pairs for boxes
+%   'Positions'            : Vector of category center positions (length = nCategory)
+%   'BoxEdgeType'          : 'SE', 'STD', or [low high] percentiles (default: [25, 75])
+%   'Notch'                : 'on' or 'off' (default: 'off')
+%   'Whisker'              : Scalar (×IQR) or [low high] percentiles (default: 1.5)
+%   'Colors'               : Color spec: single RGB row, group-level RGBs (nGroup×3), 
+%                            or full map (nGroup×nCategory×3)
+%   'BoxParameters'        : Patch property pairs for boxes
 %   'CenterLineParameters' : Line property pairs for mean/median line
-%   'WhiskerParameters'  : Line property pairs for whiskers
-%   'WhiskerCapParameters': Line property pairs for whisker caps
+%   'WhiskerParameters'    : Line property pairs for whiskers
+%   'WhiskerCapParameters' : Line property pairs for whisker caps
 %
 % ════════════════════════════════════════════════════════════════════════
 %  DATA POINTS & OUTLIERS
