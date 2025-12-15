@@ -42,6 +42,7 @@ mIp.addParameter("ContourLineWidth", 1, @(x) validateattributes(x, {'numeric'}, 
 mIp.addParameter("Marker", "none");
 mIp.addParameter("MarkerSize", 36, @(x) validateattributes(x, {'numeric'}, {'positive', 'scalar', 'real'}));
 mIp.addParameter("MarkerLineWidth", 1, @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
+mIp.addParameter("MarkerFaceColor", [1, 1, 1]);
 mIp.parse(ax, varargin{:})
 
 data = mIp.Results.data;
@@ -54,6 +55,7 @@ ContourLineWidth = mIp.Results.ContourLineWidth;
 Marker = mIp.Results.Marker;
 MarkerSize = mIp.Results.MarkerSize;
 MarkerLineWidth = mIp.Results.MarkerLineWidth;
+MarkerFaceColor = validatecolor(mIp.Results.MarkerFaceColor);
 
 if numel(data) ~= prod(topoSize)
     error("numel(data) ~= prod(topoSize)");
@@ -106,7 +108,10 @@ if strcmpi(ContourOpt, "on")
 
             if ~strcmpi(Marker, "none")
                 [ytemp, xtemp] = find(flipud(reshape(ContourVal, topoSize)'));
-                scatter(ax, xtemp, ytemp, MarkerSize, "black", "Marker", Marker, "LineWidth", MarkerLineWidth);
+                scatter(ax, xtemp, ytemp, MarkerSize, "black", ...
+                    "Marker", Marker, ...
+                    "LineWidth", MarkerLineWidth, ...
+                    "MarkerFaceColor", MarkerFaceColor);
             end
 
         end

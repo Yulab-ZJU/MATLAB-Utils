@@ -12,248 +12,184 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm, opts)
 %   R = p(1) + p(3) + ti(3);
 %   T = p(2) + p(4) + ti(4);
 
+% ---- Parameters ----
 arguments
-    figHandle       matlab.ui.Figure
+    figHandle       (1,1) matlab.ui.Figure
     filename        {mustBeTextScalar}
     width_mm        (1,1) double {mustBePositive}
     height_mm       (1,1) double {mustBePositive}
-
-    opts.expandMode (1,1) string = "fixed"
-    opts.packBbox                = "auto"      % "auto"|true|false
-    opts.Padding    (1,1) double {mustBeNonnegative} = 0
-    opts.Background              = 'none'
-    opts.MaxIter    (1,1) double {mustBeInteger, mustBePositive} = 4
-    opts.Tol_mm     (1,1) double {mustBePositive} = 0.05
+    opts.expandMode {mustBeTextScalar} = "fixed"
+    opts.adjustOpt  {mustBeTextScalar} = "on"
 end
 
-opts.expandMode = validatestring(opts.expandMode, ...
+expandMode = validatestring(opts.expandMode, ...
     {'fixed','keepratio-width','keepratio-height','keepratio-min','keepratio-max'});
 
-% ---- clone figure ----
-tempFig = copyobj(figHandle, 0);
-set(tempFig, 'Visible', 'off');
+adjustOpt = mu.OptionState.create(opts.adjustOpt).toLogical;
+tol = 5e-3;
 
-% ---- find visible axes ----
-axs = findall(tempFig, 'Type', 'axes');
-axs = axs(strcmp({axs.Visible}, 'on'));
+% ---- Get border of axes ----
+% Copy a new figure
+tempFig = copyobj(figHandle, 0);
+set(tempFig, "Visible", "off");
+drawnow;  % ensure TightInset is up-to-date
+
+% ---- Treat [w h] as the whole figure size ----
+if ~adjustOpt
+    set(tempFig, 'Units', 'centimeters');
+    set(tempFig, 'Position', [0, 0, width_mm, height_mm]/10);
+    set(tempFig, 'PaperUnits', 'centimeters');
+    set(tempFig, 'PaperSize', [width_mm, height_mm]/10);
+    set(tempFig, 'PaperPositionMode', 'manual');
+    set(tempFig, 'PaperPosition', [0, 0, width_mm, height_mm]/10);
+
+    exportgraphics(tempFig, filename, ...
+                   'ContentType', 'vector', ...
+                   'BackgroundColor', 'none');
+    return;
+end
+
+% ---- Treat [w h] as axes box size ----
+% `expandMode` works only when `adjustOpt` set 'on'
+axs = findobj(tempFig, "Type", "Axes", "Visible", "on");
 if isempty(axs)
     close(tempFig);
     error('exportFigure2PDF:NoAxes', 'No visible axes found in the figure.');
 end
+set(axs, "Unit", "centimeters");
 
-drawnow;  % ensure TightInset is up-to-date
+[bBox, WBox, HBox, posAll, ~] = getBorderBox(axs, "centimeters");
+whRatioBox = WBox / HBox;
+whRatioPDF = width_mm / height_mm;
 
-% ============================================================
-% 1) bboxRatio_phys: compute directly in CENTIMETERS
-% ============================================================
-[~, bboxW_cm, bboxH_cm] = local_bbox_position_tightinset_cm(axs);
-bboxRatio_phys = bboxW_cm / bboxH_cm; % physical width/height in cm
+% normalize axes position to bbox
+if numel(axs) > 1
+    posAll = cat(1, posAll{:});
+end
+posAll(:, 1) = (posAll(:, 1) - bBox(1)) / WBox; % x
+posAll(:, 2) = (posAll(:, 2) - bBox(2)) / HBox; % y
+posAll(:, 3) = posAll(:, 3) / WBox;             % w
+posAll(:, 4) = posAll(:, 4) / HBox;             % h
 
-% ---- apply expandMode to target size (mm) using physical bbox ratio ----
-targetW_mm = width_mm;
-targetH_mm = height_mm;
-
-switch opts.expandMode
+% ---- Expand axes to fill figure ----
+switch expandMode
     case 'fixed'
-        % keep user specified
+        W_mm = width_mm;
+        H_mm = height_mm;
     case 'keepratio-width'
-        targetH_mm = targetW_mm / bboxRatio_phys;
+        W_mm = width_mm;
+        H_mm = width_mm / whRatioBox;
     case 'keepratio-height'
-        targetW_mm = targetH_mm * bboxRatio_phys;
+        W_mm = height_mm * whRatioBox;
+        H_mm = height_mm;
     case 'keepratio-min'
-        m = min(targetW_mm, targetH_mm);
-        if bboxRatio_phys >= 1
-            targetH_mm = m;
-            targetW_mm = m * bboxRatio_phys;
+        if whRatioPDF > 1
+            W_mm = height_mm * whRatioBox;
+            H_mm = height_mm;
         else
-            targetW_mm = m;
-            targetH_mm = m / bboxRatio_phys;
+            W_mm = width_mm;
+            H_mm = width_mm / whRatioBox;
         end
     case 'keepratio-max'
-        M = max(targetW_mm, targetH_mm);
-        if bboxRatio_phys >= 1
-            targetW_mm = M;
-            targetH_mm = M / bboxRatio_phys;
+        if whRatioPDF < 1
+            W_mm = height_mm * whRatioBox;
+            H_mm = height_mm;
         else
-            targetH_mm = M;
-            targetW_mm = M * bboxRatio_phys;
+            W_mm = width_mm;
+            H_mm = width_mm / whRatioBox;
         end
 end
 
-targetW_cm = targetW_mm / 10;
-targetH_cm = targetH_mm / 10;
+% Convert to centimeters
+W_cm = W_mm / 10;
+H_cm = H_mm / 10;
 
-% ============================================================
-% 2) Decide packing (in normalized coordinates)
-% ============================================================
-isKeepRatioMode = startsWith(string(opts.expandMode), "keepratio");
+% Adjust figure paper position
+tempFig.PaperUnits = "centimeters";
+tempFig.PaperPositionMode = "manual";
+tempFig.PaperPosition = [0, 0, W_cm, H_cm];
+tempFig.PaperSize = [W_cm, H_cm];
 
-if ischar(opts.packBbox) || isstring(opts.packBbox)
-    packMode = string(opts.packBbox);
-    if packMode == "auto"
-        doPack = isKeepRatioMode;
-    else
-        error('exportFigure2PDF:BadPackMode', 'opts.packBbox must be "auto", true, or false.');
+for index = 1:numel(axs)
+    axs(index).Position = [posAll(index, 1) * W_cm, ...
+                           posAll(index, 2) * H_cm, ...
+                           posAll(index, 3) * W_cm, ...
+                           posAll(index, 4) * H_cm];
+end
+
+% Make labels visible
+bBox = getBorderBox(axs, "centimeters");
+for index = 1:numel(axs)
+    pos = axs(index).Position;
+    pos(1) = mu.ifelse(bBox(1) < 0, pos(1) - bBox(1), pos(1));
+    pos(2) = mu.ifelse(bBox(2) < 0, pos(2) - bBox(2), pos(2));
+    axs(index).Position = pos;
+end
+
+% Auto-adjustment
+for n = 1:10
+    [~, WBox, HBox] = getBorderBox(axs, "centimeters");
+    if (WBox - W_cm) / W_cm <= tol && ...
+       (HBox - H_cm) / H_cm <= tol
+        break;
     end
-elseif islogical(opts.packBbox) || isnumeric(opts.packBbox)
-    doPack = logical(opts.packBbox);
-else
-    error('exportFigure2PDF:BadPackMode', 'opts.packBbox must be "auto", true, or false.');
-end
-
-% Compute bbox in normalized units for later solve/pack
-[bbox_norm, wNorm, hNorm] = local_bbox_position_tightinset_norm(axs);
-
-if doPack
-    local_pack_axes_positions(axs, bbox_norm, wNorm, hNorm);
-    drawnow;
-    [bbox_norm, wNorm, hNorm] = local_bbox_position_tightinset_norm(axs); %#ok<ASGLU>
-end
-
-% ============================================================
-% 3) Iteratively solve figure physical size (cm)
-% ============================================================
-figW_cm = targetW_cm / max(wNorm, eps);
-figH_cm = targetH_cm / max(hNorm, eps);
-
-for it = 1:opts.MaxIter
-    local_set_fig_wh_cm(tempFig, figW_cm, figH_cm);
-    drawnow;
-
-    [~, w_it, h_it] = local_bbox_position_tightinset_norm(axs);
-
-    achievedW_mm = (w_it * figW_cm) * 10;
-    achievedH_mm = (h_it * figH_cm) * 10;
-
-    if abs(achievedW_mm - targetW_mm) <= opts.Tol_mm && abs(achievedH_mm - targetH_mm) <= opts.Tol_mm
-        break
+    for index = 1:numel(axs)
+        pos = axs(index).Position;
+        pos(3) = mu.ifelse((WBox - W_cm) / W_cm > tol, pos(3) / WBox * W_cm, pos(3));
+        pos(4) = mu.ifelse((HBox - H_cm) / H_cm > tol, pos(4) / HBox * H_cm, pos(4));
+        axs(index).Position = pos;
     end
-
-    figW_cm = targetW_cm / max(w_it, eps);
-    figH_cm = targetH_cm / max(h_it, eps);
 end
 
-% ---- export with exportgraphics ----
-args = {'ContentType', 'vector', 'BackgroundColor', opts.Background};
-
-try
-    exportgraphics(tempFig, filename, args{:}, 'Padding', opts.Padding);
-catch
-    exportgraphics(tempFig, filename, args{:});
+% ---- disable axes toolbars to avoid exporting them ----
+for k = 1:numel(axs)
+    ax = axs(k);
+    if isprop(ax, 'Toolbar') && ~isempty(ax.Toolbar)
+        ax.Toolbar.Visible = 'off';
+    end
 end
+
+% ---- Export with exportgraphics ----
+exportgraphics(tempFig, filename, ...
+    'ContentType', 'vector', ...
+    'BackgroundColor', 'none');
 
 close(tempFig);
+return;
 end
 
-% ====================== helpers ======================
+%% Helper func
+function [bBox, WBox, HBox, posAll, tiAll] = getBorderBox(axs, units)
+narginchk(1, 2);
+if nargin < 2
+    units = "normalized";
+end
+oldUnits = get(axs(1), "Units");
+set(axs, "Units", units);
+posAll = get(axs, "Position");   % [x, y, w, h]
+tiAll  = get(axs, "TightInset"); % [l, b, r, t]
 
-function [bbox, wNorm, hNorm] = local_bbox_position_tightinset_norm(axs)
-bbox = [inf inf -inf -inf]; % [L B R T] normalized
-for k = 1:numel(axs)
-    ax = axs(k);
-    if ~isvalid(ax) || ~strcmp(ax.Visible,'on'), continue; end
-
-    oldUnits = ax.Units;
-    ax.Units = 'normalized';
-
-    p  = get(ax, "Position");
-    ti = get(ax, "TightInset"); % relative to Position
-
-    ax.Units = oldUnits;
-
-    if numel(p)~=4 || numel(ti)~=4 || any(~isfinite([p ti])), continue; end
-
-    L = p(1) - ti(1);
-    B = p(2) - ti(2);
-    R = p(1) + p(3) + ti(3);
-    T = p(2) + p(4) + ti(4);
-
-    bbox(1) = min(bbox(1), L);
-    bbox(2) = min(bbox(2), B);
-    bbox(3) = max(bbox(3), R);
-    bbox(4) = max(bbox(4), T);
+if numel(axs) > 1
+    boxAll = cellfun(@(x, y) [x(1) - y(1), ...
+                              x(2) - y(2), ...
+                              x(1) + x(3) + y(3), ...
+                              x(2) + x(4) + y(4)], posAll, tiAll, "UniformOutput", false);
+    boxAll = cat(1, boxAll{:});
+else
+    boxAll = [posAll(1) - tiAll(1), ...
+              posAll(2) - tiAll(2), ...
+              posAll(1) + posAll(3) + tiAll(3), ...
+              posAll(2) + posAll(4) + tiAll(4)];
 end
 
-wNorm = bbox(3) - bbox(1);
-hNorm = bbox(4) - bbox(2);
+% border of bBox
+bBox = nan(1, 4);
+bBox(1) = min(boxAll(:, 1));
+bBox(2) = min(boxAll(:, 2));
+bBox(3) = max(boxAll(:, 3));
+bBox(4) = max(boxAll(:, 4));
+WBox = bBox(3) - bBox(1);
+HBox = bBox(4) - bBox(2);
 
-if ~(isfinite(wNorm) && isfinite(hNorm) && wNorm > 0 && hNorm > 0)
-    error('exportFigure2PDF:BadBBox', 'Failed to compute valid bbox (normalized).');
-end
-end
-
-function [bbox_cm, bboxW_cm, bboxH_cm] = local_bbox_position_tightinset_cm(axs)
-% Compute bbox in physical centimeters directly from axes Position/TightInset.
-bbox_cm = [inf inf -inf -inf]; % [L B R T] in cm
-
-for k = 1:numel(axs)
-    ax = axs(k);
-    if ~isvalid(ax) || ~strcmp(ax.Visible,'on'), continue; end
-
-    oldUnits = ax.Units;
-    ax.Units = 'centimeters';
-
-    p  = get(ax, "Position");      % cm
-    ti = get(ax, "TightInset");    % cm, relative to Position
-
-    ax.Units = oldUnits;
-
-    if numel(p)~=4 || numel(ti)~=4 || any(~isfinite([p ti])), continue; end
-
-    L = p(1) - ti(1);
-    B = p(2) - ti(2);
-    R = p(1) + p(3) + ti(3);
-    T = p(2) + p(4) + ti(4);
-
-    bbox_cm(1) = min(bbox_cm(1), L);
-    bbox_cm(2) = min(bbox_cm(2), B);
-    bbox_cm(3) = max(bbox_cm(3), R);
-    bbox_cm(4) = max(bbox_cm(4), T);
-end
-
-bboxW_cm = bbox_cm(3) - bbox_cm(1);
-bboxH_cm = bbox_cm(4) - bbox_cm(2);
-
-if ~(isfinite(bboxW_cm) && isfinite(bboxH_cm) && bboxW_cm > 0 && bboxH_cm > 0)
-    error('exportFigure2PDF:BadBBox', 'Failed to compute valid bbox (centimeters).');
-end
-end
-
-function local_pack_axes_positions(axs, bbox, wNorm, hNorm)
-% Affine-map axes Position so that the union bbox becomes [0 0 1 1] in figure normalized.
-L0 = bbox(1);
-B0 = bbox(2);
-
-for k = 1:numel(axs)
-    ax = axs(k);
-    if ~isvalid(ax) || ~strcmp(ax.Visible,'on'), continue; end
-
-    oldUnits = ax.Units;
-    ax.Units = 'normalized';
-
-    p = ax.Position;
-    pNew = [ (p(1) - L0) / wNorm, ...
-             (p(2) - B0) / hNorm, ...
-              p(3) / wNorm, ...
-              p(4) / hNorm ];
-    ax.Position = pNew;
-
-    ax.Units = oldUnits;
-end
-end
-
-function local_set_fig_wh_cm(fig, W_cm, H_cm)
-old = fig.Units;
-fig.Units = 'centimeters';
-pos = fig.Position;
-pos(3:4) = [W_cm H_cm];
-fig.Position = pos;
-
-% Keep paper consistent (helps some backends)
-fig.PaperUnits = 'centimeters';
-fig.PaperPositionMode = 'manual';
-fig.PaperPosition = [0 0 W_cm H_cm];
-fig.PaperSize = [W_cm H_cm];
-
-fig.Units = old;
+set(axs, "Units", oldUnits);
 end

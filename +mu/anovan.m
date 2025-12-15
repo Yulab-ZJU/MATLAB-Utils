@@ -49,7 +49,10 @@ else
 end
 
 % classical ANOVA
+originalFigureWindowState = get(0, "DefaultFigureWindowState");
+set(0, "DefaultFigureWindowState", "normal");
 [p, tbl, stats] = anovan(x, group, varargin{:});
+set(0, "DefaultFigureWindowState", originalFigureWindowState);
 
 % effect size
 if nFactors == 1

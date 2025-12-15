@@ -69,7 +69,8 @@
             {"name": "ContourLineWidth", "kind": "namevalue", "type": ["scalar", "numeric", "positive"], "purpose": "default=1"},
             {"name": "Marker", "kind": "namevalue", "type": ["choices = {'o', 'x', 'pentagram', '+', 'none'}"]},
             {"name": "MarkerSize", "kind": "namevalue", "type": ["scalar", "positive"], "purpose": "default=36"},
-            {"name": "MarkerLineWidth", "kind": "namevalue", "type": ["scalar", "numeric", "positive"], "purpose": "default=2"}
+            {"name": "MarkerLineWidth", "kind": "namevalue", "type": ["scalar", "numeric", "positive"], "purpose": "default=2"},
+            {"name": "MarkerFaceColor", "kind": "namevalue", "type": [], "purpose": "default='w'"}
         ]
     },
 

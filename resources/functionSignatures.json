@@ -303,6 +303,17 @@
         "description": "Skip loading if variables exist"
     },
 
+    "mu.exportFigure2PDF": {
+        "inputs": [
+            {"name": "figHandle", "kind": "required", "type": ["@(x) isscalar(x) && isa(x, 'matlab.ui.Figure')"]},
+            {"name": "filename", "kind": "required", "type": [["file=*.pdf"], ["string"], ["char"]]},
+            {"name": "width_mm", "kind": "required", "type": ["scalar", "positive"]},
+            {"name": "height_mm", "kind": "required", "type": ["scalar", "positive"]},
+            {"name": "expandMode", "kind": "namevalue", "type": ["choices = {'fixed','keepratio-width','keepratio-height','keepratio-min','keepratio-max'}"], "purpose": "default='fixed'"},
+            {"name": "adjustOpt", "kind": "namevalue", "type": ["choices = {'on', 'off'}"], "purpose": "default='on'"}
+        ]
+    },
+
     "mu.getVarsFromWorkspace": {
         "inputs": [
             {"name": "regexp", "kind": "ordered", "type": [["string"], ["char"], ["@(x) isempty(x)"]], "repeating": true}
