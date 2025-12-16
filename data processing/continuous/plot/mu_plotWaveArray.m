@@ -177,7 +177,9 @@ if isfield(chData, "legend") && any(~cellfun(@isempty, {chData.legend}))
     end
     idx = isgraphics(legendHandles);
     legend(ax1, legendHandles(idx), {chData(idx).legend}', 'Location', 'northeast', 'AutoUpdate', 'off');
-    set(ax1, "Visible", "off");
+    set(ax1, "Visible", "off", ...
+             "HitTest", "off", ...
+             "PickableParts", "none");
     axes(ax);
 end
 

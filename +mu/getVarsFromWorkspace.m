@@ -40,8 +40,9 @@ if isempty(varNames)
     return;
 end
 
-varsExpr = strcat("struct(", strjoin(cellfun(@(v) ['''' v ''', evalin(''caller'', ''' v ''')'], varNames, 'UniformOutput', false), ', '), ")");
-res = evalin("caller", varsExpr);
+for index = 1:numel(varNames)
+    res.(varNames{index}) = evalin("caller", varNames{index});
+end
 
 return;
 end
