@@ -12,6 +12,7 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %                     Must be same as your VS Code setting
 %   NAMEVALUE:
 %     Port          - Port number of debug server (default=5678)
+%     WaitForClient - Switch of debug mode (default=true, debug mode 'on')
 %     Other name-value inputs for python script
 %
 % OUTPUTS:
@@ -52,11 +53,12 @@ mIp.KeepUnmatched = true;
 mIp.addRequired("pyscriptPATH", @mu.isTextScalar);
 mIp.addRequired("pyexePATH", @mu.isTextScalar);
 mIp.addParameter("Port", 5678, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
+mIp.addParameter("WaitForClient", true, @(x) validateattributes(x, 'logical', {'scalar'}));
 mIp.parse(pyscriptPATH, pyexePATH, varargin{:});
 port = mIp.Results.Port;
 
 host = '127.0.0.1';
-waitForCli = true;
+waitForCli = mIp.Results.WaitForClient; % switch of debug
 bg = false;
 
 unmatched = mIp.Unmatched;

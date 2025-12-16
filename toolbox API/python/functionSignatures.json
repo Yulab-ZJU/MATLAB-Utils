@@ -1,0 +1,12 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_ks_mergeBinFiles": {
+        "inputs": [
+            {"name": "outFile", "kind": "required", "type": [["string"], ["char"]], "purpose": "output file path"},
+            {"name": "file", "kind": "required", "type": [["string"], ["char"]], "purpose": "files to merge", "repeating": true}
+        ],
+        "description": "Merge multiple bin files into one"
+    }
+
+}
