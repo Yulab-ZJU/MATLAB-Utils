@@ -51,19 +51,19 @@ end
 
 % ---- Treat [w h] as axes box size ----
 % `expandMode` works only when `adjustOpt` set 'on'
-axs = findobj(tempFig, "Type", "Axes", "Visible", "on");
-if isempty(axs)
+children = tempFig.Children;
+if isempty(children)
     close(tempFig);
-    error('exportFigure2PDF:NoAxes', 'No visible axes found in the figure.');
+    error('exportFigure2PDF:NoContent', 'No content found in the figure.');
 end
-set(axs, "Unit", "centimeters");
+set(children, "Unit", "centimeters");
 
-[bBox, WBox, HBox, posAll, ~] = getBorderBox(axs, "centimeters");
+[bBox, WBox, HBox, posAll, ~] = getBorderBox(children, "centimeters");
 whRatioBox = WBox / HBox;
 whRatioPDF = width_mm / height_mm;
 
 % normalize axes position to bbox
-if numel(axs) > 1
+if numel(children) > 1
     posAll = cat(1, posAll{:});
 end
 posAll(:, 1) = (posAll(:, 1) - bBox(1)) / WBox; % x
@@ -110,40 +110,40 @@ tempFig.PaperPositionMode = "manual";
 tempFig.PaperPosition = [0, 0, W_cm, H_cm];
 tempFig.PaperSize = [W_cm, H_cm];
 
-for index = 1:numel(axs)
-    axs(index).Position = [posAll(index, 1) * W_cm, ...
+for index = 1:numel(children)
+    children(index).Position = [posAll(index, 1) * W_cm, ...
                            posAll(index, 2) * H_cm, ...
                            posAll(index, 3) * W_cm, ...
                            posAll(index, 4) * H_cm];
 end
 
 % Make labels visible
-bBox = getBorderBox(axs, "centimeters");
-for index = 1:numel(axs)
-    pos = axs(index).Position;
+bBox = getBorderBox(children, "centimeters");
+for index = 1:numel(children)
+    pos = children(index).Position;
     pos(1) = mu.ifelse(bBox(1) < 0, pos(1) - bBox(1), pos(1));
     pos(2) = mu.ifelse(bBox(2) < 0, pos(2) - bBox(2), pos(2));
-    axs(index).Position = pos;
+    children(index).Position = pos;
 end
 
 % Auto-adjustment
 for n = 1:10
-    [~, WBox, HBox] = getBorderBox(axs, "centimeters");
+    [~, WBox, HBox] = getBorderBox(children, "centimeters");
     if (WBox - W_cm) / W_cm <= tol && ...
        (HBox - H_cm) / H_cm <= tol
         break;
     end
-    for index = 1:numel(axs)
-        pos = axs(index).Position;
+    for index = 1:numel(children)
+        pos = children(index).Position;
         pos(3) = mu.ifelse((WBox - W_cm) / W_cm > tol, pos(3) / WBox * W_cm, pos(3));
         pos(4) = mu.ifelse((HBox - H_cm) / H_cm > tol, pos(4) / HBox * H_cm, pos(4));
-        axs(index).Position = pos;
+        children(index).Position = pos;
     end
 end
 
 % ---- disable axes toolbars to avoid exporting them ----
-for k = 1:numel(axs)
-    ax = axs(k);
+for k = 1:numel(children)
+    ax = children(k);
     if isprop(ax, 'Toolbar') && ~isempty(ax.Toolbar)
         ax.Toolbar.Visible = 'off';
     end
@@ -159,17 +159,31 @@ return;
 end
 
 %% Helper func
-function [bBox, WBox, HBox, posAll, tiAll] = getBorderBox(axs, units)
+function [bBox, WBox, HBox, posAll, tiAll] = getBorderBox(children, units)
 narginchk(1, 2);
 if nargin < 2
     units = "normalized";
 end
-oldUnits = get(axs(1), "Units");
-set(axs, "Units", units);
-posAll = get(axs, "Position");   % [x, y, w, h]
-tiAll  = get(axs, "TightInset"); % [l, b, r, t]
+oldUnits = get(children(1), "Units");
+set(children, "Units", units);
 
-if numel(axs) > 1
+% [x, y, w, h]
+posAll = get(children, "Position");
+
+% [l, b, r, t]
+tiAll = arrayfun(@(x) x.TightInset, children, "UniformOutput", false, "ErrorHandler", @errEmpty);
+idx = find(cellfun(@isempty, tiAll)); % colorbar
+for index = 1:numel(idx)
+    child = children(idx(index));
+    if strcmp(child.Type, "colorbar")
+        tiAll{idx(index)} = getColorbarLabelInset(child);
+    end
+end
+if isscalar(tiAll)
+    tiAll = tiAll{1};
+end
+
+if numel(children) > 1
     boxAll = cellfun(@(x, y) [x(1) - y(1), ...
                               x(2) - y(2), ...
                               x(1) + x(3) + y(3), ...
@@ -191,5 +205,29 @@ bBox(4) = max(boxAll(:, 4));
 WBox = bBox(3) - bBox(1);
 HBox = bBox(4) - bBox(2);
 
-set(axs, "Units", oldUnits);
+set(children, "Units", oldUnits);
+end
+
+function inset = getColorbarLabelInset(cb)
+cbPos = cb.Position;
+labelExtent = cb.Label.Extent;
+
+labelRect = [
+    cbPos(1) + labelExtent(1) * cbPos(3), ... Left
+    cbPos(2) + labelExtent(2) * cbPos(4), ... Bottom
+    labelExtent(3) * cbPos(3),            ... Width
+    labelExtent(4) * cbPos(4)             ... Height
+];
+
+labelRight = labelRect(1) + labelRect(3);
+labelTop = labelRect(2) + labelRect(4);
+cbRight = cbPos(1) + cbPos(3);
+cbTop = cbPos(2) + cbPos(4);
+
+left_inset = max(0, cbPos(1) - labelRect(1));
+bottom_inset = max(0, cbPos(2) - labelRect(2));
+right_inset = max(0, labelRight - cbRight);
+top_inset = max(0, labelTop - cbTop);
+
+inset = [left_inset, bottom_inset, right_inset, top_inset];
 end

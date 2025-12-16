@@ -87,7 +87,7 @@
     "mu.calchFunc": {
         "inputs": [
             {"name": "fcn", "kind": "required", "type": ["function_handle"], "purpose": "function handle with signature fcn(data,dim,varargin)"},
-            {"name": "trialsDatFunca", "kind": "required", "type": ["cell"]},
+            {"name": "trialsData", "kind": "required", "type": ["cell"]},
             {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
         ],
         "description": "Calculate a function over trial data with padding direction"

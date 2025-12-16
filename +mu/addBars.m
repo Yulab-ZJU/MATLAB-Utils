@@ -40,13 +40,11 @@ if isempty(xval)
 end
 
 children = get(ax, "Children");
-xdata = [];
-for index = 1:length(children)
-    try
-        temp = get(children(index), "XData");
-        xdata = [xdata; temp(:)];
-    end
-end
+temp = arrayfun(@(x) x.XData(:), children, "UniformOutput", false, "ErrorHandler", @errEmpty);
+xdata = temp(~cellfun(@isempty, temp) & ...
+             strcmp(get(children, "Visible"), "on") & ...
+             ~strcmp(get(children, "Tag"), "SigBars"));
+xdata = cat(1, xdata{:});
 xdata = unique(xdata);
 if numel(xdata) > 1
     width = min(diff(xdata));
@@ -58,16 +56,16 @@ yRange = get(ax, "YLim");
 
 hold(ax, "on");
 h = gobjects(0);
-
-for i = 1:numel(xval)
-    xv = [xval(i) - width / 2, ...
-          xval(i) + width / 2, ...
-          xval(i) + width / 2, ...
-          xval(i) - width / 2];
+idx = [0; find(diff(xval) > 1); numel(xval)];
+for i = 1:numel(idx) - 1
+    xv = [xval(idx(i) + 1) - width / 2, ...
+          xval(idx(i + 1)) + width / 2, ...
+          xval(idx(i + 1)) + width / 2, ...
+          xval(idx(i) + 1) - width / 2];
     yv = [yRange(1), yRange(1), yRange(2), yRange(2)];
     h(end + 1) = patch(ax, xv, yv, color, ...
                        "FaceAlpha", FaceAlpha, ...
-                       "EdgeColor", "none");
+                       "EdgeColor", "none", "Tag", "SigBars"); %#ok<AGROW>
 end
 
 mu.setLegendOff(h);
