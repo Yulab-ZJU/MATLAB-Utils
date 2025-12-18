@@ -24,7 +24,7 @@ else
 end
 
 mIp = inputParser;
-mIp.addRequired("ax", @(x) all(isgraphics(x)));
+mIp.addRequired("ax", @(x) isscalar(x) && isgraphics(x, "axes"));
 mIp.addRequired("xval", @(x) isvector(x) & isreal(x));
 mIp.addOptional("color", "k", @(x) true);
 mIp.addOptional("alpha", 0.1, @(x) validateattributes(x, {'numeric'}, {'scalar', '<=', 1, ">=", 0}));
@@ -69,6 +69,7 @@ for i = 1:numel(idx) - 1
 end
 
 mu.setLegendOff(h);
+uistack(h, "bottom");
 
 if nargout == 1
     varargout{1} = h;
