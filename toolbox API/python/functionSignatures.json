@@ -1,0 +1,14 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_pydebug_vscode": {
+        "inputs": [
+            {"name": "pyscriptPATH", "kind": "required", "type": [["string"], ["char"]], "purpose": "Python script to debug"},
+            {"name": "pyexePATH", "kind": "required", "type": [["string"], ["char"]], "purpose": "Python executable to use for debugging"},
+            {"name": "Port", "kind": "namevalue", "type": ["scalar", "integer"], "purpose": "Port number (default=5678)"},
+            {"name": "WaitForClient", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default=true; Wait for debugger client to attach before running the script"}
+        ],
+        "description": "Launch Debugger for a Python script via VSCode"
+    }
+
+}

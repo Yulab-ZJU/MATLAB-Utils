@@ -34,7 +34,7 @@ if isempty(Figs)
 end
 
 %% Create new figure with uitabgroup
-hTabFig = figure("NumberTitle", "off", "Tag", "Grouped Figure");
+hTabFig = figure("NumberTitle", "off", "Tag", "Grouped Figure", "Name", "Grouped Figure");
 tg = uitabgroup(hTabFig, "TabLocation", TabLocation);
 
 %% Loop over figures and copy contents

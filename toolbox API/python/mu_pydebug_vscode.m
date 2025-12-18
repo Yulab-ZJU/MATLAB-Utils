@@ -4,15 +4,22 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 % SYNTAX：
 %   status = mu_pydebug_vscode(pyscriptPATH, [pyexePATH])
 %   status = mu_pydebug_vscode(..., 'Port', PortNumber, 'param1', val1, 'param2', val2, ...)
+%   status = mu_pydebug_vscode(..., req1, req2, ..., 'Port', PortNumber, 'param1', val1, ...)
 %
 % INPUTS:
 %   REQUIRED:
 %     pyscriptPATH  - Full path of python script to run
 %     pyexePATH     - Full path of python exe
 %                     Must be same as your VS Code setting
+%
+%   POSITIONAL (optional, forwarded to python as positional args):
+%     req1, req2, ... - Required/positional args for python script, e.g.
+%                       mu_pydebug_vscode('md2word.py', pyexe, "equations.md", "equations.docx", ...)
+%
 %   NAMEVALUE:
 %     Port          - Port number of debug server (default=5678)
-%     Other name-value inputs for python script
+%     WaitForClient - Switch of debug mode (default=true, debug mode 'on')
+%     Other name-value inputs for python script (forwarded as --key value)
 %
 % OUTPUTS:
 %     status        - 0: success, other values: failed
@@ -20,6 +27,8 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %
 % NOTES:
 %   - Make sure that VS Code uses the same python version as pyexePATH specifies.
+%   - To force positional parsing stop explicitly, you can insert a marker "--":
+%       mu_pydebug_vscode(..., "in.md", "--", "Port", 5678, "param1", 1)
 %
 % Usage:
 %   1. Configure launch.json in VS Code:
@@ -41,10 +50,59 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %   2. Run MATLAB code:
 %      mu_pydebug_vscode('~\yourscript.py', ...
 %                        'C:\Users\YOU\.conda\envs\kilosort\python.exe', ...
+%                        "input.md", "output.docx", ...
 %                        'Port', 5678, ...
 %                        'param1', val1, 'param2', val2)
 %   3. Set break points in your python script in VS Code
 %   4. Run Python script in VS Code in debug mode with launch.json
+
+% ------------------------------------------------------------
+% Pre-split varargin into:
+%   (1) python positional args: pyPosArgs
+%   (2) name-value args for MATLAB parser: nvArgs
+% Heuristic:
+%   - stop when hitting MATLAB keys (Port/WaitForClient), OR
+%   - stop when hitting a likely name-value "key" (isvarname && has following value), OR
+%   - allow explicit stop marker "--"
+% ------------------------------------------------------------
+matlabKeys = ["Port", "WaitForClient"];
+pyPosArgs = strings(1,0);
+
+k = 1;
+while k <= numel(varargin)
+    a = varargin{k};
+
+    % explicit marker: stop positional parsing
+    if (ischar(a) || isstring(a)) && isscalar(string(a)) && string(a) == "--"
+        k = k + 1;
+        break;
+    end
+
+    % determine whether current token looks like a name-value key
+    isText = (ischar(a) || isstring(a)) && isscalar(string(a));
+    if isText
+        aStr = string(a);
+
+        % if MATLAB parameter names encountered, stop
+        if any(strcmpi(aStr, matlabKeys))
+            break;
+        end
+
+        % if it looks like a "key" in name-value pairs, stop
+        % (this keeps compatibility with existing 'param', val style)
+        if k < numel(varargin)
+            if isvarname(char(aStr))
+                break;
+            end
+        end
+    end
+
+    % otherwise treat as python positional arg
+    pyPosArgs(end+1) = string(a);
+    k = k + 1;
+end
+
+nvArgs = varargin(k:end);
 
 % Parse inputs
 mIp = inputParser;
@@ -52,11 +110,12 @@ mIp.KeepUnmatched = true;
 mIp.addRequired("pyscriptPATH", @mu.isTextScalar);
 mIp.addRequired("pyexePATH", @mu.isTextScalar);
 mIp.addParameter("Port", 5678, @(x) validateattributes(x, 'numeric', {'scalar', 'positive', 'integer'}));
-mIp.parse(pyscriptPATH, pyexePATH, varargin{:});
+mIp.addParameter("WaitForClient", true, @(x) validateattributes(x, 'logical', {'scalar'}));
+mIp.parse(pyscriptPATH, pyexePATH, nvArgs{:});
 port = mIp.Results.Port;
 
 host = '127.0.0.1';
-waitForCli = true;
+waitForCli = mIp.Results.WaitForClient; % switch of debug
 bg = false;
 
 unmatched = mIp.Unmatched;
@@ -100,12 +159,22 @@ end
 pyscriptPATH = string(pyscriptPATH);
 pyexePATH    = string(pyexePATH);
 q = @(s) ['"', char(s), '"'];
+
 dbgPieces = [q(pyexePATH), "-m", "debugpy", "--listen", host + ":" + string(port)];
 if waitForCli
     dbgPieces(end + 1) = "--wait-for-client";
 end
 
+% cmd = python -m debugpy ... pyscript [positional args] [--key value ...]
 cmdParts = [dbgPieces, q(pyscriptPATH)];
+
+% append positional args (quoted)
+if ~isempty(pyPosArgs)
+    posQuoted = join(arrayfun(q, pyPosArgs, 'UniformOutput', false), ' ');
+    cmdParts  = [cmdParts, string(posQuoted)];
+end
+
+% append name-value args (quoted)
 if ~isempty(argList)
     argQuoted = join(arrayfun(q, argList, 'UniformOutput', false), ' ');
     cmdParts  = [cmdParts, string(argQuoted)];
