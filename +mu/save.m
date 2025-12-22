@@ -16,7 +16,7 @@ function success = save(FILENAME, varargin)
 success = false;
 
 % Separate variable names and name-value options
-isOption = cellfun(@(x) ischar(x) && strncmp(x, '-', 1), varargin);
+isOption = cellfun(@(x) mu.isTextScalar(x) && strncmp(x, '-', 1), varargin);
 varNames = varargin(~isOption);
 options  = varargin(isOption);
 
