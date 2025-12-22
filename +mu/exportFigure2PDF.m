@@ -177,6 +177,8 @@ for index = 1:numel(idx)
     child = children(idx(index));
     if strcmp(child.Type, "colorbar")
         tiAll{idx(index)} = getColorbarLabelInset(child);
+    else % legend
+        tiAll{idx(index)} = zeros(1, 4);
     end
 end
 if isscalar(tiAll)
@@ -187,7 +189,9 @@ if numel(children) > 1
     boxAll = cellfun(@(x, y) [x(1) - y(1), ...
                               x(2) - y(2), ...
                               x(1) + x(3) + y(3), ...
-                              x(2) + x(4) + y(4)], posAll, tiAll, "UniformOutput", false);
+                              x(2) + x(4) + y(4)], ...
+                     posAll, tiAll, ...
+                     "UniformOutput", false);
     boxAll = cat(1, boxAll{:});
 else
     boxAll = [posAll(1) - tiAll(1), ...
