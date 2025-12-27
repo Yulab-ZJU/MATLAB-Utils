@@ -1,8 +1,6 @@
 function setAxes(varargin)
 %SETAXES  Set the values of axes parameters with name-value pairs.
 
-warning("This function is obsolete and will be remove soon. Please use mu.setPlotMode instead.");
-
 narginchk(0, inf);
 
 if nargin < 1 || mu.isTextScalar(varargin{1})
@@ -19,6 +17,8 @@ else
 end
 
 if strcmpi(varargin{1}, "default")
+    warning("This usage is obsolete and will be remove soon. Please use mu.setPlotMode('pdf') instead.");
+
     set(target, "TickDir", "out");
     set(target, "TickLength", [0.02, 0.01]);
     set(target, "FontName", "Arial");
