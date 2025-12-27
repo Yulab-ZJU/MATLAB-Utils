@@ -3,7 +3,7 @@ function setAxes(varargin)
 
 narginchk(0, inf);
 
-if nargin < 1 || isstring(varargin{1}) || ischar(varargin{1})
+if nargin < 1 || mu.isTextScalar(varargin{1})
     target = gca;
 else
     target = varargin{1};
@@ -17,6 +17,11 @@ else
 end
 
 if strcmpi(varargin{1}, "default")
+    stack = dbstack;
+    if ~strcmp(stack(2).name, "setPlotMode")
+        wmsg = sprintf("If you are using mu.setAxes('default') for pdf exporting, please use mu.setPlotMode(root, 'pdf') instead.\nThis function is obsolete and will be remove soon.");
+        warning(wmsg);
+    end
     set(target, "TickDir", "out");
     set(target, "TickLength", [0.02, 0.01]);
     set(target, "FontName", "Arial");

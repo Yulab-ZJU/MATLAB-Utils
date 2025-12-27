@@ -666,10 +666,16 @@
 
     "mu.setPlotMode": {
         "inputs": [
-            {"name": "plotMode", "kind": "ordered", "type": ["choices = {'matlab', 'pdf'}"], "purpose": "default: 'pdf'"},
+            {"mutuallyExclusiveGroup": [
+                [],
+                [
+                    {"name": "root", "kind": "required", "type": ["@(args) all(isgraphics(args))"]}
+                ]
+            ]},
+            {"name": "plotMode", "kind": "ordered", "type": ["choices = {'factory', 'pdf', 'manual'}"], "purpose": "default: 'manual'"},
             {"tuple": [
-                {"name": "pName", "kind": "required", "type": [["char"], ["string"]]},
-                {"name": "pVal", "kind": "required", "type": [["cell"], ["numeric"]]}
+                {"name": "TargetProperty", "kind": "required", "type": [["char"], ["string"]]},
+                {"name": "propertyVal", "kind": "required"}
             ]}
         ],
         "description": "Set plot mode for figures with predefined styles"
