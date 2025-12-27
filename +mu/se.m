@@ -8,7 +8,7 @@ function E = se(x, varargin)
 
 mIp = inputParser;
 mIp.addRequired("x");
-mIp.addOptional("dim", [], @(x) isscalar(x) && (strcmpi(x, 'all') || (x > 0 && fix(x) == x)));
+mIp.addOptional("dim", [], @(x) (mu.isTextScalar(x) && (strcmpi(x, 'all')) || (x > 0 && fix(x) == x)));
 mIp.addOptional("omitnan", "omitnan", @(x) strcmpi(x, 'omitnan'));
 mIp.parse(x, varargin{:})
 
