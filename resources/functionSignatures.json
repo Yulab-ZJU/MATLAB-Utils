@@ -667,12 +667,14 @@
     "mu.setPlotMode": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
-                [],
                 [
-                    {"name": "root", "kind": "required", "type": ["@(args) all(isgraphics(args))"]}
+                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
+                ],
+                [
+                    {"name": "root", "kind": "required", "type": ["@(args) all(isgraphics(args))"], "purpose": "default: groot"},
+                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
                 ]
             ]},
-            {"name": "plotMode", "kind": "ordered", "type": ["choices = {'factory', 'pdf', 'manual'}"], "purpose": "default: 'manual'"},
             {"tuple": [
                 {"name": "TargetProperty", "kind": "required", "type": [["char"], ["string"]]},
                 {"name": "propertyVal", "kind": "required"}

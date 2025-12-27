@@ -5,15 +5,14 @@ function setPlotMode(varargin)
 %   - Call before plotting to affect defaults via groot.
 %   - Or pass a figure/axes handle to modify existing objects; if none exist for a target,
 %     falls back to setting corresponding default on the handle, then groot.
-%   - When calling mu.setPlotMode(Fig,'pdf'), this function will call mu.setAxes(Fig,"default")
-%     to format all axes in Fig.
 %
 % USAGE:
 %   mu.setPlotMode('factory')
 %   mu.setPlotMode('pdf')
+%   mu.setPlotMode('your_setting.m')                      % refer to defaultPlotModePDF.m
 %   mu.setPlotMode(..., TargetProperty, Value, ...)
 %   mu.setPlotMode(root, ..., TargetProperty, Value, ...)
-%   mu.setPlotMode(root, ..., Property, Value, ...)  % apply to all targets having Property
+%   mu.setPlotMode(root, ..., Property, Value, ...)       % apply to all targets having Property
 
 % ------------------------------------------------------------
 % 0) Optional graphics handle (Figure or Axes recommended)
@@ -28,52 +27,42 @@ if nargin >= 1 && isgraphics(varargin{1})
         % could still be a graphics handle in string form (unlikely), ignore
     end
 end
+if isempty(H)
+    H = groot;
+end
 
 % ------------------------------------------------------------
 % 1) Optional plotMode
 % ------------------------------------------------------------
-plotMode = 'manual';
 if ~isempty(varargin) && ...
    mu.isTextScalar(varargin{1}) && ...
-   matches(varargin{1}, {'factory', 'pdf', 'manual'}, "IgnoreCase", true)
+   (matches(varargin{1}, {'factory', 'pdf', 'manual'}, "IgnoreCase", true) || isfile(varargin{1}))
     plotMode = varargin{1};
     varargin = varargin(2:end);
+else
+    plotMode = "manual";
 end
-plotMode = validatestring(lower(plotMode), {'factory', 'pdf', 'manual'});
-
 validTargets = {'Line', 'Scatter', 'Patch', 'Axes', 'Text', 'Legend', 'Figure', 'Colorbar'};
-
-% PDF preset defaults (TargetProperty style)
-params = {'LineLineWidth'   , 0.3, ...
-          'ScatterLineWidth', 0.3, ...
-          'PatchLineWidth'  , 0.3, ...
-          'LineMarkerSize'  , 1, ...
-          'ScatterSizeData' , 1};
 
 % ------------------------------------------------------------
 % 2) Presets
 % ------------------------------------------------------------
-switch plotMode
-    case 'factory'
-        if isempty(H)
-            reset(groot);
-        else
+if isfile(plotMode)
+    temp = mu.path2func(plotMode);
+    params = temp();
+    setTargetProperty(H, params(1:2:end), params(2:2:end), validTargets);
+else
+    plotMode = validatestring(lower(plotMode), {'factory', 'pdf', 'manual'});
+    switch plotMode
+        case "factory"
             reset(H); % This will not change current plots but will affect the following plots
-        end
-
-    case 'pdf'
-        setTargetProperty(H, params(1:2:end), params(2:2:end), validTargets);
-
-        % --- NEW: format axes appearance when H is provided ---
-        if ~isempty(H)
-            try
-                % Ensure all axes under H are formatted
-                mu.setAxes(H, "default");
-            catch
-                % If mu.setAxes is not available or errors, do not stop setPlotMode
-                warning('Failed to apply mu.setAxes(H,"default") during pdf preset.');
-            end
-        end
+        case "pdf"
+            % PDF preset defaults (TargetProperty style)
+            params = defaultPlotModePDF();
+            setTargetProperty(H, params(1:2:end), params(2:2:end), validTargets);
+        otherwise
+            % manual
+    end
 end
 
 % ------------------------------------------------------------
