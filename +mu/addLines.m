@@ -61,7 +61,7 @@ mIp.parse(FigsOrAxes, varargin{:});
 Lines = mIp.Results.Lines;
 ConstantLineOpt = mu.OptionState.create(mIp.Results.ConstantLine);
 Layer = validatestring(mIp.Results.Layer, {'top', 'bottom'});
-IgnoreInvisible = mu.OptionState.create(mIp.Results.IgnoreInvisible);
+IgnoreInvisible = mu.OptionState.create(mIp.Results.IgnoreInvisible).toLogical;
 
 if isempty(Lines)
     Lines.X = [];
@@ -74,7 +74,7 @@ else
     allAxes = FigsOrAxes;
 end
 
-if IgnoreInvisible.toLogical
+if IgnoreInvisible
     % exclude invisible axes
     allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
 end

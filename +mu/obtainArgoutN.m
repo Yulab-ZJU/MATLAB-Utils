@@ -1,33 +1,31 @@
 function varargout = obtainArgoutN(fcn, Ns, varargin)
-%OBTAINARGOUTN  Return specific outputs of a function handle.
+%OBTAINARGOUTN  Return specific outputs of a function handle
+%               without forcing computation of unused outputs.
 %
 % SYNTAX:
 %     [out1, out2, ...] = mu.obtainArgoutN(fcn, Ns, varargin)
 %
-% INPUTS:
-%     fcn       - function handle
-%     Ns        - vector of desired output positions
-%     varargin  - inputs to fcn
-%
-% OUTPUTS:
-%     varargout - outputs from fcn
-%
-% EXAMPLES:
-%     [res1,res2] = mu.obtainArgoutN(@size, [2,3], ones(10,20,30));
-%     >> res1 = 20, res2 = 30
+% NOTES:
+%   - fcn is called once per requested output
+%   - Each call uses nargout == 1
+%   - Extra outputs are never computed inside fcn
 
-nMax = max(Ns);          % total number of outputs to request
-allOut = cell(1, nMax);  % preallocate cell for all outputs
-
-% Call function once, get all outputs up to max(Ns)
-[allOut{:}] = fcn(varargin{:});
-
-% Extract requested outputs
 nReq = numel(Ns);
 varargout = cell(1, nReq);
+
 for k = 1:nReq
-    varargout{k} = allOut{Ns(k)};
+    % wrapper forces single-output evaluation
+    out = nthOutput(fcn, Ns(k), varargin{:});
+
+    varargout{k} = out;
 end
 
 return;
+end
+
+function out = nthOutput(fcn, idx, varargin)
+    % Force fcn to see nargout == idx, but only return one output
+    tmp = cell(1, idx);
+    [tmp{:}] = fcn(varargin{:});
+    out = tmp{idx};
 end
