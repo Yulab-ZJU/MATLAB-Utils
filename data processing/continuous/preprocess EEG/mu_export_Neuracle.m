@@ -111,7 +111,7 @@ for index = 1:length(DATAPATHs)
     end
 
     % Search for existed ICA result data for this subject
-    if strcmpi(opts.sameICAOpt, "on")
+    if mu.OptionState.create(opts.sameICAOpt).toLogical
         SUBJECTPATH = mu.getrootpath(SAVEPATHs{index}, 1);
         ICAPATH = dir(fullfile(SUBJECTPATH, '**\ICA res.mat'));
         if isempty(ICAPATH)

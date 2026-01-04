@@ -69,7 +69,7 @@ EEG.data = mu.filter(EEG.data, fs, "fhp", fhp, "flp", flp, "fnotch", 50);
 trialsEEG = mu_selectWave(EEG.data, fs, latency / fs * 1e3, window);
 
 % ICA
-if strcmpi(icaOpt, "on") && nargout >= 4
+if mu.OptionState.create(opts.icaOpt).toLogical && nargout >= 4
     if ~isempty(ICAPATH) && exist(fullfile(ICAPATH, "ICA res.mat"), "file")
         load(fullfile(ICAPATH, "ICA res.mat"), "-mat", "comp");
         channels = comp.channels;
