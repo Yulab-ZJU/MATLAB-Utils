@@ -46,34 +46,40 @@ function res = replaceval(x, newVal, conditions)
 
 narginchk(2, 3);
 
-if nargin < 3
-    conditions = [];
+if nargin < 3 || isempty(conditions)
+    res = x;
+    return;
 end
 
-if isnumeric(conditions)
-    conditions = num2cell(conditions(:), 2);
-elseif isa(conditions, "function_handle")
-    conditions = {conditions};
-elseif ischar(conditions) || isstring(conditions)
-    conditions = cellstr(conditions);
+% --- normalize conditions into a flat cell array ---
+if isa(conditions, "function_handle")
+    conds = {conditions};
+elseif isnumeric(conditions) || isstring(conditions) || ischar(conditions)
+    conds = num2cell(conditions(:));
 elseif iscell(conditions)
-    % do nothing
+    conds = conditions(:);
 else
     error("Invalid conditions input");
 end
 
-% vectorize
-conditions = conditions(:);
+% --- test conditions (short-circuit OR) ---
+for k = 1:numel(conds)
+    c = conds{k};
 
-% find function_handle in conditions
-idx = cellfun(@(y) isa(y, "function_handle"), conditions);
-
-% replace value
-if any(cell2mat(cellfun(@(y) y(x), conditions(idx), "UniformOutput", false))) || any(cellfun(@(y) isequal(x, y), conditions(~idx)))
-    res = newVal;
-else
-    res = x;
+    if isa(c, "function_handle")
+        if c(x)
+            res = newVal;
+            return;
+        end
+    else
+        if isequal(x, c)
+            res = newVal;
+            return;
+        end
+    end
+    
 end
 
+res = x;
 return;
 end

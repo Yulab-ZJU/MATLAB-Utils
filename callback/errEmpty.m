@@ -6,6 +6,7 @@ function varargout = errEmpty(err, varargin)
 %
 % This function is called as ErrorHandler of arrayfun, cellfun, ...
 
-varargout = repmat({[]}, 1, nargout);
+varargout = cell(1, nargout);
+[varargout{:}] = deal([]);
 return;
 end

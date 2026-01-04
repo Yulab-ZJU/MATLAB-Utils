@@ -6,6 +6,7 @@ function varargout = errNAN(err, varargin)
 %
 % This function is called as ErrorHandler of arrayfun, cellfun, ...
 
-varargout = repmat({nan}, 1, nargout);
+varargout = cell(1, nargout);
+[varargout{:}] = deal(NaN);
 return;
 end
