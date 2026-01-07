@@ -7,6 +7,7 @@ arguments
     SAVEROOTPATH              {mustBeTextScalar}
 
     opts.th                   (1,2) double {mustBePositive} = [8, 7]
+    opts.nch                  (1,1) double {mustBePositive, mustBeInteger} = []
     opts.resultsDir           {mustBeTextScalar} = ''
 
     opts.skipBinExportExisted (1,1) logical = true
@@ -55,10 +56,14 @@ end
 if ~skipSorting
     [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(opts.resultsDir, 'MergeWave.bin'), BINPATHs{:});
     
+    if isempty(opts.nch)
+        opts.nch = nch;
+    end
+
     % Get kilosort3 configuration
     config = mu_ks3_config("NchanTOT", nch, ...
         "fs", fs, ...
-        "chanMap", mu_ks3_getChanMap(nch, opts.badChs), ...
+        "chanMap", mu_ks3_getChanMap(opts.nch, opts.badChs), ...
         "Th", opts.th);
     
     % Run ks3
