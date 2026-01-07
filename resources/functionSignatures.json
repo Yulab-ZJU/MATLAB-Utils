@@ -517,7 +517,8 @@
     "mu.groupFigures": {
         "inputs": [
             {"name": "Figs", "kind": "ordered", "type": ["@(args) isempty(x) || all(isgraphics(args))"]},
-            {"name": "TabLocation", "kind": "namevalue", "type": ["choices = {'top', 'left', 'right', 'bottom'}"], "purpose": "default: 'top'"}
+            {"name": "TabLocation", "kind": "namevalue", "type": ["choices = {'top', 'left', 'right', 'bottom'}"], "purpose": "default: 'top'"},
+            {"name": "KeepOriginal", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default: false"}
         ],
         "description": "Group multiple figure windows under a single tabbed interface"
     },

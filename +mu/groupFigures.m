@@ -16,10 +16,11 @@ function hTabFig = groupFigures(varargin)
 mIp = inputParser;
 mIp.addOptional("Figs", [], @(x) isempty(x) || all(ishandle(x)));
 mIp.addParameter("TabLocation", "top", @mustBeTextScalar);
-mIp.addParameter("KeepOriginal", false, @(x) validateattributes(x, 'logical', {'scalar'}));
+mIp.addParameter("KeepOriginal", false, @mu.OptionState.validate);
 mIp.parse(varargin{:});
 Figs = mIp.Results.Figs;
 TabLocation = validatestring(mIp.Results.TabLocation, {'top', 'left', 'right', 'bottom'});
+KeepOriginal = mu.OptionState.create(mIp.Results.KeepOriginal).toLogical;
 
 % If no figures provided, get all open figure windows
 if isempty(Figs)
@@ -57,7 +58,9 @@ for k = 1:numel(Figs)
         copyobj(ch, t);
     end
 
-    delete(f);
+    if ~KeepOriginal
+        delete(f);
+    end
 end
 
 drawnow;
