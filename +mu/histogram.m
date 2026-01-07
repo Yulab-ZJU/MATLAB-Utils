@@ -14,8 +14,8 @@ function varargout = histogram(varargin)
 %     edges  - optional numeric vector of bin edges
 %   NAME-VALUE:
 %     LineWidth          - Bar edge linewidth, default=0.5
-%     FaceColor          - Cell array of colors or 'none', per group
-%     EdgeColor          - Cell array of colors or 'none', per group
+%     FaceColor          - Cell array of colors or 'none', per group, default: auto-determined
+%     EdgeColor          - Cell array of colors or 'none', per group, default='k'
 %     GroupSpace         - Normalized space between groups, default=0
 %     BinSpace           - Normalized space between bars, default=0
 %     DisplayName        - Cell array of legend strings per group
@@ -35,8 +35,8 @@ function varargout = histogram(varargin)
 %   X = [x1; x2];
 %   % For x1,x2 different in size use X = [{x1}; {x2}}];
 %   [H, N, edges] = mu.histogram(X, "BinWidth", 1, ...
-%                                 "FaceColor", {[1 0 0], [0 0 1]}, ...
-%                                 "DisplayName", {'condition 1', 'condition 2'});
+%                                   "FaceColor", {[1 0 0], [0 0 1]}, ...
+%                                   "DisplayName", {'condition 1', 'condition 2'});
 
 if strcmp(class(varargin{1}), "matlab.graphics.Graphics")
     ax = varargin{1};
@@ -51,7 +51,7 @@ mIp.addRequired("X", @(x) validateattributes(x, {'numeric', 'cell'}, {'2d'}));
 mIp.addOptional("edges", [], @(x) validateattributes(x, {'numeric'}, {'vector'}));
 mIp.addParameter("LineWidth", 0.5, @(x) validateattributes(x, {'numeric'}, {'positive'}));
 mIp.addParameter("FaceColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
-mIp.addParameter("EdgeColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
+mIp.addParameter("EdgeColor", "k", @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
@@ -71,7 +71,7 @@ groupSpace = mIp.Results.GroupSpace;
 binSpace = mIp.Results.BinSpace;
 BinWidth = mIp.Results.BinWidth;
 BinMethod = validatestring(mIp.Results.BinMethod, {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'});
-DistributionCurve = mu.OptionState.create(mIp.Results.DistributionCurve);
+DistributionCurve = mu.OptionState.create(mIp.Results.DistributionCurve).toLogical;
 FitCurveLineWidth = mIp.Results.FitCurveLineWidth;
 
 % Convert X to cell
@@ -173,7 +173,7 @@ for cIndex = 1:nBin
 end
 
 % Plot distribution curves
-if DistributionCurve.toLogical
+if DistributionCurve
     for gIndex = 1:nGroup
         pd = fitdist(X{gIndex}(:), "Kernel");
         temp = linspace(min(edges) - std(X{gIndex}(:)), max(edges) + std(X{gIndex}(:)), 1e3);

@@ -158,7 +158,7 @@ for i = 1:numel(names)
         for k = 1:numel(validTargets)
             t = validTargets{k};
             if isprop(proto.(t), prop)
-                tar{end+1} = t; %#ok<AGROW>
+                tar{end + 1} = t; %#ok<AGROW>
             end
         end
         assert(~isempty(tar), ...
@@ -221,7 +221,7 @@ if ~isempty(P) && isfield(P,'Figure') && isgraphics(P.Figure)
     return;
 end
 
-f  = figure('Visible','off');
+f  = figure('Visible', 'off');
 ax = axes('Parent', f); hold on;
 
 plot(ax, [0 1], [0 1]);

@@ -184,16 +184,20 @@ else
             mexName = ['cwtMulti_', wname, num2str(nTime), 'x', num2str(segNum), '_mex.mexw64'];
             if ~exist(mexName, 'file')
                 disp("MEX file is missing. Generating MEX file...");
+
                 currentPath = pwd;
+                origPath    = path;
+                cleanupPath = onCleanup(@() path(origPath));
+                cleanupCD   = onCleanup(@() cd(currentPath));
+
                 cd(fullfile(fileparts(mfilename("fullpath")), "private"));
                 ft_removepaths;
+
                 cfg = coder.gpuConfig('mex');
                 str = ['codegen cwtMulti_', wname, ' -config cfg -args {coder.typeof(gpuArray(0),[', ...
                     num2str(nTime), ' ', num2str(segNum), ']),coder.typeof(0)}'];
                 eval(str);
                 movefile(['cwtMulti_', wname, '_mex.mexw64'], mexName);
-                cd(currentPath);
-                ft_defaults;
             end
         end
 
@@ -271,26 +275,26 @@ end
 disp(['Wavelet transform computation done in ', num2str(toc(t1)), ' sec.']);
 
 return;
-
+end
 
 % ========================= local helpers =========================
 function [segNumNew, msg] = local_adaptSegNum(segNum0, nTotal0, bytesPerSeg_in0, bytesPerSeg_out0, safety0, which)
     segNumNew = min(segNum0, nTotal0);
     avail = local_availableMemoryBytes(which);
-
+    
     % If unknown, be conservative but do not change segNum.
     if ~isfinite(avail) || avail <= 0
         msg = sprintf("Memory check: %s available memory unknown; keep segNum=%d.", upper(which), segNumNew);
         return;
     end
-
+    
     target = 0.70 * avail; % leave headroom
-
+    
     bytesPerSeg = safety0 * (bytesPerSeg_in0 + bytesPerSeg_out0);
-
+    
     maxSeg = floor(target / bytesPerSeg);
     maxSeg = max(1, min(maxSeg, nTotal0));
-
+    
     if maxSeg < segNumNew
         segNumNew = maxSeg;
         msg = sprintf("Memory check (%s): reducing segNum to %d to fit available memory.", upper(which), segNumNew);
@@ -301,7 +305,7 @@ end
 
 function avail = local_availableMemoryBytes(which)
     avail = NaN;
-
+    
     if strcmpi(which, "gpu")
         try
             g = gpuDevice();
@@ -312,7 +316,7 @@ function avail = local_availableMemoryBytes(which)
             return;
         end
     end
-
+    
     % CPU
     % Prefer MATLAB's memory() on Windows; otherwise use feature('memstats') if available.
     try
@@ -324,7 +328,7 @@ function avail = local_availableMemoryBytes(which)
     catch
         % fallthrough
     end
-
+    
     try
         ms = feature('memstats'); % may vary across versions/platforms
         if isstruct(ms)
@@ -341,6 +345,4 @@ function avail = local_availableMemoryBytes(which)
     catch
         % unknown
     end
-end
-
 end
