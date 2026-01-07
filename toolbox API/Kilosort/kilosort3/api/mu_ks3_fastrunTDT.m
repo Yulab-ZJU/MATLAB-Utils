@@ -17,6 +17,8 @@ arguments
     opts.FORMAT               {mustBeTextScalar} = 'i16'
     opts.badChs               (1,:) double {mustBePositive} = []
     opts.sitePos              {mustBeTextScalar} = ''
+
+    opts.TrigField            {mustBeTextScalar} = 'Swep'
 end
 BLOCKPATHs = cellstr(BLOCKPATHs);
 assert(numel(paradigms) == numel(BLOCKPATHs), 'The number of paradigms must match the number of BLOCKs.');
@@ -44,12 +46,13 @@ if exist(fullfile(opts.resultsDir, "spike_times.npy"), "file")
 end
 
 % --------------- Start of sorting ---------------
+% Generate bin files
+if ~exist(opts.resultsDir, "dir")
+    mkdir(opts.resultsDir);
+end
+[BINPATHs, nch, fs] = mu_ks_getBins_TDT(BLOCKPATHs, "Format", opts.FORMAT, "SkipExisted", opts.skipBinExportExisted);
+
 if ~skipSorting
-    % Generate bin files
-    if ~exist(opts.resultsDir, "dir")
-        mkdir(opts.resultsDir);
-    end
-    [BINPATHs, nch, fs] = mu_ks_getBins_TDT(BLOCKPATHs, "Format", opts.FORMAT, "SkipExisted", opts.skipBinExportExisted);
     [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(opts.resultsDir, 'MergeWave.bin'), BINPATHs{:});
     
     % Get kilosort3 configuration
@@ -83,9 +86,9 @@ TANKNAMEs = cellfun(@(x) strjoin(x(1:2), filesep), TANKNAMEs, "UniformOutput", f
 % ~\paradigm\subject\date_sitePos
 % paradigm -> Block-n
 if isempty(opts.sitePos)
-    SAVEPATHs = arrayfun(@(x, y) fullfile(SAVEROOTPATH, x, y), paradigms, TANKNAMEs, "UniformOutput", false);
+    SAVEPATHs = cellfun(@(x, y) fullfile(SAVEROOTPATH, x, y), paradigms, TANKNAMEs, "UniformOutput", false);
 else
-    SAVEPATHs = arrayfun(@(x, y) fullfile(SAVEROOTPATH, x, strcat(y, '_', opts.sitePos)), paradigms, TANKNAMEs, "UniformOutput", false);
+    SAVEPATHs = cellfun(@(x, y) fullfile(SAVEROOTPATH, x, strcat(y, '_', opts.sitePos)), paradigms, TANKNAMEs, "UniformOutput", false);
 end
 
 if all(cellfun(@(x) exist(fullfile(x, 'spkData.mat'), "file"), SAVEPATHs)) && opts.skipMatExportExisted
@@ -178,10 +181,10 @@ for pIndex = 1:numel(BLOCKPATHs)
     dataTDT{pIndex} = TDTbin2mat(BLOCKPATHs{pIndex}, 'TYPE', {'epocs'});
 
     % Use TDT trigger
-    TTL_Onset{pIndex} = dataTDT{pIndex}.epocs.(tempField).onset; % sec
+    TTL_Onset{pIndex} = dataTDT{pIndex}.epocs.(opts.TrigField).onset; % sec
 
     % Trigger aligment
-    spikeTimes{pIndex} = (spikeIdx - nShift) / fs; % sec
+    spikeTimes{pIndex} = spikeIdx / fs; % sec
     clusterIdxs{pIndex} = clusterIdx;
 
     if exist(fullfile(SAVEPATHs{pIndex}, 'spkData.mat'), "file") && opts.skipMatExportExisted

@@ -43,9 +43,19 @@ mu.addLines(Fig, struct("X", 0));
 latency = mu_calLatency(spikes, [0, 300], [-100, 0]);
 if ~isempty(latency)
     mu.addLines(Fig, struct("X", latency, "color", "r"));
-    title(ax1, ['Latency for onset response: ', num2str(latency), ' ms']);
+    if ~isempty(clus)
+        titleStr = sprintf('Cluster %d | Latency for onset response: %.2f ms', clus, latency);
+    else
+        titleStr = sprintf('Latency for onset response: %.2f ms', latency);
+    end
+    title(ax1, titleStr);
 else
-    title(ax1, 'No significant onset response found');
+    if ~isempty(clus)
+        titleStr = sprintf('Cluster %d | No significant onset response found', clus);
+    else
+        titleStr = 'No significant onset response found';
+    end
+    title(ax1, titleStr);
 end
 
 if nargout == 1

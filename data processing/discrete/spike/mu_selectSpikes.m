@@ -146,12 +146,15 @@ if isnumeric(varargin{1})
     end
 
 elseif iscell(varargin{1}) || isstruct(varargin{1})
+    narginchk(1, 3);
+
     % Select spikes for specific clusters from trials
     trial = varargin{1};
-    clus = varargin{2};
+    assert(isfield(trial, "spike"), "Input struct [trial] should contain field 'spike'.");
+
+    clus     = mu.ifelse(nargin < 2, [], @() varargin{2});
     keepClus = mu.ifelse(nargin < 3, mu.OptionState.Off, @() mu.OptionState.create(varargin{3}));
     keepClus = keepClus.toLogical;
-
     out = selectTrialClus(trial, clus, keepClus);
 end
 
