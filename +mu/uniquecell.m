@@ -1,9 +1,9 @@
-function [uniqueCA, idx] = mUniqueCell(cellRaw, varargin)
-%MUNIQUECELL  Unique sets & set filtering (simple / largest set / minimum set)
+function [uniqueCA, idx] = uniquecell(cellRaw, varargin)
+%UNIQUECELL  Unique sets & set filtering (simple / largest set / minimum set)
 %
 % SYNTAX:
-%   [uniqueCA, idx] = mUniqueCell(cellRaw)
-%   [uniqueCA, idx] = mUniqueCell(cellRaw, TYPE)
+%   [uniqueCA, idx] = mu.uniquecell(cellRaw)
+%   [uniqueCA, idx] = mu.uniquecell(cellRaw, TYPE)
 %
 % INPUT:
 %   cellRaw : cell array, each cell is a numeric vector (row/col ok).
@@ -23,9 +23,9 @@ function [uniqueCA, idx] = mUniqueCell(cellRaw, varargin)
 %
 % EXAMPLES:
 %   C = { [3 2 2 1], [1 2 3], [2], [2 3 4], [3 4], [], [NaN NaN 1], [1 NaN] };
-%   [U, I] = mUniqueCell(C, "simple");
-%   [Umax, Imax] = mUniqueCell(C, "largest set");
-%   [Umin, Imin] = mUniqueCell(C, "minimum set");
+%   [U, I] = mu.uniquecell(C, "simple");
+%   [Umax, Imax] = mu.uniquecell(C, "largest set");
+%   [Umin, Imin] = mu.uniquecell(C, "minimum set");
 
 % ---------- Parse inputs ----------
 mIp = inputParser;

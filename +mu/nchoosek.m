@@ -1,9 +1,9 @@
-function groups = mNchoosek(data, nPool, header)
-%MNCHOOSEK Generate all combinations for multiple pool sizes with optional header.
+function groups = nchoosek(data, nPool, header)
+%NCHOOSEK Generate all combinations for multiple pool sizes with optional header.
 %
 % SYNTAX:
-%   groups = mNchoosek(data, nPool)
-%   groups = mNchoosek(data, nPool, header)
+%   groups = mu.nchoosek(data, nPool)
+%   groups = mu.nchoosek(data, nPool, header)
 %
 % INPUT:
 %   data   : numeric/logical vector OR cell vector (row/col ok). Elements are the pool.
@@ -23,13 +23,13 @@ function groups = mNchoosek(data, nPool, header)
 %
 % EXAMPLES:
 %   % numeric
-%   mNchoosek(1:5, 2)
-%   mNchoosek(1:4, [2 3], [100 200])
+%   mu.nchoosek(1:5, 2)
+%   mu.nchoosek(1:4, [2 3], [100 200])
 %
 %   % cell labels
 %   labs = {'A','B','C','D'};
-%   mNchoosek(labs, 2)
-%   mNchoosek(labs, [1 3], {'Head'})
+%   mu.nchoosek(labs, 2)
+%   mu.nchoosek(labs, [1 3], {'Head'})
 %
 % See also: nchoosek, perms
 
@@ -75,7 +75,7 @@ totalRows = 0;
 for K = nPool
     totalRows = totalRows + nchoosek(n, K);
     if totalRows > maxCombWarn
-        error('mNchoosek:TooManyCombinations', ...
+        error('mu.nchoosek:TooManyCombinations', ...
             'Total combinations exceed %g. (n=%d, Ks=%s). Consider using smaller Ks or chunked generation.', ...
             maxCombWarn, n, mat2str(nPool));
     end
