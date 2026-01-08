@@ -57,9 +57,9 @@ for rIndex = 1:numel(RESPATHs)
     spikeTrainMerge = arrayfun(@(x) spikeTimeMerge(clusterIdxMerge == x), clusterUnique, "UniformOutput", false);
     spikeFrMerge    = cellfun(@numel, spikeTrainMerge) / (sum(nsamples{rIndex}) / fs(rIndex));
 
-    simCell = mCell2mat(cellfun(@(x, y) mNchoosek(find(all(spikeFrMerge(x > simThr) > frThr0) & x > simThr & ~ismember(1:length(idSimilar), y)), 1:sum(x > simThr)-1, y), num2cell(idSimilar, 2), num2cell(1:length(idSimilar))', "UniformOutput", false));
+    simCell = mu.cell2mat(cellfun(@(x, y) mu.nchoosek(find(all(spikeFrMerge(x > simThr) > frThr0) & x > simThr & ~ismember(1:length(idSimilar), y)), 1:sum(x > simThr)-1, y), num2cell(idSimilar, 2), num2cell(1:length(idSimilar))', "UniformOutput", false));
     if ~isempty(simCell)
-        similarPool = mUniqueCell(simCell);
+        similarPool = mu.uniquecell(simCell);
         segIdx = find(cellfun(@(x, y) max(x) < min(y), similarPool, [similarPool(2:end); similarPool(end)]));
         mergePool = cellfun(@(x) similarPool(x(1) : x(2)), num2cell([[1; segIdx+1], [segIdx; length(similarPool)]], 2), "UniformOutput", false);
 
@@ -69,8 +69,8 @@ for rIndex = 1:numel(RESPATHs)
         accIdx = cellfun(@(x, y, z) find(x < QThr & y < RThr & cellfun(@(k) mean(spikeFrMerge(k)) > frThrMean, z)), Q, R, mergePool, "UniformOutput", false);
         % bestIdx : the largest set meeting the criterion or the min Q value in several sets with same size
         [~, bestIdx] = cellfun(@(x, y, z)  max(sum([2*(cellfun(@length, x(y)) == max(cellfun(@length, x(y)))), z(y)-min(z(y)) == 0], 2)), mergePool, accIdx, Q, "UniformOutput", false);
-        mergeIdx = mCell2mat(cellfun(@(x, y, z, k) [x(y(z)) k(y(z))], mergePool, accIdx, bestIdx, Q, "UniformOutput", false));
-        [~, idx]= mUniqueCell(cellfun(@(x) double(clusterUnique(x)), mergeIdx(:, 1), "UniformOutput", false));
+        mergeIdx = mu.cell2mat(cellfun(@(x, y, z, k) [x(y(z)) k(y(z))], mergePool, accIdx, bestIdx, Q, "UniformOutput", false));
+        [~, idx]= mu.uniquecell(cellfun(@(x) double(clusterUnique(x)), mergeIdx(:, 1), "UniformOutput", false));
         mergeIdx = mergeIdx(idx, :);
 
         if ~isempty(mergeIdx)
@@ -126,10 +126,28 @@ for rIndex = 1:numel(RESPATHs)
             load(TRIGPATHs{rIndex}{pIndex}, "board_dig_in_data", "TTL");
             try TTL = board_dig_in_data; end
             epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
-            if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
-                tempField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
+
+            temp = TreeItem("epocs");
+            for eIndex = 1:numel(epocsNames)
+                temp.addChild(epocsNames{eIndex});
+            end
+            ckl = checklist(temp);
+            uiwait(ckl.UIFigure, 20);
+            epocsNameSelected = ckl.selectedData;
+            delete(ckl);
+            if isempty(epocsNameSelected)
+                % auto-determine
+                if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
+                    tempField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
+                else
+                    tempField = "Swep";
+                end
             else
-                tempField = "Swep";
+                tempField = {ckl.selectedData.Text};
+                if numel(tempField) > 1
+                    warning("Please select only one epocs field. Use the first selected field.");
+                    tempField = tempField{1};
+                end
             end
 
             trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset);

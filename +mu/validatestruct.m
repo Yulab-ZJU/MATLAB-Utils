@@ -28,6 +28,11 @@ for k = 1:numel(fIdx)
     fname = varargin{fIdx(k)};
     fcn = varargin{fIdx(k) + 1};
 
+    if ~isfield(s, fname)
+        isValid = false;
+        msgBuf(end + 1) = sprintf('%s is not a field', fname); %#ok<AGROW>
+    end
+
     % validate each struct
     for sIdx = 1:numel(s)
         val = s(sIdx).(fname);

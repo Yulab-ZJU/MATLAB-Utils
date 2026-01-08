@@ -231,6 +231,16 @@
         "description": "Parse the fields of a struct array"
     },
 
+    "mu.validatestruct": {
+        "inputs": [
+            {"name": "s", "kind": "required", "type": ["struct"]},
+            {"tuple": [
+                {"name": "field", "kind": "required", "type": [["char"], ["string"]]},
+                {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]}
+            ], "repeating": true}
+        ]
+    },
+
     "mu.getabspath": {
         "inputs": [
             {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
