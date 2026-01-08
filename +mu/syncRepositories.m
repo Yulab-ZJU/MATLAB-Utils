@@ -94,6 +94,7 @@ for rIndex = 1:numel(RepositoryPaths)
     % Pull & optionally push
     [status, msg] = system("git pull");
     fprintf(msg);
+    fprintf(newline);
     if status ~= 0
         warning("git pull failed in %s\nMessage: %s", repo, msg);
     end

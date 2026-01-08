@@ -6,19 +6,21 @@ arguments
     paradigms                 (1,:) {mustBeText}
     SAVEROOTPATH              {mustBeTextScalar}
 
+    % sort
     opts.th                   (1,2) double {mustBePositive} = [8, 7]
     opts.nch                  (1,1) double {mustBePositive, mustBeInteger} = []
     opts.resultsDir           {mustBeTextScalar} = ''
+    opts.FORMAT               {mustBeTextScalar} = 'i16'
 
+    % flag
     opts.skipBinExportExisted (1,1) logical = true
     opts.skipSortExisted      (1,1) logical = true
     opts.KeepWhFile           (1,1) logical = false
     opts.skipMatExportExisted (1,1) logical = true
 
-    opts.FORMAT               {mustBeTextScalar} = 'i16'
+    % info
     opts.badChs               (1,:) double {mustBePositive} = []
     opts.sitePos              {mustBeTextScalar} = ''
-
     opts.TrigField            {mustBeTextScalar} = 'Swep'
 end
 BLOCKPATHs = cellstr(BLOCKPATHs);
