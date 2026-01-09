@@ -8,7 +8,7 @@ arguments
 
     % sort
     opts.th                   (1,2) double {mustBePositive} = [8, 7]
-    opts.nch                  (1,1) double {mustBePositive, mustBeInteger} = []
+    opts.nch                  double = []
     opts.resultsDir           {mustBeTextScalar} = ''
     opts.FORMAT               {mustBeTextScalar} = 'i16'
 
@@ -60,6 +60,8 @@ if ~skipSorting
     
     if isempty(opts.nch)
         opts.nch = nch;
+    else
+        validateattributes(opts.nch, 'numeric', {'scalar', 'positive'});
     end
 
     % Get kilosort3 configuration
