@@ -8,7 +8,7 @@ function s = addfield(s, varargin)
 %   REQUIRED:
 %     s        - Struct array
 %     fName_i  - Field name
-%     fVal_i   - [numel(s) x 1] cell array or numeric array with numel(s) rows
+%     fVal_i   - [numel(s) x 1] cell array or numeric/logical array with numel(s) rows
 %
 % OUTPUTS:
 %     s        - Struct array
@@ -28,8 +28,8 @@ if numel(fNames) ~= numel(fVals)
     error("Mismatch name-value pairs");
 end
 
-if any(cellfun(@isnumeric, fVals))
-    assert(isvector(s), "[s] must be a vector when there is numeric [fVal]");
+if any(cellfun(@(x) isnumeric(x) || islogical(x), fVals))
+    assert(isvector(s), "[s] must be a vector when there is numeric/logical [fVal]");
 end
 
 % Standardize field name to char
@@ -42,10 +42,10 @@ for fIndex = 1:numel(fNames)
     % Validate size of fVal
     if iscell(fVal)
         assert(isequal(size(fVal), size(s)), 'Size of cell [fVal] must equal size of [s].');
-    elseif isnumeric(fVal)
+    elseif isnumeric(fVal) || islogical(fVal)
         assert(size(fVal, 1) == numel(s), 'Row count of numeric [fVal] must equal number of [s].');
     else
-        error('[fVal] must be a cell array or numeric array.');
+        error('[fVal] must be a cell array or numeric/logical array.');
     end
 
     s = addfieldImpl(s, fName, fVal);
