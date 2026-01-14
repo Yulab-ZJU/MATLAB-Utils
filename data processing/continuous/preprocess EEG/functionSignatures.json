@@ -1,0 +1,11 @@
+{
+    "_schemaVersion": "1.0.0",
+
+    "mu_unwrapTrialEvents": {
+        "inputs": [
+            {"name": "trialAll", "kind": "required", "type": ["struct"]},
+            {"name": "type", "kind": "namevalue", "type": ["choices = {'stimuli', 'choice'}"]}
+        ]
+    }
+
+}
