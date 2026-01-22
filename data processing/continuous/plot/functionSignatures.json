@@ -90,7 +90,7 @@
         ]
     },
 
-    "mu_addScaleplate": {
+    "mu_scaleplate": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [],
