@@ -50,8 +50,8 @@ mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, {'numeric', 'cell'}, {'2d'}));
 mIp.addOptional("edges", [], @(x) validateattributes(x, {'numeric'}, {'vector'}));
 mIp.addParameter("LineWidth", 0.5, @(x) validateattributes(x, {'numeric'}, {'positive'}));
-mIp.addParameter("FaceColor", [], @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
-mIp.addParameter("EdgeColor", "k", @(x) iscell(x) || (isscalar(x) && strcmpi(x, "none")));
+mIp.addParameter("FaceColor", [], @(x) iscell(x) || strcmpi(x, "none"));
+mIp.addParameter("EdgeColor", {'k'}, @(x) iscell(x) || strcmpi(x, "none"));
 mIp.addParameter("DisplayName", [], @(x) iscell(x));
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
@@ -96,7 +96,7 @@ end
 
 % Determine colors
 colors = num2cell(lines(nGroup), 2);
-if isscalar(FaceColors) && strcmpi(FaceColors, "none")
+if strcmpi(FaceColors, "none")
     FaceColors = repmat({'none'}, nGroup, 1);
 else
     if isempty(FaceColors)
@@ -107,10 +107,13 @@ else
     assert(numel(FaceColors) == nGroup, 'The number of FaceColor should equal to the number of groups %d', nGroup);
 end
 
-if (isscalar(EdgeColors) && strcmpi(EdgeColors, "none")) || isempty(EdgeColors)
+if strcmpi(EdgeColors, "none") || isempty(EdgeColors)
     EdgeColors = repmat({'none'}, nGroup, 1);
 else
     EdgeColors = cellfun(@validatecolor, EdgeColors, "UniformOutput", false);
+    if isscalar(EdgeColors)
+        EdgeColors = repmat(EdgeColors, nGroup, 1);
+    end
     assert(numel(EdgeColors) == nGroup, 'The number of EdgeColor should equal to the number of groups %d', nGroup);
 end
 

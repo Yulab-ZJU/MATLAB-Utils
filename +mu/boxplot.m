@@ -82,7 +82,8 @@ function varargout = boxplot(varargin)
 %   - The 'BoxEdgeType' input:
 %       * 'SE' : mean ± standard error (based on sample size)
 %       * 'STD': mean ± standard deviation
-%       * [low, high]: e.g., [25, 75] for quartiles
+%       * [low, high]: percentiles defining box edges
+%                      (e.g., [25, 75] corresponds to Q1–Q3, i.e., the IQR)
 %
 %   - 'Colors' can be:
 %       * Single RGB triplet → all boxes same color
@@ -182,16 +183,16 @@ groupLegends = cellstr(mIp.Results.GroupLegends);
 categorySpace = mIp.Results.CategorySpace;
 colors = mIp.Results.Colors;
 boxEdgeType = mIp.Results.BoxEdgeType;
-notchOpt = mu.OptionState.create(mIp.Results.Notch);
+notchOpt = mu.OptionState.create(mIp.Results.Notch).toLogical;
 boxParameters = getOrCellParameters(mIp.Results.BoxParameters, defaultBoxParameters);
 centerLineParameters = getOrCellParameters(mIp.Results.CenterLineParameters, defaultCenterLineParameters);
 whisker = mIp.Results.Whisker;
 whiskerParameters = getOrCellParameters(mIp.Results.WhiskerParameters, defaultWhiskerParameters);
 whiskerCapParameters = getOrCellParameters(mIp.Results.WhiskerCapParameters, defaultWhiskerCapParameters);
-individualDataPoint = mu.OptionState.create(mIp.Results.IndividualDataPoint);
+individualDataPoint = mu.OptionState.create(mIp.Results.IndividualDataPoint).toLogical;
 symbolParameters = getOrCellParameters(mIp.Results.SymbolParameters, defaultSymbolParameters);
 jitterWidth = mIp.Results.Jitter;
-outlierOpt = mu.OptionState.create(mIp.Results.Outlier);
+outlierOpt = mu.OptionState.create(mIp.Results.Outlier).toLogical;
 outlierParameters = getOrCellParameters(mIp.Results.OutlierParameters, defaultOutlierParameters);
 
 % Validate
@@ -313,7 +314,7 @@ whiskerColor = getNameValue(whiskerParameters, "Color");
 whiskerCapColor = getNameValue(whiskerCapParameters, "Color");
 
 % Compute outliers
-if outlierOpt.toLogical && ~isempty(whisker)
+if outlierOpt && ~isempty(whisker)
     outliers = cell(nCategory, nGroup);
     for cIndex = 1:nCategory
         for gIndex = 1:nGroup
@@ -370,6 +371,7 @@ legendLabels = cell(1, nGroup);
 hold(ax, 'on');
 for cIndex = 1:nCategory
 
+    H = gobjects(5, 1);
     for gIndex = 1:nGroup
         left = boxEdgeLeft(cIndex, gIndex);
         right = boxEdgeRight(cIndex, gIndex);
@@ -385,13 +387,13 @@ for cIndex = 1:nCategory
         if strcmpi(outlierMarkerFaceColor, "auto")
             params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
         end
-        if outlierOpt.toLogical && ~isempty(outliers{cIndex, gIndex})
+        if outlierOpt && ~isempty(outliers{cIndex, gIndex})
             data = data(~ismember(data, outliers{cIndex, gIndex}));
             scatter(mid * ones(numel(outliers{cIndex, gIndex}), 1), outliers{cIndex, gIndex}, params{:});
         end
 
         % plot individual data points
-        if individualDataPoint.toLogical
+        if individualDataPoint
             params = symbolParameters;
             if strcmpi(symbolMarkerFaceColor, "auto")
                 params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
@@ -406,7 +408,7 @@ for cIndex = 1:nCategory
         if strcmpi(boxFaceColor, "auto")
             params = changeNameValue(params, "FaceColor", colors{gIndex}(cIndex, :));
         end
-        if notchOpt.toLogical
+        if notchOpt
             notchWidth = boxWidth * 0.3;
             top = q3(cIndex, gIndex);
             bottom = q1(cIndex, gIndex);
@@ -434,10 +436,10 @@ for cIndex = 1:nCategory
             yBox = [top, top, bottom, bottom];
             centerLineX = [left, right];
         end
-        patch(ax, "XData", xBox, ...
-                  "YData", yBox, ...
-                  "EdgeColor", colors{gIndex}(cIndex, :), ...
-                  params{:});
+        H(1) = patch(ax, "XData", xBox, ...
+                         "YData", yBox, ...
+                         "EdgeColor", colors{gIndex}(cIndex, :), ...
+                         params{:});
 
         % set legends
         if cIndex == 1
@@ -465,7 +467,7 @@ for cIndex = 1:nCategory
         else
             error("Invalid center line type");
         end
-        line(ax, centerLineX, [yCenterLine, yCenterLine], params{:});
+        H(2) = line(ax, centerLineX, [yCenterLine, yCenterLine], params{:});
 
         % plot whisker
         if ~isempty(whisker)
@@ -474,18 +476,18 @@ for cIndex = 1:nCategory
             if strcmpi(whiskerColor, "auto")
                 params = changeNameValue(params, "Color", colors{gIndex}(cIndex, :));
             end
-            line(ax, [mid, mid], [bottom, whiskerLower(cIndex, gIndex)], params{:});
-            line(ax, [mid, mid], [top,    whiskerUpper(cIndex, gIndex)], params{:});
+            H(3) = line(ax, [mid, mid], [bottom, whiskerLower(cIndex, gIndex)], params{:});
+            H(4) = line(ax, [mid, mid], [top,    whiskerUpper(cIndex, gIndex)], params{:});
             
             % whisker cap
             params = whiskerCapParameters;
             if strcmpi(whiskerCapColor, "auto")
                 params = changeNameValue(params, "Color", colors{gIndex}(cIndex, :));
             end
-            line(ax, [mid - whiskerCapWidth / 2, mid + whiskerCapWidth / 2], ...
-                     [whiskerLower(cIndex, gIndex), whiskerLower(cIndex, gIndex)], params{:});
-            line(ax, [mid - whiskerCapWidth / 2, mid + whiskerCapWidth / 2], ...
-                     [whiskerUpper(cIndex, gIndex), whiskerUpper(cIndex, gIndex)], params{:});
+            H(5) = line(ax, [mid - whiskerCapWidth / 2, mid + whiskerCapWidth / 2], ...
+                            [whiskerLower(cIndex, gIndex), whiskerLower(cIndex, gIndex)], params{:});
+            H(6) = line(ax, [mid - whiskerCapWidth / 2, mid + whiskerCapWidth / 2], ...
+                            [whiskerUpper(cIndex, gIndex), whiskerUpper(cIndex, gIndex)], params{:});
         end
 
         % plot group division lines
@@ -493,6 +495,53 @@ for cIndex = 1:nCategory
             xline(ax, categoryEdgeLeft(cIndex));
         end
 
+        % Update data tip (version-safe)
+        centerTip = dataTipTextRow(sprintf("Center (%s)", lower(CenterLineType)), yCenterLine, '%.4g');
+        if ~isempty(categoryLabels) && ~isempty(categoryLabels{cIndex})
+            categoryTip = dataTipTextRow("Category", categoryLabels{cIndex}, '%s');
+        else
+            categoryTip = dataTipTextRow("Category", cIndex, '%d');
+        end
+        if ~isempty(groupLabels) && ~isempty(groupLabels{gIndex})
+            groupTip = dataTipTextRow("Group", groupLabels{cIndex});
+        else
+            groupTip = dataTipTextRow("Group", gIndex, '%d');
+        end
+        
+        % ---- box edge tip ----
+        if isnumeric(boxEdgeType)
+            edgeTip = dataTipTextRow(...
+                sprintf('[P%g P%g]', boxEdgeType(1), boxEdgeType(2)), ...
+                [bottom, top], ...
+                '[%.4g,%.4g]');
+        else
+            edgeTip = dataTipTextRow(...
+                springtf("%s", upper(boxEdgeType)), ...
+                [bottom, top], ...
+                '[%.4g,%.4g]');
+        end
+        
+        % ---- whisker tip ----
+        whiskerTip = [];
+        if ~isempty(whisker)
+            whiskY = [whiskerLower(cIndex, gIndex), whiskerUpper(cIndex, gIndex)];
+        
+            if isscalar(whisker)
+                whiskerTip = dataTipTextRow( ...
+                    sprintf('Whisker (%g×IQR)', whisker), ...
+                    whiskY, ...
+                    '[%.4g,%.4g]');
+            else
+                whiskerTip = dataTipTextRow( ...
+                    sprintf('Whisker ([P%g P%g])', whisker(1), whisker(2)), ...
+                    whiskY, ...
+                    '[%.4g,%.4g]');
+            end
+        end
+        
+        % ---- apply tips to all graphics objects ----
+        tips = [categoryTip; groupTip; centerTip; edgeTip; whiskerTip];
+        mu.addDataTips(H, tips);
     end
 
 end
@@ -511,8 +560,8 @@ if ~all(cellfun(@isempty, groupLegends))
     validHandles = isgraphics(legendHandles);
     legend(ax, legendHandles(validHandles), ...
                legendLabels(validHandles), ...
-               'Location', 'best', ...
-               'AutoUpdate', 'off');
+               "Location", "best", ...
+               "AutoUpdate", "off");
 end
 
 if nargout >= 1
@@ -588,7 +637,7 @@ function C = changeNameValue(C, key, val)
     if isKey(map, key)
         map(key) = val;
     else
-        error(strcat(key, " is not a parameter"));
+        error("%s is not a parameter", key);
     end
     
     C = [map.keys; map.values];
