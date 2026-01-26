@@ -18,7 +18,6 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %   NAME-VALUE PARAMETERS:
 %   - 'GridSize': [nrow,ncol] that specifies the subplot grid to plot 
 %        (default=mu.autoplotsize(nch)).
-%
 %   - 'Channels': a vector/2-D matrix that specifies channel numbers to plot.
 %        If [Channels] is a vector, it is reshaped to fit [GridSize].
 %        If [Channels] is a 2-D matrix, size(Channels) should be equal 
@@ -28,7 +27,12 @@ function varargout = mu_plotWaveArray(chData, window, varargin)
 %
 %   - 'Labels': a nch*1 cell array of channel labels (default=compose('CH %d', Channels)).
 %
-%   - 'LineWidth': General line width setting (default=1)
+%   - 'BarParameters': a cell array of parameters of vertical bars (usually mark significance)
+%                      e.g., {'mask', mask, ...
+%                             'color', C, , ...
+%                             'alpha', 0.1} (see mu.addBars)
+%
+%   - 'LineWidth': general line width setting (default=1)
 %
 %   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
@@ -44,6 +48,7 @@ mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, '
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
 mIp.addParameter("Labels", [], @iscellstr);
+mIp.addParameter("BarParameters", [], @iscell);
 mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("paddings", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
@@ -55,6 +60,9 @@ Labels = mIp.Results.Labels;
 defaultLineWidth = mIp.Results.LineWidth;
 margins = mIp.Results.margins;
 paddings = mIp.Results.paddings;
+
+BarParameters = mIp.Results.BarParameters;
+BarParameters = mu.ifelse(isempty(BarParameters), [], @() struct(BarParameters{:}));
 
 % validate
 chData = chData(:);
@@ -143,6 +151,16 @@ for rIndex = 1:GridSize(1)
             end
 
             plot(ax, t, chMean(ch, :), "Color", color, "LineWidth", mu.getor(chData(gIndex), "lineWidth", defaultLineWidth));
+        end
+
+        if ~isempty(BarParameters)
+            mask = find(BarParameters.mask(cIndex, :));
+            if any(mask)
+                mu.addBars(ax, ...
+                    mask, ...
+                    mu.getor(BarParameters, "color", "k"), ...
+                    mu.getor(BarParameters, "alpha", 0.1));
+            end
         end
 
         xlim(ax, window);

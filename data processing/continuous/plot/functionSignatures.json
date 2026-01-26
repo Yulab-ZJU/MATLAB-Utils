@@ -36,7 +36,8 @@
             {"name": "Labels", "kind": "namevalue", "type": ["@iscellstr"]},
             {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .05, .01, .05]"},
             {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1"}
+            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1"},
+            {"name": "BarParameters", "kind": "namevalue", "type": ["cell"], "purpose": "{'mask',M,'color','k','alpha',0.1}"}
         ]
     },
 
