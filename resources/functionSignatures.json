@@ -506,6 +506,36 @@
         "description": "Create a boxplot with various customization options"
     },
 
+    "mu.dotplot": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [
+                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
+                ],
+                [
+                    {"name": "ax", "kind": "required", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
+                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
+                ]
+                ]
+            },
+            {"name": "Positions", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "Group positions; default: 1:nGroup" },
+            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "Spacing between groups when Positions not provided; default: 1" },
+            {"name": "Orientation", "kind": "namevalue", "type": ["choices = {'vertical','horizontal'}"], "purpose": "default:'vertical'" },
+            {"name": "HDirection", "kind": "namevalue", "type": ["choices = {'right','left'}"], "purpose": "horizontal data direction; default:'right'" },
+            {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]], "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]" },
+            {"name": "GroupLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]], "purpose": "Labels for groups (tick labels)" },
+            {"name": "Dot", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "DotParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','size','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."},
+            {"name": "Spread", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "SpreadParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for spread summary. Reserved keys: {'metric','plottype','range','k'}. metric:{'IQR','SE','STD'}; plottype:{'patch','line'}. Remaining Name-Value pairs are passed to patch() or line()."},
+            {"name": "CenterLine", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "CenterLineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for center statistic. Reserved keys: {'stat'}. stat:{'median','mean'}. Remaining Name-Value pairs are passed to line()."},
+            {"name": "CI", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "CIParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."}
+        ],
+        "description": "Create a swarm/dot plot with optional Spread (IQR/SE/STD), CenterLine (median/mean), and CI (bootstrap/t)"
+    },
+
     "mu.colorbar": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
