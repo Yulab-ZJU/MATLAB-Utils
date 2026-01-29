@@ -46,7 +46,7 @@ else
 end
 p=inputParser;
 p.addParameter('alpha',0.05);
-p.addParameter('tail','both',@(x) (ischar(x)&& ismember(upper(x),{'BOTH','RIGHT','LEFT'})));
+p.addParameter('tail','both',@(x) (mu.isTextScalar(x) && ismember(upper(x),{'BOTH','RIGHT','LEFT'})));
 p.addParameter('scale',sqrt(2)/2);
 p.addParameter('stats',[],@isstruct);
 p.parse(parms{:});
