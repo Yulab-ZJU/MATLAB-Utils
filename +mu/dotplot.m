@@ -340,11 +340,11 @@ end
 
 % Group labels
 if strcmpi(Orientation, "vertical")
-    xlim([Positions(1) - GroupWidth(1)/2, Positions(end) + GroupWidth(end)/2]);
+    xlim([Positions(1) - GroupWidth(1) * 0.75, Positions(end) + GroupWidth(end) * 0.75]);
     xticks(ax, Positions);
     xticklabels(ax, GroupLabels);
 else
-    ylim([Positions(1) - GroupWidth(1)/2, Positions(end) + GroupWidth(end)/2]);
+    ylim([Positions(1) - GroupWidth(1) * 0.75, Positions(end) + GroupWidth(end) * 0.75]);
     yticks(ax, Positions);
     yticklabels(ax, GroupLabels);
 end

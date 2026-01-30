@@ -174,7 +174,7 @@ for i = 1:numel(names)
         t = tar{k};
         tType = lower(t); % 'Colorbar' -> 'colorbar'
 
-        if isempty(H)
+        if isempty(H) || isequal(H, groot)
             % No handle: set defaults on groot
             defaultName = ['Default', t, prop];
             trySetDefault_(groot, defaultName, paramVal);
@@ -202,12 +202,9 @@ end
 
 function ok = trySetDefault_(hRoot, defaultName, value)
 % Try set(hRoot, defaultName, value). Return true if succeeded.
-ok = false;
 try
-    if isprop(hRoot, defaultName)
-        set(hRoot, defaultName, value);
-        ok = true;
-    end
+    set(hRoot, defaultName, value);
+    ok = true;
 catch
     ok = false;
 end
@@ -221,8 +218,22 @@ if ~isempty(P) && isfield(P,'Figure') && isgraphics(P.Figure)
     return;
 end
 
-f  = figure('Visible', 'off');
-ax = axes('Parent', f); hold on;
+% --- Save current targets (may be empty) ---
+oldFig = [];
+oldAx  = [];
+try oldFig = groot.CurrentFigure; end %#ok<TRYNC>
+try oldAx  = groot.CurrentAxes;   end %#ok<TRYNC>
+
+% Ensure restore even if something errors
+c = onCleanup(@()restoreCurrent_(oldFig, oldAx));
+
+% --- Create prototype figure WITHOUT polluting user's figure list ---
+f  = figure('Visible','off', ...
+            'HandleVisibility','off', ...      % hide from findall/findobj by default
+            'NumberTitle','off', ...
+            'Name','mu.setPlotMode::proto');
+
+ax = axes('Parent', f); hold(ax, 'on');
 
 plot(ax, [0 1], [0 1]);
 scatter(ax, 0, 0);
@@ -241,4 +252,25 @@ P.Legend   = findall(f, 'Type', 'legend');   P.Legend   = P.Legend(1);
 P.Colorbar = findall(f, 'Type', 'colorbar'); P.Colorbar = P.Colorbar(1);
 
 proto = P;
+end
+
+function restoreCurrent_(oldFig, oldAx)
+% Restore prior current figure/axes if still valid
+H = groot;
+try
+    if isgraphics(oldFig, 'figure')
+        H.CurrentFigure = oldFig;
+    else
+        H.CurrentFigure = [];
+    end
+catch
+end
+try
+    if isgraphics(oldAx, 'axes')
+        H.CurrentAxes = oldAx;
+    else
+        H.CurrentAxes = [];
+    end
+catch
+end
 end
