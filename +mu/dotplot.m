@@ -221,6 +221,22 @@ for gIndex = 1:ngroup
 
     [h(gIndex).Dots, h(gIndex).Center, h(gIndex).Spread, h(gIndex).CI] = deal(gobjects(1));
 
+    % ---------- Dot ---------- %
+    paramsTemp = rmfield(DotParams, "jitter");
+    if strcmpi(paramsTemp.markerfacecolor, "auto")
+        paramsTemp.markerfacecolor = C;
+    end
+    if Dot
+        if strcmpi(Orientation, "vertical")
+            xdata = ones(size(ydata)) * x0;
+            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
+        else % horizontal
+            xdata = uniformSymmetricJitter(x0, gw/2, [n, 1]);
+            h(gIndex).Dots = scatter(ax, ydata, xdata);
+        end
+        applyNV_(h(gIndex).Dots, paramsTemp);
+    end
+
     % ---------- Spread ---------- %
     if Spread
         paramsTemp = rmfield(SpreadParams, "plottype");
@@ -231,11 +247,11 @@ for gIndex = 1:ngroup
                     paramsTemp.facecolor = C;
                 end
                 if strcmpi(Orientation, "vertical")
-                    h(gIndex).Spread = patch(ax, "XData", [x0 - gw/8, x0 + gw/8, x0 + gw/8, x0 - gw/8], ...
+                    h(gIndex).Spread = patch(ax, "XData", [x0 - gw/4, x0 + gw/4, x0 + gw/4, x0 - gw/4], ...
                                                  "YData", [sval(gIndex, 1), sval(gIndex, 1), sval(gIndex, 2), sval(gIndex, 2)]);
                 else % horizontal
                     h(gIndex).Spread = patch(ax, "XData", [sval(gIndex, 1), sval(gIndex, 1), sval(gIndex, 2), sval(gIndex, 2)], ...
-                                                 "YData", [x0 - gw/8, x0 + gw/8, x0 + gw/8, x0 - gw/8]);
+                                                 "YData", [x0 - gw/4, x0 + gw/4, x0 + gw/4, x0 - gw/4]);
                 end
                 applyNV_(h(gIndex).Spread, paramsTemp);
             case "line"
@@ -255,22 +271,6 @@ for gIndex = 1:ngroup
         end
     end
 
-    % ---------- Dot ---------- %
-    paramsTemp = rmfield(DotParams, "jitter");
-    if strcmpi(paramsTemp.markerfacecolor, "auto")
-        paramsTemp.markerfacecolor = C;
-    end
-    if Dot
-        if strcmpi(Orientation, "vertical")
-            xdata = ones(size(ydata)) * x0;
-            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
-        else % horizontal
-            xdata = uniformSymmetricJitter(x0, gw/4, [n, 1]);
-            h(gIndex).Dots = scatter(ax, ydata, xdata);
-        end
-        applyNV_(h(gIndex).Dots, paramsTemp);
-    end
-
     % ---------- Center line ---------- %
     paramsTemp = CenterLineParams;
     if strcmpi(paramsTemp.color, "auto")
@@ -288,9 +288,9 @@ for gIndex = 1:ngroup
                 center = mean(ydata);
         end
         if strcmpi(Orientation, "vertical")
-            h(gIndex).Center = line(ax, [x0 - gw/4, x0 + gw/4], [center, center]);
+            h(gIndex).Center = line(ax, [x0 - gw/2, x0 + gw/2], [center, center]);
         else % horizontal
-            h(gIndex).Center = line(ax, [center, center], [x0 - gw/4, x0 + gw/4]);
+            h(gIndex).Center = line(ax, [center, center], [x0 - gw/2, x0 + gw/2]);
         end
         applyNV_(h(gIndex).Center, paramsTemp);
     end

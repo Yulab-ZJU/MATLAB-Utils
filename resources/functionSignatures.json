@@ -525,7 +525,7 @@
             {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]], "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]" },
             {"name": "GroupLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]], "purpose": "Labels for groups (tick labels)" },
             {"name": "Dot", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "DotParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','size','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."},
+            {"name": "DotParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','sizedata','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."},
             {"name": "Spread", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
             {"name": "SpreadParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for spread summary. Reserved keys: {'metric','plottype','range','k'}. metric:{'IQR','SE','STD'}; plottype:{'patch','line'}. Remaining Name-Value pairs are passed to patch() or line()."},
             {"name": "CenterLine", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
