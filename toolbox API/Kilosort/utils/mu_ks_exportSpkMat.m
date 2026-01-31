@@ -160,6 +160,12 @@ for rIndex = 1:numel(RESPATHs)
             TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
             TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
 
+            triggerMatch = true;
+            if numel(TTL_Onset_temp) ~= trialNum
+                warning("Unmatched TDT triggers and data triggers. Please check.");
+                triggerMatch = false;
+            end
+
             % if trialNum ~= numel(TTL_Onset_temp)
             %     TTL_Temp   = TTL_Onset_temp' / fs; % for checking
             %     checkPool1 = [{TTL_Temp}, {TDTStim.onset}]; % stim time point; column 1: recording; column 2: TDT
@@ -199,6 +205,7 @@ for rIndex = 1:numel(RESPATHs)
         data.TTL_Onset = TTL_Onset{rIndex}{pIndex};
         data.fs = fs(rIndex);
         data.params = params(rIndex);
+        data.triggerMatch = triggerMatch;
 
         if ~exist(SAVEPATHs{rIndex}{pIndex}, "dir")
             mkdir(SAVEPATHs{rIndex}{pIndex});
