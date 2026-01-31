@@ -5,6 +5,7 @@ function setPlotMode(varargin)
 %   - Call before plotting to affect defaults via groot.
 %   - Or pass a figure/axes handle to modify existing objects; if none exist for a target,
 %     falls back to setting corresponding default on the handle, then groot.
+%   - Objects with tag "setPlotModeExclusion" will not be included.
 %
 % USAGE:
 %   mu.setPlotMode('factory')
@@ -181,7 +182,7 @@ for i = 1:numel(names)
 
         else
             % Handle provided: set existing objects under H; otherwise set defaults on H then groot
-            objs = findall(H, "Type", tType);
+            objs = findall(H, "Type", tType, "-not", "Tag", "setPlotModeExclusion");
 
             if ~isempty(objs)
                 try

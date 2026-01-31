@@ -221,22 +221,6 @@ for gIndex = 1:ngroup
 
     [h(gIndex).Dots, h(gIndex).Center, h(gIndex).Spread, h(gIndex).CI] = deal(gobjects(1));
 
-    % ---------- Dot ---------- %
-    paramsTemp = rmfield(DotParams, "jitter");
-    if strcmpi(paramsTemp.markerfacecolor, "auto")
-        paramsTemp.markerfacecolor = C;
-    end
-    if Dot
-        if strcmpi(Orientation, "vertical")
-            xdata = ones(size(ydata)) * x0;
-            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
-        else % horizontal
-            xdata = uniformSymmetricJitter(x0, gw/2, [n, 1]);
-            h(gIndex).Dots = scatter(ax, ydata, xdata);
-        end
-        applyNV_(h(gIndex).Dots, paramsTemp);
-    end
-
     % ---------- Spread ---------- %
     if Spread
         paramsTemp = rmfield(SpreadParams, "plottype");
@@ -269,6 +253,22 @@ for gIndex = 1:ngroup
             otherwise
                 error("Invalid plot type %s. Should be patch/linne", SpreadParams.plottype);
         end
+    end
+
+    % ---------- Dot ---------- %
+    paramsTemp = rmfield(DotParams, "jitter");
+    if strcmpi(paramsTemp.markerfacecolor, "auto")
+        paramsTemp.markerfacecolor = C;
+    end
+    if Dot
+        if strcmpi(Orientation, "vertical")
+            xdata = ones(size(ydata)) * x0;
+            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
+        else % horizontal
+            xdata = uniformSymmetricJitter(x0, gw/2, [n, 1]);
+            h(gIndex).Dots = scatter(ax, ydata, xdata);
+        end
+        applyNV_(h(gIndex).Dots, paramsTemp);
     end
 
     % ---------- Center line ---------- %

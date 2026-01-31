@@ -127,6 +127,7 @@ for rIndex = 1:numel(RESPATHs)
             try TTL = board_dig_in_data; end
             epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
 
+            % create a node tree of epocs field
             temp = TreeItem("epocs");
             for eIndex = 1:numel(epocsNames)
                 temp.addChild(epocsNames{eIndex});
@@ -134,7 +135,6 @@ for rIndex = 1:numel(RESPATHs)
             ckl = checklist(temp);
             uiwait(ckl.UIFigure, 20);
             epocsNameSelected = ckl.selectedData;
-            delete(ckl);
             if isempty(epocsNameSelected)
                 % auto-determine
                 if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
@@ -143,12 +143,17 @@ for rIndex = 1:numel(RESPATHs)
                     tempField = "Swep";
                 end
             else
-                tempField = {ckl.selectedData.Text};
+                selectNodes = ckl.selectedData;
+                tempField = {selectNodes.Text}';
+                tempField(matches(tempField, 'epocs')) = [];
+                
                 if numel(tempField) > 1
-                    warning("Please select only one epocs field. Use the first selected field.");
-                    tempField = tempField{1};
+                    error("Please select only one epocs field.");
                 end
+
+                tempField = tempField{1};
             end
+            delete(ckl);
 
             trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset);
             TDTStim  = dataTDT{rIndex}{pIndex}.epocs.(tempField);
