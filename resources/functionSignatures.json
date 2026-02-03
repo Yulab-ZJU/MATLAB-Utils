@@ -724,20 +724,24 @@
     "mu.setPlotMode": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
+                [],
                 [
-                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
-                ],
-                [
-                    {"name": "root", "kind": "required", "type": ["@(args) all(isgraphics(args))"], "purpose": "default: groot"},
-                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
+                    {"name": "roots", "kind": "ordered", "type": ["@(args) all(isgraphics(args), 'all')"], "purpose": "Optional root graphics handle(s). If omitted, uses groot."}
                 ]
             ]},
+            {"name": "modeOrFile", "kind": "ordered", "type": [["choices = {'pdf', 'factory', 'manual'}"], ["file=*.m"]], "purpose": "Optional mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path that returns parameters (cell/nv)."},
+            {"name": "-default", "kind": "ordered", "type": ["choices = {'-default'}"], "purpose": "Optional flag. When present, forces setting Default* properties even when no matching objects exist."},
             {"tuple": [
-                {"name": "TargetProperty", "kind": "required", "type": [["char"], ["string"]]},
-                {"name": "propertyVal", "kind": "required"}
-            ]}
+                {"name": "-except", "kind": "ordered", "type": ["choices = {'-except'}"], "purpose": "Optional triplet option: '-except', Prop, Value. Excludes objects matched by findall(root,Prop,Value) (and their descendants) in non-default mode."},
+                {"name": "exceptProp", "kind": "required", "type": [["string"], ["char"]], "purpose": "Property name for '-except' triplet."},
+                {"name": "exceptValue", "kind": "required", "purpose": "Property value for '-except' triplet."}
+            ], "repeating": true},
+            {"tuple": [
+                {"name": "TargetProperty", "kind": "ordered", "type": [["string"], ["char"]], "purpose": "TargetProperty string (supports dot style 'Axes.Title.FontSize' and chain style 'AxesTitleFontSize'). Supports single '*' token in the target chain."},
+                {"name": "Value", "kind": "required", "purpose": "Value paired with TargetProperty."}
+            ], "repeating": true}
         ],
-        "description": "Set plot mode for figures with predefined styles"
+        "description": "Set plot mode for graphics objects with various options"
     },
 
     "mu.ctgen": {
