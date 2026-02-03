@@ -5,6 +5,7 @@ function setPlotMode(varargin)
 %   - Call before plotting to affect defaults via groot.
 %   - Or pass figure/axes handles (scalar or array) to modify existing objects.
 %   - Objects with tag "setPlotModeExclusion" will not be included.
+%   - Use '*' to match any target.
 %
 % USAGE:
 %   mu.setPlotMode('factory')
@@ -19,67 +20,63 @@ function setPlotMode(varargin)
 %   - Dot style:   "Axes.Title.FontSize" (Target.subTarget...Property)
 
 % ------------------------------------------------------------
-% 0) Optional graphics handle(s): allow multiple roots
+% 1) Parse inputs
 % ------------------------------------------------------------
-H = [];
-if nargin >= 1 && all(isgraphics(varargin{1}))
+narginchk(1, inf);
+
+% Target root
+if all(isgraphics(varargin{1}))
     if ~mu.isTextScalar(varargin{1})
-        H = varargin{1};
+        roots = varargin{1};
         varargin = varargin(2:end);
     end
-end
-if isempty(H)
-    H = groot;
-end
-
-% Normalize roots array
-if isequal(H, groot)
+else % set groot as target if no target specified
     roots = groot;
-else
-    roots = H(:);
 end
+roots = roots(:);
 
-% ------------------------------------------------------------
-% 1) Optional plotMode (factory/pdf/manual or file path)
-% ------------------------------------------------------------
+% Plot mode
 plotMode = "manual";
-if ~isempty(varargin) && mu.isTextScalar(varargin{1})
+if ~isempty(varargin)
+    assert(mu.isTextScalar(varargin{1}), "Invalid plot mode/name-value input");
     s = string(varargin{1});
-    if matches(s, ["factory","pdf","manual"], "IgnoreCase", true) || isfile(s)
+    if matches(s, ["factory", "pdf", "manual"], "IgnoreCase", true) || isfile(s)
         plotMode = s;
         varargin = varargin(2:end);
     end
 end
 
-validTargets = {'Line','Scatter','Patch','Axes','Text','Legend','Figure','Colorbar'};
+% SetDefault option
+idx = cellfun(@(x) mu.isTextScalar(x) && strcmpi(x, "-default"), varargin);
+if any(idx)
+    varargin = varargin(~idx);
+    setDefault = true;
+else
+    setDefault = false;
+end
 
 % ------------------------------------------------------------
-% 2) Presets / file mode
+% 1) Presets / file mode
 % ------------------------------------------------------------
 if isfile(plotMode)
     temp = mu.path2func(plotMode);
-    params = temp();
-    assert(iscell(params) && mod(numel(params),2)==0, ...
-        'Config file must return a cell array: {Name,Value,Name,Value,...}.');
+    params = mu.nvnorm(temp(), "OutType", "nv", "ValidateNV", true, "FieldCase", "keep");
     % Apply to each root
     for rr = 1:numel(roots)
-        setTargetProperty(roots(rr), params(1:2:end), params(2:2:end), validTargets);
+        setTargetProperty_(roots(rr), params, setDefault);
     end
 else
-    plotMode = validatestring(lower(plotMode), {'factory','pdf','manual'});
+    plotMode = validatestring(lower(plotMode), {'factory', 'pdf', 'manual'});
     switch plotMode
         case "factory"
             % reset each root (or groot)
             for rr = 1:numel(roots)
-                try
-                    reset(roots(rr));
-                catch
-                end
+                try reset(roots(rr)); end %#ok<TRYNC>
             end
         case "pdf"
             params = defaultPlotModePDF();
             for rr = 1:numel(roots)
-                setTargetProperty(roots(rr), params(1:2:end), params(2:2:end), validTargets);
+                setTargetProperty_(roots(rr), params, setDefault);
             end
         otherwise
             % manual
@@ -87,364 +84,223 @@ else
 end
 
 % ------------------------------------------------------------
-% 3) Name-value pairs
+% 2) Name-value pairs
 % ------------------------------------------------------------
 if isempty(varargin)
     return;
 end
-assert(mod(numel(varargin),2) == 0, "Name-value inputs must come in pairs.");
-
-names = varargin(1:2:end);
-vals  = varargin(2:2:end);
+NVs = mu.nvnorm(varargin, ...
+    "FieldCase", "keep", ...
+    "OutType", "nv", ...
+    "ValidateNV", true, ...
+    "AllowDotted", true, ...
+    "DuplicateNames", "lastwins");
 
 for rr = 1:numel(roots)
-    setTargetProperty(roots(rr), names, vals, validTargets);
+    setTargetProperty_(roots(rr), NVs, setDefault);
 end
 
+return;
 end
 
 % ============================================================
 % Helpers
 % ============================================================
+function setTargetProperty_(rootH, NVs, setDefault)
+proto = getPrototypeHandles_(); % legality checks
 
-function [path, prop, mode] = parseTargetPathProperty(paramName, validTargets, subTargetMap, proto, rootTypeHint)
+names = NVs(1:2:end);
+vals  = NVs(2:2:end);
+
+for i = 1:numel(names)
+    paramName = char(names{i});
+    paramVal  = vals{i};
+
+    [tars, prop, isDefault] = parseTargetPathProperty_(paramName, proto);
+
+    % ------------------------------------------------------------
+    % Default route: always set Default... on root when requested
+    % ------------------------------------------------------------
+    if setDefault || isDefault
+        defName = buildDefaultName_(tars, prop);
+        try
+            set(rootH, defName, paramVal);
+        catch
+            % as a fallback, also try groot (harmless if invalid)
+            try set(groot, defName, paramVal); end %#ok<TRYNC>
+        end
+        continue
+    end
+
+    % ------------------------------------------------------------
+    % Non-default route: set existing objects only
+    % ------------------------------------------------------------
+    objs = resolveTargetsByChain_(rootH, tars, proto);
+
+    if isempty(objs)
+        % no object found -> do nothing in non-default mode
+        continue
+    end
+
+    % apply property
+    try
+        set(objs, prop, paramVal);
+    catch
+        % robust per-object set (avoid one bad object killing all)
+        for k = 1:numel(objs)
+            try set(objs(k), prop, paramVal); end %#ok<TRYNC>
+        end
+    end
+end
+
+end
+
+function [nameChainCell, prop, isDefault] = parseTargetPathProperty_(paramName, proto)
 %PARSETARGETPATHPROPERTY Parse:
-%   - Absolute dotted:  "Axes.Title.FontSize"
-%   - Relative dotted:  "Title.FontSize"   (relative to rootTypeHint, e.g. Axes)
-%   - Chain:            "AxesTitleFontSize"
-%   - Relative chain:   "TitleFontSize"    (relative to rootTypeHint)
-%   - Property-only:    "LineWidth"
+%   - Dot style:  "Axes.Title.FontSize" / "Title.FontSize"
+%   - Chain:      "AxesTitleFontSize" / "TitleFontSize"
+%
+% OUTPUT
+%   nameChainCell : cellstr of tokens (targets/subtargets), may include '*'
+%   prop          : property name on last object
+%   isDefault     : true if user wrote "Default..."
 
-assert(ischar(paramName) || isstring(paramName), 'paramName must be char/string.');
+assert(mu.isTextScalar(paramName), 'paramName must be char/string.');
 paramName = char(paramName);
 assert(~isempty(paramName), 'paramName must be non-empty.');
 
-% allow user to pass "factoryDefaultXXX"
-if startsWith(paramName, "factory", "IgnoreCase", true)
-    paramName = paramName(8:end);
+% allow "DefaultXXX"
+if startsWith(paramName, "default", "IgnoreCase", true)
+    paramName = paramName(8:end);  % remove "Default"
+    isDefault = true;
+else
+    isDefault = false;
 end
 
-% helper: longest prefix match
-    function [best, rest] = longestPrefixMatch(str, candidates)
-        best = '';
-        for ii = 1:numel(candidates)
-            c = candidates{ii};
-            if startsWith(str, c) && numel(c) > numel(best)
-                best = c;
-            end
-        end
-        if isempty(best), rest = str;
-        else, rest = str(numel(best)+1:end);
-        end
-    end
-
-% helper: validate a path against subTargetMap + prototype property existence
-    function tf = isValidPath(pth, prp)
-        if isempty(pth), tf = false; return; end
-        % pth = {'Axes','Title',...}
-        obj = proto.(pth{1});
-        for kk = 2:numel(pth)
-            step = pth{kk};
-            if ~isprop(obj, step), tf = false; return; end
-            obj = obj.(step);
-        end
-        tf = isprop(obj, prp);
-    end
-
-% ============================================================
-% 1) Dot-style
-% ============================================================
 if contains(paramName, '.')
-    toks = strsplit(paramName, '.');
-    toks = toks(~cellfun(@isempty, toks));
-    assert(numel(toks) >= 2, 'Invalid dotted name "%s".', paramName);
+    % ---------------------------
+    % Dot-style
+    % ---------------------------
+    temp = split(paramName, '.');
+    assert(numel(temp) >= 2, 'Invalid dotted paramName.');
+    nameChainCell = cellstr(temp(1:end-1));
+    prop = char(temp(end));
 
-    prop = toks{end};
-    head = toks(1:end-1);
-
-    % Case 1: absolute dotted (head{1} is a valid target)
-    if any(strcmp(head{1}, validTargets))
-        path = head;
-        mode = "explicit";
-        % legality check (best effort)
-        assert(isValidPath(path, prop), 'Invalid dotted path "%s".', paramName);
-        return;
-    end
-
-    % Case 2: relative dotted (prepend rootTypeHint)
-    if ~isempty(rootTypeHint) && any(strcmp(rootTypeHint, validTargets))
-        path = [{rootTypeHint}, head];
-        mode = "explicit";
-        if isValidPath(path, prop)
-            return;
-        end
-    end
-
-    % Case 3: global inference (optional, only if unique)
-    % Try every target as root and see which makes sense
-    cand = {};
-    for ii = 1:numel(validTargets)
-        t0 = validTargets{ii};
-        pth = [{t0}, head];
-        if isValidPath(pth, prop)
-            cand{end+1} = pth; %#ok<AGROW>
-        end
-    end
-    if isscalar(cand)
-        path = cand{1};
-        mode = "explicit";
-        return;
-    elseif isempty(cand)
-        error('Invalid dotted name "%s".', paramName);
-    else
-        % ambiguous
-        s = cellfun(@(p) strjoin(p,'->'), cand, 'uni', 0);
-        error('Ambiguous dotted name "%s". Candidates: %s', paramName, strjoin(s, ', '));
-    end
+    validateTargetPathProperty_(nameChainCell, prop, proto);
+else
+    % ---------------------------
+    % Chain-style (greedy tokenization)
+    % ---------------------------
+    [nameChainCell, prop] = splitChainStyle_(paramName, proto);
+    validateTargetPathProperty_(nameChainCell, prop, proto);
 end
 
-% ============================================================
-% 2) Chain-style (your original, with a relative fallback)
-% ============================================================
-assert(isstrprop(paramName(1),'upper'), 'Property name must start with an uppercase letter.');
-
-% Try original: explicit target prefix
-[path1, rest] = longestPrefixMatch(paramName, validTargets);
-
-if ~isempty(path1)
-    if isempty(rest)
-        error('Invalid name "%s": missing property part.', paramName);
-    end
-    if ~isstrprop(rest(1),'upper')
-        % not a true target prefix -> property-only
-        path = {};
-        prop = paramName;
-        mode = "propertyOnly";
-        return;
-    end
-
-    path = {path1};
-    mode = "explicit";
-
-    while true
-        tLast = path{end};
-        if ~isfield(subTargetMap, tLast), break; end
-        subs = subTargetMap.(tLast);
-        [sub, rest2] = longestPrefixMatch(rest, subs);
-        if isempty(sub), break; end
-
-        if isempty(rest2)
-            error('Invalid name "%s": missing property after subtarget "%s".', paramName, sub);
-        end
-        if ~isstrprop(rest2(1),'upper')
-            break;
-        end
-        path{end+1} = sub; %#ok<AGROW>
-        rest = rest2;
-    end
-
-    prop = rest;
-    return;
 end
 
-% If no explicit target prefix, try "relative chain": prepend rootTypeHint
-if ~isempty(rootTypeHint) && any(strcmp(rootTypeHint, validTargets))
-    param2 = [rootTypeHint, paramName];  % e.g. "Axes" + "TitleFontSize"
-    [path1, rest] = longestPrefixMatch(param2, validTargets);
-    if ~isempty(path1) && ~isempty(rest) && isstrprop(rest(1),'upper')
-        path = {path1};
-        mode = "explicit";
+function validateTargetPathProperty_(nameChainCell, prop, proto)
+% Validate legality of each level + hierarchy + property on last level.
+% Supports '*' (only one).
 
-        while true
-            tLast = path{end};
-            if ~isfield(subTargetMap, tLast), break; end
-            subs = subTargetMap.(tLast);
-            [sub, rest2] = longestPrefixMatch(rest, subs);
-            if isempty(sub), break; end
-            if isempty(rest2), break; end
-            if ~isstrprop(rest2(1),'upper'), break; end
-            path{end+1} = sub; %#ok<AGROW>
-            rest = rest2;
-        end
+if isstring(nameChainCell), nameChainCell = cellstr(nameChainCell); end
+assert(iscell(nameChainCell) && ~isempty(nameChainCell), 'Empty target chain.');
+assert(mu.isTextScalar(prop) && ~isempty(prop), 'Invalid property name.');
 
-        prop = rest;
-        % verify by prototype if possible
-        if isValidPath(path, prop)
-            return;
-        end
+prop = char(prop);
+
+% only one '*'
+starPos = find(strcmp(nameChainCell, '*'));
+assert(numel(starPos) <= 1, 'Only one ''*'' is allowed in the target path.');
+
+% proto types
+protoTypes = fieldnames(proto);
+protoTypes = protoTypes(:);
+
+% validate each token (format only; existence checked later)
+for k = 1:numel(nameChainCell)
+    tk = nameChainCell{k};
+    assert(mu.isTextScalar(tk), 'Target token must be char/string.');
+    tk = char(tk);
+    if strcmp(tk, '*')
+        continue
     end
+    assert(isstrprop(tk(1),'upper'), 'Token "%s" must be First-letter capitalized or "*".', tk);
 end
 
-% ============================================================
-% 3) Property-only (apply to all targets that have it)
-% ============================================================
-path = {};
-prop = paramName;
-mode = "propertyOnly";
-end
+% concrete chain validator (no '*')
+    function tf = validateConcrete_(tokens)
+        tf = true;
 
-function setTargetProperty(rootH, names, vals, validTargets)
-proto = getPrototypeHandles_(); % for isprop legality checks
+        % build prototype handles along the chain
+        hPrev = [];
+        for ii = 1:numel(tokens)
+            tk = tokens{ii};
 
-% supported subtargets hierarchy
-subTargetMap = struct();
-subTargetMap.Axes     = {'Title','XLabel','YLabel','ZLabel','Subtitle','XAxis','YAxis'};
-subTargetMap.Legend   = {'Title'};
-subTargetMap.Colorbar = {'Label'};
-
-for i = 1:numel(names)
-    paramName = names{i};
-    paramVal  = vals{i};
-
-    assert(mu.isTextScalar(paramName), ...
-        "Invalid param name at pair #%d: must be a text scalar.", i);
-
-    paramName = char(paramName);
-
-    rootTypeHint = "";
-    if ~(isempty(rootH) || isequal(rootH, groot))
-        % use handle's own type as hint for relative paths
-        try rootTypeHint = lower(get(rootH, "Type")); catch, rootTypeHint = ""; end
-        if rootTypeHint ~= ""
-            rootTypeHint(1) = upper(rootTypeHint(1)); % "axes" -> "Axes"
-        end
-    end
-    [paths, prop, mode] = parseTargetPathProperty(paramName, validTargets, subTargetMap, proto, rootTypeHint);
-
-
-    % ------------------------------------------------------------
-    % 1) Property-only: apply to all targets that have this property
-    % ------------------------------------------------------------
-    if mode == "propertyOnly"
-        tar = {};
-        for k = 1:numel(validTargets)
-            t = validTargets{k};
-            if isprop(proto.(t), prop)
-                tar{end+1} = t; %#ok<AGROW>
-            end
-        end
-        assert(~isempty(tar), ...
-            'Invalid property "%s": none of the supported targets has this property.', prop);
-
-        for k = 1:numel(tar)
-            t = tar{k};
-            tType = lower(t);
-
-            if isequal(rootH, groot)
-                defaultName = ['Default', t, prop];
-                trySetDefault_(groot, defaultName, paramVal);
-            else
-                objs = findall(rootH, "Type", tType, "-not", "Tag", "setPlotModeExclusion");
-                if ~isempty(objs)
-                    try
-                        set(objs, prop, paramVal);
-                    catch ME
-                        error('Failed to set %s.%s: %s', t, prop, ME.message);
-                    end
+            if ii == 1
+                % first token: just fetch its prototype handle if type,
+                % or treat as child-prop of an assumed container? (no container in proto)
+                if isfield(proto, tk)
+                    hPrev = proto.(tk);
                 else
-                    defaultName = ['Default', t, prop];
-                    if ~trySetDefault_(rootH, defaultName, paramVal)
-                        trySetDefault_(groot, defaultName, paramVal);
+                    % first token is child-prop token; validate that at least one proto type has this child
+                    okAny = false;
+                    for pp = 1:numel(protoTypes)
+                        hP = proto.(protoTypes{pp});
+                        if isChildPropHandle_(hP, tk)
+                            hPrev = getChildPropHandle_(hP, tk);
+                            okAny = true;
+                            break
+                        end
                     end
+                    tf = okAny;
                 end
+                if ~tf || ~isgraphics(hPrev), tf = false; return; end
+                continue
             end
-        end
-        continue;
-    end
 
-    % ------------------------------------------------------------
-    % 2) Explicit path: validate legality on prototype (best effort)
-    % ------------------------------------------------------------
-    if isscalar(paths)
-        t0 = paths{1};
-        assert(isprop(proto.(t0), prop), ...
-            'Invalid property "%s" for target "%s".', prop, t0);
-    else
-        obj = proto.(paths{1});
-        for kk = 2:numel(paths)
-            step = paths{kk};
-            assert(isprop(obj, step), 'Invalid subtarget "%s" under "%s".', step, paths{kk-1});
-            obj = obj.(step);
-        end
-        assert(isprop(obj, prop), ...
-            'Invalid property "%s" for target path "%s".', prop, strjoin(paths, '->'));
-    end
-
-    % ------------------------------------------------------------
-    % 3) Apply explicit path
-    %   Requirement:
-    %   - If subtarget exists under current root: set only existing objects
-    %   - If subtarget does NOT exist: try Default-setting on the root object
-    % ------------------------------------------------------------
-    rootType = lower(paths{1});
-
-    if isequal(rootH, groot)
-        % Only default attempt on groot (no existing objects concept)
-        defaultName = ['Default', strjoin(paths,''), prop];
-        trySetDefault_(groot, defaultName, paramVal);
-        continue;
-    end
-
-    roots = findall(rootH, "Type", rootType, "-not", "Tag", "setPlotModeExclusion");
-
-    if isempty(roots)
-        % No such target objects under this root: try default on rootH then groot
-        defaultName = ['Default', strjoin(paths,''), prop];
-        if ~trySetDefault_(rootH, defaultName, paramVal)
-            trySetDefault_(groot, defaultName, paramVal);
-        end
-        continue;
-    end
-
-    % Drill down for each root object of the target type
-    for r = 1:numel(roots)
-        baseObj = roots(r);
-
-        obj = baseObj;
-        missing = false;
-
-        % traverse subtargets (if any)
-        for kk = 2:numel(paths)
-            step = paths{kk};
-            try
-                obj = obj.(step);
-            catch
-                obj = [];
-            end
-            if isempty(obj) || ~all(isgraphics(obj))
-                missing = true;
-                break;
-            end
-        end
-
-        if ~missing
-            % subtarget exists -> set ONLY existing
-            try
-                set(obj, prop, paramVal);
-            catch ME
-                error('Failed to set %s.%s: %s', strjoin(paths,'->'), prop, ME.message);
-            end
-        else
-            % subtarget missing -> set Default on THIS root object (not on all)
-            defaultName = ['Default', strjoin(paths,''), prop];
-            % try set on base object, then fallback to the passed-in rootH, then groot
-            if ~trySetDefault_(baseObj, defaultName, paramVal)
-                if ~trySetDefault_(rootH, defaultName, paramVal)
-                    trySetDefault_(groot, defaultName, paramVal);
+            % subsequent token: either type token or child-prop token; must be descendant of previous
+            if isfield(proto, tk)
+                hThis = proto.(tk);
+            else
+                if ~isChildPropHandle_(hPrev, tk)
+                    tf = false; return
                 end
+                hThis = getChildPropHandle_(hPrev, tk);
             end
+
+            if ~isgraphics(hThis) || ~isDescendant_(hThis, hPrev)
+                tf = false; return
+            end
+            hPrev = hThis;
+        end
+
+        % property must exist & be settable on final prototype handle
+        if ~isprop(hPrev, prop)
+            tf = false; return
+        end
+        if ~isSettable_(hPrev, prop)
+            tf = false; return
         end
     end
-end
+
+% if no '*': validate directly
+if isempty(starPos)
+    assert(validateConcrete_(nameChainCell), 'Invalid target-path-property: %s.%s', strjoin(nameChainCell,'.'), prop);
+    return
 end
 
-function ok = trySetDefault_(hRoot, defaultName, value)
-try
-    set(hRoot, defaultName, value);
-    ok = true;
-catch
-    ok = false;
+% one '*': try all proto types as replacement (type wildcard)
+pos = starPos(1);
+okAny = false;
+for r = 1:numel(protoTypes)
+    tokens = nameChainCell;
+    tokens{pos} = protoTypes{r};
+    if validateConcrete_(tokens)
+        okAny = true;
+        break
+    end
 end
+assert(okAny, 'Wildcard "*" has no valid replacement for property "%s".', prop);
+
 end
 
 function proto = getPrototypeHandles_()
@@ -468,7 +324,7 @@ f  = figure('Visible','off', ...
 
 ax = axes('Parent', f); hold(ax, 'on');
 
-plot(ax, [0 1], [0 1]);
+plot(ax, [nan 1], [0 1]);
 scatter(ax, 0, 0);
 patch(ax, [0 1 1], [0 0 1], 'k');
 text(ax, 0, 0, 'x');
@@ -505,4 +361,317 @@ try
     end
 catch
 end
+end
+
+% ============================================================
+% Target resolution on REAL root
+% ============================================================
+function objs = resolveTargetsByChain_(rootH, tars, proto)
+% Resolve chain tokens under rootH, returning objects corresponding to the LAST token.
+% Non-default mode uses this: if empty -> do nothing.
+
+% expand '*' (only one) at runtime to proto types
+starPos = find(strcmp(tars, '*'));
+if numel(starPos) > 1
+    error('Only one ''*'' is allowed in the target path.');
+end
+
+if isempty(starPos)
+    objs = resolveConcrete_(rootH, tars);
+    return
+end
+
+% enumerate replacements for '*'
+protoTypes = fieldnames(proto);
+pos = starPos(1);
+acc = gobjects(0);
+for r = 1:numel(protoTypes)
+    t2 = tars;
+    t2{pos} = protoTypes{r};
+    o = resolveConcrete_(rootH, t2);
+    if ~isempty(o)
+        acc = [acc; o(:)]; %#ok<AGROW>
+    end
+end
+objs = unique(acc);
+
+end
+
+function objs = resolveConcrete_(rootH, tars)
+% Resolve a chain with NO '*'.
+
+cur = gobjects(0);
+for ii = 1:numel(tars)
+    tk = char(tars{ii});
+
+    if ii == 1
+        cur = resolveTokenFromRoot_(rootH, tk);
+    else
+        cur = resolveTokenFromParents_(cur, tk);
+    end
+
+    % exclude tagged objects
+    if ~isempty(cur)
+        cur = cur(isgraphics(cur));
+        cur = cur(~hasExclusionTag_(cur));
+    end
+
+    if isempty(cur)
+        objs = gobjects(0);
+        return
+    end
+end
+
+objs = cur;
+
+end
+
+function out = resolveTokenFromRoot_(rootH, tk)
+% token at level 1: can be a type token (Axes/Line/...) or child prop (Title/Legend/...)
+
+out = gobjects(0);
+
+% try as type
+if isgraphics(rootH) && isgraphics(rootH, lower(tk))
+    out(end+1,1) = rootH;
+end
+try
+    h = findall(rootH, 'Type', lower(tk));
+    if ~isempty(h), out = [out; h(:)]; end
+catch
+end
+
+if ~isempty(out)
+    out = unique(out);
+    return
+end
+
+% try as child-prop (Title/XLabel/Legend/Colorbar/...)
+if isChildPropHandle_(rootH, tk)
+    out = getChildPropHandle_(rootH, tk);
+end
+
+end
+
+function out = resolveTokenFromParents_(parents, tk)
+% token at level >=2: resolve from each parent
+
+out = gobjects(0);
+
+% type token path
+% include parent itself if matches, plus descendants
+for i = 1:numel(parents)
+    p = parents(i);
+    if ~isgraphics(p), continue; end
+
+    if isgraphics(p, lower(tk))
+        out(end+1,1) = p; %#ok<AGROW>
+    end
+    try
+        h = findall(p, 'Type', lower(tk));
+        if ~isempty(h), out = [out; h(:)]; end %#ok<AGROW>
+    catch
+    end
+end
+
+if ~isempty(out)
+    out = unique(out);
+    return
+end
+
+% child-prop token path
+tmp = gobjects(0);
+for i = 1:numel(parents)
+    p = parents(i);
+    if isChildPropHandle_(p, tk)
+        h = getChildPropHandle_(p, tk);
+        if ~isempty(h), tmp = [tmp; h(:)]; end %#ok<AGROW>
+    end
+end
+out = unique(tmp);
+
+end
+
+% ============================================================
+% Chain-style tokenizer
+% ============================================================
+function [tars, prop] = splitChainStyle_(s, proto)
+% Greedy tokenization with lookahead:
+% stop when the remaining tail is a valid property of the current object.
+
+assert(mu.isTextScalar(s) && ~isempty(s), 'Invalid chain-style name.');
+rest = char(s);
+
+% Allowed tokens = proto fieldnames + common child-props + '*'
+protoTypes = fieldnames(proto);
+childProps = { ...
+    'Title','Subtitle','XLabel','YLabel','ZLabel', ...
+    'Legend','Colorbar' ...
+};
+allowed = [protoTypes(:); childProps(:)];
+allowed = allowed(:);
+% sort by length descending for greedy
+[~, idx] = sort(cellfun(@numel, allowed), 'descend');
+allowed = allowed(idx);
+
+tars = {};
+hCur = [];  % current prototype handle resolved along the chain
+
+while ~isempty(rest)
+    matched = false;
+
+    % If we already have a current object, and the remaining tail is a property of it,
+    % stop tokenization and treat the remainder as property.
+    if ~isempty(hCur) && isgraphics(hCur)
+        if isprop(hCur, rest)
+            prop = rest;
+            return
+        end
+        % case-insensitive fallback (optional)
+        p = properties(hCur);
+        hit = find(strcmpi(p, rest), 1);
+        if ~isempty(hit)
+            prop = p{hit};
+            return
+        end
+    end
+
+    % Must match one more token
+    for k = 1:numel(allowed)
+        tk = allowed{k};
+        if strncmp(rest, tk, numel(tk))
+            tars{end+1} = tk; %#ok<AGROW>
+            rest = rest(numel(tk)+1:end);
+            matched = true;
+
+            % update hCur along the prototype chain
+            if isempty(hCur)
+                % first token: type or child-prop must be resolvable from some proto
+                if isfield(proto, tk)
+                    hCur = proto.(tk);
+                else
+                    % child-prop token at start: find any proto type that has it
+                    hCur = [];
+                    protoNames = fieldnames(proto);
+                    for pp = 1:numel(protoNames)
+                        hp = proto.(protoNames{pp});
+                        if isgraphics(hp) && isprop(hp, tk)
+                            try
+                                hc = hp.(tk);
+                                if isgraphics(hc)
+                                    hCur = hc;
+                                    break
+                                end
+                            catch
+                            end
+                        end
+                    end
+                end
+            else
+                % subsequent token: type token or child-prop token
+                if isfield(proto, tk)
+                    hNext = proto.(tk);
+                else
+                    hNext = [];
+                    if isprop(hCur, tk)
+                        try
+                            hc = hCur.(tk);
+                            if isgraphics(hc), hNext = hc; end
+                        catch
+                        end
+                    end
+                end
+                hCur = hNext;
+            end
+
+            break
+        end
+    end
+
+    if ~matched
+        % no more tokens; remainder must be property of current object
+        break
+    end
+end
+
+assert(~isempty(tars), 'Cannot parse chain-style name "%s".', s);
+assert(~isempty(rest), 'Chain-style "%s" has no property tail.', s);
+
+% final property assignment (prefer exact, then case-insensitive)
+if ~isempty(hCur) && isgraphics(hCur)
+    if isprop(hCur, rest)
+        prop = rest;
+        return
+    end
+    p = properties(hCur);
+    hit = find(strcmpi(p, rest), 1);
+    if ~isempty(hit)
+        prop = p{hit};
+        return
+    end
+end
+
+% fallback: accept raw tail (validator will throw if invalid)
+prop = rest;
+
+end
+
+% ============================================================
+% Utilities
+% ============================================================
+function tf = isDescendant_(obj, ancestor)
+tf = false;
+if ~isgraphics(obj) || ~isgraphics(ancestor), return; end
+h = obj;
+while isgraphics(h)
+    if h == ancestor, tf = true; return; end
+    if ~isprop(h,'Parent'), break; end
+    h = h.Parent;
+end
+end
+
+function tf = isSettable_(h, propName)
+tf = false;
+try
+    v = get(h, propName);
+    set(h, propName, v);
+    tf = true;
+catch
+end
+end
+
+function tf = isChildPropHandle_(h, propToken)
+tf = false;
+if ~isgraphics(h) || ~isprop(h, propToken), return; end
+try
+    c = h.(propToken);
+    tf = isgraphics(c);
+catch
+end
+end
+
+function c = getChildPropHandle_(h, propToken)
+try
+    c = h.(propToken);
+    if ~isgraphics(c), c = gobjects(0); end
+catch
+    c = gobjects(0);
+end
+end
+
+function tf = hasExclusionTag_(h)
+tf = false(size(h));
+for i = 1:numel(h)
+    try
+        tf(i) = isprop(h(i),'Tag') && strcmp(h(i).Tag, 'setPlotModeExclusion');
+    catch
+        tf(i) = false;
+    end
+end
+end
+
+function defName = buildDefaultName_(tars, prop)
+% Build DefaultXXXX name like DefaultAxesTitleFontSize from tokens + prop.
+% Keep token casing as-is.
+defName = ['Default' strjoin(cellfun(@char, tars(:).', 'UniformOutput', false), '') char(prop)];
 end

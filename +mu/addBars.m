@@ -18,26 +18,29 @@ function varargout = addBars(varargin)
 
 if isgraphics(varargin{1}, "axes")
     ax = varargin{1};
-    varargin = varargin(2:end);
+    xval = varargin{2};
+    varargin = varargin(3:end);
 else
     ax = gca;
+    xval = varargin{1};
+    varargin = varargin(2:end);
 end
-
-mIp = inputParser;
-mIp.addRequired("ax", @(x) isscalar(x) && isgraphics(x, "axes"));
-mIp.addRequired("xval", @(x) isvector(x) & isreal(x));
-mIp.addOptional("color", "k", @(x) true);
-mIp.addOptional("alpha", 0.1, @(x) validateattributes(x, {'numeric'}, {'scalar', '<=', 1, ">=", 0}));
-mIp.parse(ax, varargin{:});
-
-xval = mIp.Results.xval(:);
-color = validatecolor(mIp.Results.color);
-FaceAlpha = mIp.Results.alpha;
 
 if isempty(xval)
     varargout{1} = [];
     return;
 end
+
+mIp = inputParser;
+mIp.addRequired("ax", @(x) isscalar(x) && isgraphics(x, "axes"));
+mIp.addRequired("xval", @(x) validateattributes(x, 'numeric', {'real', 'vector'}));
+mIp.addOptional("color", "k", @(x) true);
+mIp.addOptional("alpha", 0.1, @(x) validateattributes(x, {'numeric'}, {'scalar', '<=', 1, ">=", 0}));
+mIp.parse(ax, xval, varargin{:});
+
+xval = mIp.Results.xval(:);
+color = validatecolor(mIp.Results.color);
+FaceAlpha = mIp.Results.alpha;
 
 children = get(ax, "Children");
 temp = arrayfun(@(x) x.XData(:), children, "UniformOutput", false, "ErrorHandler", @errEmpty);

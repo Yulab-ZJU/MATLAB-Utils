@@ -41,6 +41,8 @@ if sIsNV
     sStruct = nv2structLocal(s);
 elseif isstruct(s)
     sStruct = s;
+elseif isempty(s)
+    sStruct = struct();
 else
     error("mu:getorfull:InvalidS", "Input [s] must be a struct/struct array or an NV cell vector.");
 end

@@ -389,7 +389,7 @@ for cIndex = 1:nCategory
         end
         if outlierOpt && ~isempty(outliers{cIndex, gIndex})
             data = data(~ismember(data, outliers{cIndex, gIndex}));
-            scatter(mid * ones(numel(outliers{cIndex, gIndex}), 1), outliers{cIndex, gIndex}, params{:});
+            scatter(ax, mid * ones(numel(outliers{cIndex, gIndex}), 1), outliers{cIndex, gIndex}, params{:});
         end
 
         % plot individual data points
@@ -399,7 +399,7 @@ for cIndex = 1:nCategory
                 params = changeNameValue(params, "MarkerFaceColor", colors{gIndex}(cIndex, :));
             end
 
-            swarmchart(mid * ones(numel(data), 1), data, ...
+            swarmchart(ax, mid * ones(numel(data), 1), data, ...
                        "XJitterWidth", jitterWidth * categoryWidth0, params{:});
         end
         

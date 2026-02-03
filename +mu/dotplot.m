@@ -185,6 +185,11 @@ else
     assert(size(Colors, 1) == ngroup, "numel(Colors) should be equal to %d", ngroup);
 end
 
+CenterLine = mu.OptionState.create(mIp.Results.CenterLine).toLogical;
+CenterLineParams = mu.nv2struct(mIp.Results.CenterLineParameters, "format", "lower");
+CenterLineParams = mu.getorfull(CenterLineParams, DefaultCenterLineParams);
+estFun = str2func(CenterLineParams.stat);
+
 Spread = mu.OptionState.create(mIp.Results.Spread).toLogical;
 SpreadParams = mu.nv2struct(mIp.Results.SpreadParameters, "format", "lower");
 SpreadParams = mu.getorfull(SpreadParams, DefaultSpreadParams);
@@ -194,22 +199,19 @@ switch upper(SpreadParams.metric)
         validateattributes(r, 'numeric', {'numel', 2, 'increasing', 'nonnegative', '<=', 100});
         sval = cellfun(@(x) [prctile(x, r(1)), prctile(x, r(2))], X, "UniformOutput", false);
     case "SE"
-        sval = cellfun(@(x) [-1, 1] * mu.se(x), X, "UniformOutput", false);
+        sval = cellfun(@(x) [-1, 1] * mu.se(x) + estFun(x), X, "UniformOutput", false);
     case "STD"
-        sval = cellfun(@(x) [-1, 1] * std(x), X, "UniformOutput", false);
+        sval = cellfun(@(x) [-1, 1] * std(x) + estFun(x), X, "UniformOutput", false);
     otherwise
         error("Invalid metric %s. Should be IQR/SE/STD", SpreadParams.metric);
 end
 sval = cat(1, sval{:}); % [ngroup x 2]
 SpreadParams = rmfield(SpreadParams, ["range", "metric"]);
 
-CenterLine = mu.OptionState.create(mIp.Results.CenterLine).toLogical;
-CenterLineParams = mu.nv2struct(mIp.Results.CenterLineParameters, "format", "lower");
-CenterLineParams = mu.getorfull(CenterLineParams, DefaultCenterLineParams);
-
 CI = mu.OptionState.create(mIp.Results.CI).toLogical;
 CIParams = mu.nv2struct(mIp.Results.CIParameters, "format", "lower");
 CIParams = mu.getorfull(CIParams, DefaultCIParams);
+alphaVal = CIParams.alpha;
 
 Dot = mu.OptionState.create(mIp.Results.Dot).toLogical;
 DotParams = mu.nv2struct(mIp.Results.DotParameters, "format", "lower");
@@ -321,8 +323,6 @@ for gIndex = 1:ngroup
         paramsTemp.color = linecolorCenter;
     end
     if CI
-        estFun = str2func(CenterLineParams.stat);
-        alpha = CIParams.alpha;
         switch lower(CIParams.method)
             case "bootstrap"
                 % bootstrap percentile CI
@@ -330,18 +330,18 @@ for gIndex = 1:ngroup
                 if isempty(B) || B < 200, B = 2000; end
                 n = numel(ydata);
                 boot = zeros(B, 1);
-                for b=1:B
+                for b = 1:B
                     boot(b) = estFun(ydata(randi(n, n, 1)));
                 end
-                lo = prctile(boot, 100*(alpha/2));
-                hi = prctile(boot, 100*(1-alpha/2));
+                lo = prctile(boot, 100*(alphaVal/2));
+                hi = prctile(boot, 100*(1 - alphaVal/2));
 
             case "t"
                 % t-based CI (assumes approx normality of estimator; best for mean)
                 est = estFun(ydata);
                 n = sum(isfinite(ydata));
-                se = std(y, 'omitnan') / sqrt(max(1, n));
-                tcrit = tinv(1 - alpha/2, max(1,n - 1));
+                se = std(ydata, 'omitnan') / sqrt(max(1, n));
+                tcrit = tinv(1 - alphaVal/2, max(1, n - 1));
                 lo = est - tcrit * se;
                 hi = est + tcrit * se;
 
