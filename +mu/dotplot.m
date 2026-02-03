@@ -127,6 +127,10 @@ DefaultSpreadParams = struct("metric", "IQR", ...
                              "edgecolor", "none", ...          % for patch
                              "facealpha", 0.4);                % for patch
 
+DefaultLinkParams = struct("linewidth", 0.5, ...
+                           "linestyle", "-", ...
+                           "color", [0.7, 0.7, 0.7]);
+
 mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, 'cell', {'vector'}));
 mIp.addParameter("Orientation", "vertical", @mustBeTextScalar);
@@ -143,6 +147,9 @@ mIp.addParameter("CI", mu.OptionState.On, @mu.OptionState.validate);
 mIp.addParameter("CIParameters", {}, @iscell);
 mIp.addParameter("Dot", mu.OptionState.On, @mu.OptionState.validate);
 mIp.addParameter("DotParameters", {}, @iscell);
+mIp.addParameter("LinkPairs", [], @(x) validateattributes(x, 'numeric', {'2d', 'ncols', 2, 'integer', 'positive'}));
+mIp.addParameter("LinkParameters", {}, @iscell);
+mIp.addParameter("Tag", '', @mustBeTextScalar);
 mIp.parse(varargin{:});
 
 X = mIp.Results.X(:);
@@ -208,6 +215,19 @@ Dot = mu.OptionState.create(mIp.Results.Dot).toLogical;
 DotParams = mu.nv2struct(mIp.Results.DotParameters, "format", "lower");
 DotParams = mu.getorfull(DotParams, DefaultDotParams);
 
+LinkPairs = mIp.Results.LinkPairs;
+Link = ~isempty(LinkPairs);
+assert(all(ismember(LinkPairs(:), 1:ngroup)), "Invalid group number");
+LinkParams = mu.nv2struct(mIp.Results.LinkParameters, "format", "lower");
+LinkParams = mu.getorfull(LinkParams, DefaultLinkParams);
+
+Tag = mIp.Results.Tag;
+SpreadParams.Tag = Tag;
+CenterLineParams.Tag = Tag;
+CIParams.Tag = Tag;
+DotParams.Tag = Tag;
+LinkParams.Tag = Tag;
+
 %%% -------------------- Plot -------------------- %%%
 hold(ax, "on");
 h = struct();
@@ -220,6 +240,22 @@ for gIndex = 1:ngroup
     C = Colors(gIndex, :);
 
     [h(gIndex).Dots, h(gIndex).Center, h(gIndex).Spread, h(gIndex).CI] = deal(gobjects(1));
+
+    % ---------- Dot ---------- %
+    paramsTemp = rmfield(DotParams, "jitter");
+    if strcmpi(paramsTemp.markerfacecolor, "auto")
+        paramsTemp.markerfacecolor = C;
+    end
+    if Dot
+        if strcmpi(Orientation, "vertical")
+            xdata = ones(size(ydata)) * x0;
+            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
+        else % horizontal
+            xdata = uniformSymmetricJitter(x0, gw/2, [n, 1]);
+            h(gIndex).Dots = scatter(ax, ydata, xdata);
+        end
+        applyNV_(h(gIndex).Dots, paramsTemp);
+    end
 
     % ---------- Spread ---------- %
     if Spread
@@ -253,22 +289,6 @@ for gIndex = 1:ngroup
             otherwise
                 error("Invalid plot type %s. Should be patch/linne", SpreadParams.plottype);
         end
-    end
-
-    % ---------- Dot ---------- %
-    paramsTemp = rmfield(DotParams, "jitter");
-    if strcmpi(paramsTemp.markerfacecolor, "auto")
-        paramsTemp.markerfacecolor = C;
-    end
-    if Dot
-        if strcmpi(Orientation, "vertical")
-            xdata = ones(size(ydata)) * x0;
-            h(gIndex).Dots = swarmchart(ax, xdata, ydata, "XJitterWidth", DotParams.jitter * gw);
-        else % horizontal
-            xdata = uniformSymmetricJitter(x0, gw/2, [n, 1]);
-            h(gIndex).Dots = scatter(ax, ydata, xdata);
-        end
-        applyNV_(h(gIndex).Dots, paramsTemp);
     end
 
     % ---------- Center line ---------- %
@@ -336,6 +356,28 @@ for gIndex = 1:ngroup
         applyNV_(h(gIndex).CI, paramsTemp);
     end
 
+end
+
+% ---------- Link ---------- %
+paramsTemp = LinkParams;
+if Link
+    npair = size(LinkPairs, 1);
+    for pIndex = 1:npair
+        g1 = LinkPairs(pIndex, 1);
+        g2 = LinkPairs(pIndex, 2);
+        if g1 == g2
+            warning("Linked group numbers should be different");
+        end
+        assert(numel(X{g1}) == numel(X{g2}), "Unmatched element numbers between Group#%d and #%d", g1, g2);
+
+        x1 = h(g1).Dots.XData;
+        x2 = h(g2).Dots.XData;
+        y1 = h(g1).Dots.YData;
+        y2 = h(g2).Dots.YData;
+
+        links = arrayfun(@(a, b, c, d) line([a, b], [c, d]), x1, x2, y1, y2);
+        applyNV_(links, paramsTemp);
+    end
 end
 
 % Group labels

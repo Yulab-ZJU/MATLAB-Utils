@@ -264,10 +264,11 @@
 
     "mu.getorfull": {
         "inputs": [
-            {"name": "s", "kind": "required", "type": ["struct"], "purpose": "struct to complete"},
-            {"name": "default", "kind": "required", "type": ["struct"], "purpose": "struct with default values"}
+            {"name": "s", "kind": "required", "type": [["struct"], ["cell"]]},
+            {"name": "default", "kind": "required", "type": [["struct"], ["cell"]]},
+            {"name": "ReplaceEmpty", "kind": "namevalue", "type": ["logical", "scalar"]}
         ],
-        "description": "Complete a struct with default values"
+        "description": "Complete struct or Name-Value list with defaults; optionally replace empty values using defaults."
     },
 
     "mu.addfield": {
@@ -371,6 +372,17 @@
                     {"name": "searchValue", "kind": "ordered"}
                 ]
             ]}
+        ]
+    },
+
+    "mu.dashline": {
+        "inputs": [
+            {"name": "ax", "kind": "ordered", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
+            {"name": "DashLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 3"},
+            {"name": "GapLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"},
+            {"name": "StartOffset", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 0" },
+            {"name": "KeepEndPoints", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default true"},
+            {"name": "MinSegPoint", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"}
         ]
     },
 
@@ -519,7 +531,7 @@
                 ]
             },
             {"name": "Positions", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "Group positions; default: 1:nGroup" },
-            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "Spacing between groups when Positions not provided; default: 1" },
+            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "Spacing between groups when Positions not provided; default: 0.2" },
             {"name": "Orientation", "kind": "namevalue", "type": ["choices = {'vertical','horizontal'}"], "purpose": "default:'vertical'" },
             {"name": "HDirection", "kind": "namevalue", "type": ["choices = {'right','left'}"], "purpose": "horizontal data direction; default:'right'" },
             {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]], "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]" },
@@ -531,7 +543,10 @@
             {"name": "CenterLine", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
             {"name": "CenterLineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for center statistic. Reserved keys: {'stat'}. stat:{'median','mean'}. Remaining Name-Value pairs are passed to line()."},
             {"name": "CI", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "CIParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."}
+            {"name": "CIParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."},
+            {"name": "LinkPairs", "kind": "namevalue", "type": ["numeric"], "purpose": "default: [] for no linking" },
+            {"name": "LinkParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for linking lines. Remaining Name-Value pairs are passed to line()."},
+            {"name": "Tag", "kind": "namevalue", "type": ["choices = {'setPlotModeExclusion'}"], "purpose": "Tag for the created axes"}
         ],
         "description": "Create a swarm/dot plot with optional Spread (IQR/SE/STD), CenterLine (median/mean), and CI (bootstrap/t)"
     },

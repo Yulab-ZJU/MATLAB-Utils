@@ -10,9 +10,9 @@ function [S, names] = nv2struct(nv, opts)
 %   (makeValidName=false), and normalize only case for matching.
 
 arguments
-    nv cell
-    opts.format {mustBeMember(opts.format, {'lower','upper','keep'})} = 'keep'
-    opts.dupPolicy {mustBeMember(opts.dupPolicy, {'error','lastwins'})} = 'error'
+    nv                 cell
+    opts.format        {mustBeMember(opts.format, {'lower','upper','keep'})} = 'keep'
+    opts.dupPolicy     {mustBeMember(opts.dupPolicy, {'error','lastwins'})} = 'error'
     opts.makeValidName (1,1) logical = false
 end
 

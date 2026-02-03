@@ -5,16 +5,16 @@
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
-                    {"name": "trialsData", "kind": "required", "type": ["cell"], "description": "nTrial*1 | {nCh*nTime}"},
-                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"}
+                    {"name": "trialsData", "kind": "required", "type": ["cell"], "purpose": "nTrial*1 | {nCh*nTime}"},
+                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "purpose": "sample rate (Hz)"}
                 ],
                 [
                     {"name": "chMean", "kind": "required", "type": ["@(x) ismatrix(x) && isreal(x)"]},
-                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "description": "sample rate (Hz)"}
+                    {"name": "fs", "kind": "required", "type": ["scalar", "positive", "integer"], "purpose": "sample rate (Hz)"}
                 ],
                 [
-                    {"name": "cwtres", "kind": "required", "type": ["@(x) ndims(x) == 3 || ndims(x) == 4"], "description": "(nTrial*)nCh*nFreq*nTime"},
-                    {"name": "f", "kind": "required", "type": ["positive"], "description": "frequency vector (Hz)"}
+                    {"name": "cwtres", "kind": "required", "type": ["@(x) ndims(x) == 3 || ndims(x) == 4"], "purpose": "(nTrial*)nCh*nFreq*nTime"},
+                    {"name": "f", "kind": "required", "type": ["positive"], "purpose": "frequency vector (Hz)"}
                 ]
             ]},
             {"name": "window", "kind": "required", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)"]},
@@ -36,7 +36,7 @@
             {"name": "Labels", "kind": "namevalue", "type": ["@iscellstr"]},
             {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .05, .01, .05]"},
             {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default=1"},
+            {"name": "LineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "{'color','b','lineWidth',1,'lineStyle','-'}"},
             {"name": "BarParameters", "kind": "namevalue", "type": ["cell"], "purpose": "{'mask',M,'color','k','alpha',0.1}"}
         ]
     },
