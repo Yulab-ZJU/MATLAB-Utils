@@ -264,10 +264,11 @@
 
     "mu.getorfull": {
         "inputs": [
-            {"name": "s", "kind": "required", "type": ["struct"], "purpose": "struct to complete"},
-            {"name": "default", "kind": "required", "type": ["struct"], "purpose": "struct with default values"}
+            {"name": "s", "kind": "required", "type": [["struct"], ["cell"]]},
+            {"name": "default", "kind": "required", "type": [["struct"], ["cell"]]},
+            {"name": "ReplaceEmpty", "kind": "namevalue", "type": ["logical", "scalar"]}
         ],
-        "description": "Complete a struct with default values"
+        "description": "Complete struct or Name-Value list with defaults; optionally replace empty values using defaults."
     },
 
     "mu.addfield": {
@@ -371,6 +372,17 @@
                     {"name": "searchValue", "kind": "ordered"}
                 ]
             ]}
+        ]
+    },
+
+    "mu.dashline": {
+        "inputs": [
+            {"name": "ax", "kind": "ordered", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
+            {"name": "DashLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 3"},
+            {"name": "GapLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"},
+            {"name": "StartOffset", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 0" },
+            {"name": "KeepEndPoints", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default true"},
+            {"name": "MinSegPoint", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"}
         ]
     },
 
@@ -504,6 +516,39 @@
             {"name": "OutlierParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Marker','+','MarkerEdgeColor','auto','MarkerFaceColor','auto','SizeData',36,'LineWidth',0.5"}
         ],
         "description": "Create a boxplot with various customization options"
+    },
+
+    "mu.dotplot": {
+        "inputs": [
+            {"mutuallyExclusiveGroup": [
+                [
+                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
+                ],
+                [
+                    {"name": "ax", "kind": "required", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
+                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
+                ]
+                ]
+            },
+            {"name": "Positions", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "Group positions; default: 1:nGroup" },
+            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "Spacing between groups when Positions not provided; default: 0.2" },
+            {"name": "Orientation", "kind": "namevalue", "type": ["choices = {'vertical','horizontal'}"], "purpose": "default:'vertical'" },
+            {"name": "HDirection", "kind": "namevalue", "type": ["choices = {'right','left'}"], "purpose": "horizontal data direction; default:'right'" },
+            {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]], "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]" },
+            {"name": "GroupLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]], "purpose": "Labels for groups (tick labels)" },
+            {"name": "Dot", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "DotParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','sizedata','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."},
+            {"name": "Spread", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "SpreadParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for spread summary. Reserved keys: {'metric','plottype','range','k'}. metric:{'IQR','SE','STD'}; plottype:{'patch','line'}. Remaining Name-Value pairs are passed to patch() or line()."},
+            {"name": "CenterLine", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "CenterLineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for center statistic. Reserved keys: {'stat'}. stat:{'median','mean'}. Remaining Name-Value pairs are passed to line()."},
+            {"name": "CI", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
+            {"name": "CIParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."},
+            {"name": "LinkPairs", "kind": "namevalue", "type": ["numeric"], "purpose": "default: [] for no linking" },
+            {"name": "LinkParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for linking lines. Remaining Name-Value pairs are passed to line()."},
+            {"name": "Tag", "kind": "namevalue", "type": ["choices = {'setPlotModeExclusion'}"], "purpose": "Tag for the created axes"}
+        ],
+        "description": "Create a swarm/dot plot with optional Spread (IQR/SE/STD), CenterLine (median/mean), and CI (bootstrap/t)"
     },
 
     "mu.colorbar": {
@@ -679,20 +724,24 @@
     "mu.setPlotMode": {
         "inputs": [
             {"mutuallyExclusiveGroup": [
+                [],
                 [
-                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
-                ],
-                [
-                    {"name": "root", "kind": "required", "type": ["@(args) all(isgraphics(args))"], "purpose": "default: groot"},
-                    {"name": "plotMode", "kind": "ordered", "type": [["choices = {'factory', 'pdf', 'manual'}"], ["file=*.m"]], "purpose": "default: 'manual'"}
+                    {"name": "roots", "kind": "ordered", "type": ["@(args) all(isgraphics(args), 'all')"], "purpose": "Optional root graphics handle(s). If omitted, uses groot."}
                 ]
             ]},
+            {"name": "modeOrFile", "kind": "ordered", "type": [["choices = {'pdf', 'factory', 'manual'}"], ["file=*.m"]], "purpose": "Optional mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path that returns parameters (cell/nv)."},
+            {"name": "-default", "kind": "ordered", "type": ["choices = {'-default'}"], "purpose": "Optional flag. When present, forces setting Default* properties even when no matching objects exist."},
             {"tuple": [
-                {"name": "TargetProperty", "kind": "required", "type": [["char"], ["string"]]},
-                {"name": "propertyVal", "kind": "required"}
-            ]}
+                {"name": "-except", "kind": "ordered", "type": ["choices = {'-except'}"], "purpose": "Optional triplet option: '-except', Prop, Value. Excludes objects matched by findall(root,Prop,Value) (and their descendants) in non-default mode."},
+                {"name": "exceptProp", "kind": "required", "type": [["string"], ["char"]], "purpose": "Property name for '-except' triplet."},
+                {"name": "exceptValue", "kind": "required", "purpose": "Property value for '-except' triplet."}
+            ], "repeating": true},
+            {"tuple": [
+                {"name": "TargetProperty", "kind": "ordered", "type": [["string"], ["char"]], "purpose": "TargetProperty string (supports dot style 'Axes.Title.FontSize' and chain style 'AxesTitleFontSize'). Supports single '*' token in the target chain."},
+                {"name": "Value", "kind": "required", "purpose": "Value paired with TargetProperty."}
+            ], "repeating": true}
         ],
-        "description": "Set plot mode for figures with predefined styles"
+        "description": "Set plot mode for graphics objects with various options"
     },
 
     "mu.ctgen": {

@@ -227,7 +227,7 @@ end
 
 % scaleplate
 if strcmpi(Scaleplate, 'show') && ~isempty(locs)
-    sp = mu_addScaleplate(Fig);
+    sp = mu_scaleplate(Fig);
 
     allAxes = findobj(Fig, "Type", "axes");
     set(allAxes, "XTickLabels", '');

@@ -113,6 +113,7 @@ classdef mu_scaleplate < handle
             
             obj.Position = pos;
             obj.Axes = axes('Parent', Fig, 'Position', pos, 'Tag', 'ScalePlate', 'Visible', 'off');
+            set(obj.Axes, 'HitTest', 'off', 'PickableParts', 'none');
             obj.updateScale();
             
             % register listener

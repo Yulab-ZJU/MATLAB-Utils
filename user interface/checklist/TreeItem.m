@@ -7,10 +7,17 @@ classdef TreeItem < handle
     %   Children  - 1xN TreeNode array
     %
     % Usage
+    %   % init node tree
     %   root = TreeItem("Root");
-    %   a = root.addChild("A");
+    %   a = root.addChild("A", []);
     %   a.addChild("A1", 123);
+    %   a.addChild("A2", 456);
     %   root.addChild("B", "hello");
+    %   % create checklist app
+    %   ckl = checklist(root);
+    %   uiwait(ckl.UIFigure, 20);
+    %   disp({ckl.selectedData.Data}); % TODO: processing
+    %   delete(ckl);
 
     properties
         Text (1,1) string = ""
