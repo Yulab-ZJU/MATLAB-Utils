@@ -14,6 +14,11 @@ edges = windowPSTH(1) + binSize / 2:step:windowPSTH(2) - binSize / 2; % ms
 
 switch class(trials)
     case {'double', 'single'}
+        if isempty(trials)
+            psth = zeros(numel(edges), 1);
+            return;
+        end
+
         if ~isvector(trials)
             error("All trial spike data should be a vector. Please select spike data from one cluster.");
         end
