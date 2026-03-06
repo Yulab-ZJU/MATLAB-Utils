@@ -56,7 +56,9 @@ if isempty(children)
     close(tempFig);
     error('exportFigure2PDF:NoContent', 'No content found in the figure.');
 end
-set(children, "Unit", "centimeters");
+idx = arrayfun(@(h) isprop(h, "Units"), children);
+children = children(idx);
+set(children, "Units", "centimeters");
 
 [bBox, WBox, HBox, posAll, ~] = getBorderBox(children, "centimeters");
 whRatioBox = WBox / HBox;
