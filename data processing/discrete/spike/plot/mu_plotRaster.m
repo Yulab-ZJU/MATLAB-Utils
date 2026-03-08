@@ -23,7 +23,7 @@ rasterData.X = spikes;
 mu.rasterplot(ax1, rasterData, 5);
 ylim([0, length(rasterData.X) + 1]);
 xticklabels(ax1, '');
-yticklabels(ax1, '');
+yticks([]);
 if ~isempty(clus)
     title(ax1, sprintf('Cluster %d', clus));
 end
@@ -31,13 +31,10 @@ end
 ax2 = mu.subplot(Fig, 1, 1, 1, [1/2, 1/3], "alignment", "center-bottom");
 [psth, edges] = mu_calPSTH(spikes, window, 10, 5);
 plot(ax2, edges, psth, "Color", "k", "LineWidth", 1);
-xlabel(ax2, "Time from trial onset (ms)");
+xlabel(ax2, "Time (ms)");
 ylabel(ax2, "Firing rate (Hz)");
 
 mu.scaleAxes(Fig, "x", window);
-mu.addLines(Fig, struct("X", 0));
-mu.scaleAxes(Fig, "x", window);
-mu.addLines(Fig, struct("X", 0));
 
 if nargout == 1
     varargout{1} = Fig;
