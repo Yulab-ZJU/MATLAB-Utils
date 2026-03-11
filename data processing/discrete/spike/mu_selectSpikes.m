@@ -150,7 +150,10 @@ elseif iscell(varargin{1}) || isstruct(varargin{1})
 
     % Select spikes for specific clusters from trials
     trial = varargin{1};
-    assert(isfield(trial, "spike"), "Input struct [trial] should contain field 'spike'.");
+    
+    if isstruct(trial)
+        assert(isfield(trial, "spike"), "Input struct [trial] should contain field 'spike'.");
+    end
 
     clus     = mu.ifelse(nargin < 2, [], @() varargin{2});
     keepClus = mu.ifelse(nargin < 3, mu.OptionState.Off, @() mu.OptionState.create(varargin{3}));

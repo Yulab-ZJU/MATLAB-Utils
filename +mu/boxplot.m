@@ -175,7 +175,7 @@ mIp.parse(ax, varargin{:});
 
 X = mIp.Results.X;
 positions = mIp.Results.Positions;
-groupLabels = cellstr(mIp.Results.GroupLabels);
+groupLabels = mIp.Results.GroupLabels;
 groupSpace = mIp.Results.GroupSpace;
 groupLines = mIp.Results.GroupLines;
 categoryLabels = cellstr(mIp.Results.CategoryLabels);
@@ -365,6 +365,13 @@ end
 CenterLineColor = getNameValue(centerLineParameters, "Color");
 centerLineParameters = removeNameValue(centerLineParameters, "Type");
 
+% Group labels
+if isempty(groupLabels)
+    groupLabels = repmat({''}, nGroup, 1);
+else
+    groupLabels = cellstr(groupLabels);
+end
+
 % Boxplot
 legendHandles = gobjects(1, nGroup);
 legendLabels = cell(1, nGroup);
@@ -495,7 +502,7 @@ for cIndex = 1:nCategory
             xline(ax, categoryEdgeLeft(cIndex));
         end
 
-        % Update data tip (version-safe)
+        % Update data tip
         centerTip = dataTipTextRow(sprintf("Center (%s)", lower(CenterLineType)), yCenterLine, '%.4g');
         if ~isempty(categoryLabels) && ~isempty(categoryLabels{cIndex})
             categoryTip = dataTipTextRow("Category", categoryLabels{cIndex}, '%s');
