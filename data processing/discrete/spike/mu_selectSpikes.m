@@ -150,11 +150,7 @@ elseif iscell(varargin{1}) || isstruct(varargin{1})
 
     % Select spikes for specific clusters from trials
     trial = varargin{1};
-<<<<<<< HEAD
     
-=======
-
->>>>>>> df958422ced43b83948d3be4c011be39db746110
     if isstruct(trial)
         assert(isfield(trial, "spike"), "Input struct [trial] should contain field 'spike'.");
     end
