@@ -12,10 +12,10 @@ function mu_export_Neuracle(DATAROOTPATH, SAVEROOTPATH, pIDs, opts)
 % >> mu_exportNeuracle(DATAROOTPATH, SAVEROOTPATH, [], opts);
 % 
 % To export data of multiple protocols with different analysis window, use:
-% >> mu_exportNeuracle(DATAROOTPATH, SAVEROOTPATH, pID1, ...
-%                      preprocessConfigEEG("window", window1));
-% >> mu_exportNeuracle(DATAROOTPATH, SAVEROOTPATH, [pID2, pID3], ...
-%                      preprocessConfigEEG("window", window2));
+% >> mu_export_Neuracle(DATAROOTPATH, SAVEROOTPATH, pID1, ...
+%                       mu_preprocess_configEEG("window", window1));
+% >> mu_export_Neuracle(DATAROOTPATH, SAVEROOTPATH, [pID2, pID3], ...
+%                       mu_preprocess_configEEG("window", window2));
 %
 % Before using it, you must make sure that there is only ONE [pID].mat
 % file matched to data.bdf in one folder.

@@ -6,7 +6,7 @@ function mu_export_NeuracleJoint(DATAROOTPATH, SAVEROOTPATH, pIDs, opts)
 % and you can make some changes to the default parameters using:
 % >> configFcn = @mu_preprocess_configEEG;
 % >> opts = configFcn("name1", value1, "name2", value2, ...);
-% >> mu_exportNeuracleJoint(DATAROOTPATH, SAVEROOTPATH, [], opts);
+% >> mu_export_NeuracleJoint(DATAROOTPATH, SAVEROOTPATH, [], opts);
 %
 % Before using it, you must make sure that there is only ONE [pID].mat
 % file matched to data.bdf in one folder.
@@ -46,8 +46,6 @@ pIDs0 = cellfun(@(x) str2double(mu.getlastpath(x, 1)), DATAPATHs);
 
 if ~isempty(pIDs)
     DATAPATHs = DATAPATHs(ismember(pIDs0, pIDs));
-else
-    pIDs = pIDs0;
 end
 
 [~, ~, SUBJECTsAll] = cellfun(@(x) mu.getlastpath(x, 2), DATAPATHs, "UniformOutput", false);

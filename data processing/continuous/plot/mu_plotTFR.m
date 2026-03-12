@@ -50,7 +50,6 @@ function varargout = mu_plotTFR(data, f, windowData, varargin)
 %   Figure handle of the TFR plot.
 %
 
-
 mIp = inputParser;
 mIp.addRequired("f", @(x) validateattributes(x, 'numeric', {'positive', 'vector'}));
 mIp.addRequired("windowData", @(x) validateattributes(x, 'numeric', {'numel', 2, 'increasing'}));

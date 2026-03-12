@@ -8,7 +8,7 @@ arguments
 
     % sort
     opts.th                   (1,2) double {mustBePositive} = [8, 7]
-    opts.nch                  (1,1) double {mustBePositive, mustBeInteger} = []
+    opts.nch                  (1,1) double {mustBeInteger} = -1
     opts.resultsDir           {mustBeTextScalar} = ''
     opts.FORMAT               {mustBeTextScalar} = 'i16'
 
@@ -58,7 +58,7 @@ end
 if ~skipSorting
     [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(opts.resultsDir, 'MergeWave.bin'), BINPATHs{:});
     
-    if isempty(opts.nch)
+    if opts.nch == -1
         opts.nch = nch;
     end
 
