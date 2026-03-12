@@ -1,6 +1,13 @@
-function updateMATLABUtils(SyncOption)
-narginchk(0, 1);
+function updateMATLABUtils(SyncOption, remote)
+narginchk(0, 2);
 if nargin < 1
     SyncOption = false;
 end
-mu.syncRepositories([], "RepositoryPaths", fileparts(mfilename("fullpath")), "SyncOption", SyncOption);
+if nargin < 2
+    remote = 'origin';
+end
+mu.syncRepositories(...
+    "log", '', ...
+    "RepositoryPaths", fileparts(mfilename("fullpath")), ...
+    "SyncOption", SyncOption, ...
+    "Remote", remote);
