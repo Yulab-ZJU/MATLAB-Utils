@@ -4,6 +4,10 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm, opts)
 % margins, the union boundary of all axes (Position expanded by TightInset)
 % has final size [width_mm, height_mm] (or adjusted by expandMode) in mm.
 %
+% NOTICE:
+%   Images created with `imagesc` are compressed when exported to pdf in R2025a and later vers.
+%   Please use `mu.image` for better performance.
+%
 % Boundary per-axes:
 %   p  = ax.Position;      % [x y w h]
 %   ti = ax.TightInset;    % [l b r t] relative to position
@@ -20,13 +24,14 @@ arguments
     height_mm       (1,1) double {mustBePositive}
     opts.expandMode {mustBeTextScalar} = "fixed"
     opts.adjustOpt  {mustBeTextScalar} = "on"
+    opts.tol        (1,1) double {mustBeNonnegative} = 1e-3
 end
 
 expandMode = validatestring(opts.expandMode, ...
     {'fixed','keepratio-width','keepratio-height','keepratio-min','keepratio-max'});
 
 adjustOpt = mu.OptionState.create(opts.adjustOpt).toLogical;
-tol = 5e-3;
+tol = opts.tol;
 
 % ---- Get border of axes ----
 % Copy a new figure
@@ -73,6 +78,9 @@ posAll(:, 2) = (posAll(:, 2) - bBox(2)) / HBox; % y
 posAll(:, 3) = posAll(:, 3) / WBox;             % w
 posAll(:, 4) = posAll(:, 4) / HBox;             % h
 
+% ---- Adjust colorbar as part of the axes ----
+
+
 % ---- Expand axes to fill figure ----
 switch expandMode
     case 'fixed'
@@ -114,32 +122,41 @@ tempFig.PaperSize = [W_cm, H_cm];
 
 for index = 1:numel(children)
     children(index).Position = [posAll(index, 1) * W_cm, ...
-                           posAll(index, 2) * H_cm, ...
-                           posAll(index, 3) * W_cm, ...
-                           posAll(index, 4) * H_cm];
-end
-
-% Make labels visible
-bBox = getBorderBox(children, "centimeters");
-for index = 1:numel(children)
-    pos = children(index).Position;
-    pos(1) = mu.ifelse(bBox(1) < 0, pos(1) - bBox(1), pos(1));
-    pos(2) = mu.ifelse(bBox(2) < 0, pos(2) - bBox(2), pos(2));
-    children(index).Position = pos;
+                                posAll(index, 2) * H_cm, ...
+                                posAll(index, 3) * W_cm, ...
+                                posAll(index, 4) * H_cm];
 end
 
 % Auto-adjustment
-for n = 1:10
+for n = 1:100
     [~, WBox, HBox] = getBorderBox(children, "centimeters");
     if (WBox - W_cm) / W_cm <= tol && ...
        (HBox - H_cm) / H_cm <= tol
         break;
     end
-    for index = 1:numel(children)
-        pos = children(index).Position;
-        pos(3) = mu.ifelse((WBox - W_cm) / W_cm > tol, pos(3) / WBox * W_cm, pos(3));
-        pos(4) = mu.ifelse((HBox - H_cm) / H_cm > tol, pos(4) / HBox * H_cm, pos(4));
-        children(index).Position = pos;
+    for cIndex1 = 1:numel(children)
+        pos = children(cIndex1).Position;
+
+        % Scaling
+        scaleFactorX = W_cm / WBox;
+        scaleFactorY = H_cm / HBox;
+        pos(3) = mu.ifelse((WBox - W_cm) / W_cm > tol, pos(3) * scaleFactorX, pos(3));
+        pos(4) = mu.ifelse((HBox - H_cm) / H_cm > tol, pos(4) * scaleFactorY, pos(4));
+
+        % Adjust position so that scaling happens from the top-right corner
+        pos(1) = pos(1) * scaleFactorX;  % Shift left
+        pos(2) = pos(2) * scaleFactorY;  % Shift down
+
+        children(cIndex1).Position = pos;
+
+        % Make labels visible
+        bBox = getBorderBox(children, "centimeters");
+        for cIndex2 = 1:numel(children)
+            pos = children(cIndex2).Position;
+            pos(1) = mu.ifelse(bBox(1) < 0, pos(1) - bBox(1), pos(1));
+            pos(2) = mu.ifelse(bBox(2) < 0, pos(2) - bBox(2), pos(2));
+            children(cIndex2).Position = pos;
+        end
     end
 end
 
@@ -154,9 +171,16 @@ end
 % ---- Export with exportgraphics ----
 exportgraphics(tempFig, filename, ...
     'ContentType', 'vector', ...
-    'BackgroundColor', 'none');
+    'BackgroundColor', 'none', ...
+    'Colorspace', 'rgb', ...
+    'Resolution', 600);
 
 close(tempFig);
+
+fprintf('============== PDF Exporting ==============\n');
+fprintf('PDF exporting: Iter=%d, tol=%.3g, w_diff=%.3g, h_diff=%.3g\nPDF file exported to: %s\n', ...
+    n, tol, (WBox - W_cm) / W_cm, (HBox - H_cm) / H_cm, mu.getabspath(filename));
+fprintf('================== Done ===================\n');
 return;
 end
 
