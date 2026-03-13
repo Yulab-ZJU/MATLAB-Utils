@@ -6,7 +6,9 @@ function syncRepositories(opts)
 %   mu.syncRepositories(..., "SyncOption", true)
 %   mu.syncRepositories(..., "RepositoriesRootPath", "D:\")
 %   mu.syncRepositories(..., "RepositoryPaths", ["D:\repos1\", "D:\repos2\"])
-%   mu.syncRepositories(..., "Remote", )
+%   mu.syncRepositories(..., "Remote", "origin")
+%   mu.syncRepositories(..., "BranchLocal", "master")
+%   mu.syncRepositories(..., "BranchRemote", "main")
 %
 % INPUTS:
 %   logstr                - Commit message (string/char, can be empty)
