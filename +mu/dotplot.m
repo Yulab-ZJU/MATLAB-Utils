@@ -19,7 +19,7 @@ function h = dotplot(varargin)
 %   'GroupSpace'    : Scalar [0–1] spacing between groups (default: 0.2)
 %
 % CELL-SPEC OPTIONS (mu.boxplot-style)
-%   'Spread'           : 'show' or 'hide' (default 'hide')
+%   'Spread'           : 'show' or 'hide' (default 'show')
 %   'SpreadParameters' : {'metric','IQR'/'SE'/'STD', ...
 %                         'range',[25 75]          , ... % for IQR only
 %                         'plottype','patch'/'line', ...
