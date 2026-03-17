@@ -81,7 +81,7 @@ for index = 1:numel(rasterData)
 
 end
 
-set(ax, "XLimitMethod", "tight");
+% set(ax, "XLimitMethod", "tight");
 set(ax, "YLimitMethod", "tight");
 
 return;

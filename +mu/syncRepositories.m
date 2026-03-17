@@ -1,11 +1,14 @@
-function syncRepositories(varargin)
+function syncRepositories(opts)
 %SYNCREPOSITORIES  Update git repositories under a root path or specific paths.
 %
 % SYNTAX:
 %   mu.syncRepositories("update functions")
-%   mu.syncRepositories("msg", "SyncOption", true)
-%   mu.syncRepositories("msg", "RepositoriesRootPath", "D:\")
-%   mu.syncRepositories("msg", "RepositoryPaths", ["D:\repos1\", "D:\repos2\"])
+%   mu.syncRepositories(..., "SyncOption", true)
+%   mu.syncRepositories(..., "RepositoriesRootPath", "D:\")
+%   mu.syncRepositories(..., "RepositoryPaths", ["D:\repos1\", "D:\repos2\"])
+%   mu.syncRepositories(..., "Remote", "origin")
+%   mu.syncRepositories(..., "BranchLocal", "master")
+%   mu.syncRepositories(..., "BranchRemote", "main")
 %
 % INPUTS:
 %   logstr                - Commit message (string/char, can be empty)
@@ -14,17 +17,20 @@ function syncRepositories(varargin)
 %   RepositoryPaths       - Explicit paths of repositories to update
 
 %% Parse inputs
-mIp = inputParser;
-mIp.addOptional("logstr", '', @(x) isempty(x) || mu.isTextScalar(x));
-mIp.addParameter("SyncOption", mu.OptionState.Off, @mu.OptionState.validate);
-mIp.addParameter("RepositoriesRootPath", mu.getrootpath(fileparts(mfilename("fullpath")), 1), @(x) mu.isTextScalar(x));
-mIp.addParameter("RepositoryPaths", [], @(x) iscellstr(x) || isstring(x) || (ischar(x) && isStringScalar(string(x))));
-mIp.parse(varargin{:});
+arguments
+    opts.log                  {mustBeTextScalar} = ''
+    opts.SyncOption           (1,1) logical      = false
+    opts.RepositoriesRootPath {mustBeTextScalar} = ''
+    opts.RepositoryPaths                         = ''
+    opts.Remote               {mustBeTextScalar} = ''
+    opts.BranchLocal          {mustBeTextScalar} = ''
+    opts.BranchRemote         {mustBeTextScalar} = ''
+end
 
-logstr               = mIp.Results.logstr;
-SyncOption           = mu.OptionState.create(mIp.Results.SyncOption);
-RepositoriesRootPath = mu.getabspath(mIp.Results.RepositoriesRootPath);
-RepositoryPaths      = mIp.Results.RepositoryPaths;
+logstr               = opts.log;
+SyncOption           = mu.OptionState.create(opts.SyncOption).toLogical;
+RepositoriesRootPath = mu.getabspath(opts.RepositoriesRootPath);
+RepositoryPaths      = opts.RepositoryPaths;
 
 %% Get user name
 [~, currentUser] = system("whoami");
@@ -48,6 +54,7 @@ if isempty(RepositoryPaths)
     end
 
 else
+    mustBeText(RepositoryPaths);
     RepositoryPaths = cellfun(@mu.getabspath, cellstr(RepositoryPaths), "UniformOutput", false);
     cellfun(@(x) assert(exist(fullfile(x, '.git'), "dir"), 'No GIT repository found in %s', x), RepositoryPaths);
 end
@@ -92,15 +99,44 @@ for rIndex = 1:numel(RepositoryPaths)
     end
 
     % Pull & optionally push
-    [status, msg] = system("git pull");
+    remote = opts.Remote;
+    if isempty(remote)
+        [status, res] = system("git remote");
+        if status == 0 && ~isempty(res)
+            remotes = split(strtrim(res)); remote = remotes{1};
+        else
+            remote = "origin";
+        end
+    end
+
+    branchLocal = opts.BranchLocal;
+    if isempty(branchLocal)
+        [status, res] = system("git branch --show-current");
+        if status == 0
+            branchLocal = strtrim(res);
+        else
+            branchLocal = "master";
+        end
+    end
+    
+    branchRemote = opts.BranchRemote;
+    if isempty(branchRemote)
+        branchRemote = branchLocal;
+    end
+
+    fprintf("Pulling from %s/%s...\n", remote, branchRemote);
+    pullCmd = sprintf("git pull %s %s:%s", remote, branchRemote, branchLocal);
+    [status, msg] = system(pullCmd);
     fprintf(msg);
     fprintf(newline);
     if status ~= 0
         warning("git pull failed in %s\nMessage: %s", repo, msg);
     end
 
-    if SyncOption.toLogical
-        [status, msg] = system("git push");
+    if SyncOption
+        fprintf("Pushing to %s/%s...\n", remote, branchRemote);
+        pushCmd = sprintf("git push %s %s:%s", remote, branchLocal, branchRemote);
+        [status, msg] = system(pushCmd);
         fprintf(msg);
         if status ~= 0
             warning("git push failed in %s\nMessage: %s", repo, msg);
