@@ -8,7 +8,7 @@ function mu_kilosort3(binFullPath, ops, varargin)
 %   binFullPath  - Full path to the input .bin file containing neural data.
 %   ops          - Structure with Kilosort parameters.
 %   resultsDir   - (Optional) Output folder path for results. Defaults to the .bin file's folder.
-%   keepWhFile   - (Namevalue) Keep whitened binary file after sorting (default=true).
+%   keepWhFile   - (Namevalue) Keep whitened binary file after sorting (default=false).
 %
 % Example:
 %   ops = mu_ks3_config("chanMap", "probe.mat", ...
@@ -30,14 +30,18 @@ mIp = inputParser;
 mIp.addRequired("binFullPath", @mustBeTextScalar);
 mIp.addRequired("ops", @(x) validateattributes(x, 'struct', {'scalar'}));
 mIp.addOptional("resultsDir", fileparts(binFullPath), @mustBeTextScalar);
-mIp.addParameter("KeepWhFile", mu.OptionState.On, @mu.OptionState.validate);
+mIp.addParameter("KeepWhFile", mu.OptionState.Off, @mu.OptionState.validate);
 mIp.parse(binFullPath, ops, varargin{:});
 
 resultsDir = mIp.Results.resultsDir;
-KeepWhFile = mu.OptionState.create(mIp.Results.KeepWhFile);
+KeepWhFile = mu.OptionState.create(mIp.Results.KeepWhFile).toLogical;
 
 ops.fproc = fullfile(fileparts(binFullPath), 'temp_wh.dat'); % proc file on a fast SSD
 ops.fbinary = binFullPath;
+
+if ~KeepWhFile
+    cleanupObj = onCleanup(@() delete(ops.fproc));
+end
 
 %% this block runs all the steps of the algorithm
 if ~exist(fullfile(fileparts(binFullPath), 'wh_rez.mat'), "file")
@@ -64,10 +68,6 @@ if ~exist(resultsDir, "dir")
 end
 
 rezToPhy2(rez, resultsDir);
-
-if ~KeepWhFile.toLogical
-    delete(ops.fproc);
-end
 
 return;
 end

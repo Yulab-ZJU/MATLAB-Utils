@@ -1,7 +1,9 @@
-function [outbins, triggers] = mu_ks_getBins_RHD(rhdPATHs, varargin)
+function [outbins, triggers, nch, fs] = mu_ks_getBins_RHD(rhdPATHs, varargin)
 % read_Intan_RHD2000_file and export to binary data files and MAT trigger files
-rhdPATHs = cellstr(rhdPATHs);
-outbins = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), rhdPATHs, "UniformOutput", false);
+if ~iscell(rhdPATHs) % string
+    rhdPATHs = cellstr(rhdPATHs);
+end
+outbins  = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'Wave.bin'), fullfile(x, 'Wave.bin')), rhdPATHs, "UniformOutput", false);
 triggers = cellfun(@(x) mu.ifelse(isfile(x), fullfile(fileparts(x), 'TTL.mat'), fullfile(x, 'TTL.mat')), rhdPATHs, "UniformOutput", false);
 
 mIp = inputParser;
@@ -16,32 +18,37 @@ for pIndex = 1:numel(rhdPATHs)
     filenames = rhdPATHs{pIndex};
     outbin = outbins{pIndex};
 
+    tic;
+
     if isfolder(filenames) % folder
         files = dir(fullfile(filenames, '*.rhd'));
-        if numel(files) ~= 1
-            fprintf('%d RHD files are found.', numel(files));
-        end
-        filenames = fullfile(files.folder, files.name);
+        assert(~isempty(files), 'No RHD file is found.');
+        fprintf('%d RHD files are found.\n', numel(files));
+        filenames = arrayfun(@(x) fullfile(x.folder, x.name), files, "UniformOutput", false);
     else % full path
         if ~exist(filenames, "file") || ~endsWith(filenames, '.rhd')
             error('Full RHD file path or folder is required');
         end
+        filenames = cellstr(filenames);
     end
 
+    skipFlag = false;
     if exist(outbin, "file")
         fprintf('File already exists: %s\n', outbin);
         if skipExisted
             disp('Skip exporting existed binary file');
-            continue;
+            skipFlag = true;
         end
     end
 
-    fidOut = fopen(outbin, 'wb+');
+    if ~skipFlag
+        fidOut = fopen(outbin, 'wb+');
+    end
     [board_dig_in_data, board_dig_in_raw, t_amplifier] = deal(cell(numel(filenames), 1));
 
     for fIndex = 1:numel(filenames)
-        fid = fopen(filenames, 'r');
-        s = dir(filenames);
+        fid = fopen(filenames{fIndex}, 'r');
+        s = dir(filenames{fIndex});
         filesize = s.bytes;
 
         % Check 'magic number' at beginning of file to make sure this is an Intan
@@ -76,6 +83,13 @@ for pIndex = 1:numel(rhdPATHs)
         desired_dsp_cutoff_frequency = fread(fid, 1, 'single');
         desired_lower_bandwidth      = fread(fid, 1, 'single');
         desired_upper_bandwidth      = fread(fid, 1, 'single');
+
+        if skipFlag
+            nch = num_samples_per_data_block;
+            fs = sample_rate; % Hz
+            data_present = 0;
+            break;
+        end
 
         % This tells us if a software 50/60 Hz notch filter was enabled during
         % the data acquisition.
@@ -370,7 +384,7 @@ for pIndex = 1:numel(rhdPATHs)
                 board_dig_in_index = board_dig_in_index + num_samples_per_data_block;
 
                 fraction_done = 100 * (i / num_data_blocks);
-                if (fraction_done >= percent_donewrite)
+                if (fraction_done >= percent_done)
                     fprintf(1, '%d%% done...\n', percent_done);
                     percent_done = percent_done + print_increment;
                 end
@@ -387,8 +401,10 @@ for pIndex = 1:numel(rhdPATHs)
     end
 
     % Close data file.
-    fclose(fid);
-    fclose(fidOut);
+    if ~skipFlag
+        fclose(fid);
+        fclose(fidOut);
+    end
 
     if data_present
 

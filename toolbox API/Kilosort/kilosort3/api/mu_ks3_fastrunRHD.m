@@ -1,7 +1,8 @@
-function mu_ks3_fastrunTDT(BLOCKPATHs, paradigms, SAVEROOTPATH, opts)
+function mu_ks3_fastrunRHD(RHDPATHs, BLOCKPATHs, paradigms, SAVEROOTPATH, opts)
 
 % Arguments check
 arguments
+    RHDPATHs                  (1,:) {mustBeFolder}
     BLOCKPATHs                (1,:) {mustBeFolder}
     paradigms                 (1,:) {mustBeText}
     SAVEROOTPATH              {mustBeTextScalar}
@@ -23,8 +24,10 @@ arguments
     opts.sitePos              {mustBeTextScalar} = ''
     opts.TrigField            {mustBeTextScalar} = 'Swep'
 end
+RHDPATHs = cellstr(RHDPATHs);
 BLOCKPATHs = cellstr(BLOCKPATHs);
 paradigms = cellstr(paradigms);
+assert(numel(RHDPATHs) == numel(BLOCKPATHs), 'RHD paths must match BLOCKs.');
 assert(numel(paradigms) == numel(BLOCKPATHs), 'Paradigms must match BLOCKs.');
 
 % Init result dir path
@@ -53,7 +56,7 @@ end
 if ~exist(opts.resultsDir, "dir")
     mkdir(opts.resultsDir);
 end
-[BINPATHs, nch, fs] = mu_ks_getBins_TDT(BLOCKPATHs, "Format", opts.FORMAT, "SkipExisted", opts.skipBinExportExisted);
+[BINPATHs, TRIGPATHs, nch, fs] = mu_ks_getBins_RHD(RHDPATHs, "Format", opts.FORMAT, "SkipExisted", opts.skipBinExportExisted);
 
 if ~skipSorting
     [MERGEPATH, isMerged] = mu_ks_mergeBinFiles(fullfile(opts.resultsDir, 'MergeWave.bin'), BINPATHs{:});
@@ -189,12 +192,23 @@ for pIndex = 1:numel(BLOCKPATHs)
 
     % Read from Trigger file
     dataTDT{pIndex} = TDTbin2mat(BLOCKPATHs{pIndex}, 'TYPE', {'epocs'});
+    load(TRIGPATHs{pIndex}, "TTL");
+    trialNum = numel(dataTDT{pIndex}.epocs.(opts.TrigField).onset);
+    TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
+    TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
 
-    % Use TDT trigger
-    TTL_Onset{pIndex} = dataTDT{pIndex}.epocs.(opts.TrigField).onset; % sec
+    triggerMatch = true;
+    if numel(TTL_Onset_temp) ~= trialNum
+        warning("Unmatched TDT triggers and data triggers. Please check.");
+        triggerMatch = false;
+    end
+
+    % Align TDT trigger with TTL trigger
+    nShift = TTL_Onset_temp(1) - roundn(dataTDT{pIndex}.epocs.(opts.TrigField).onset(1) * fs, 0);
+    TTL_Onset{pIndex} = (TTL_Onset_temp - nShift) / fs; % sec
 
     % Trigger aligment
-    spikeTimes{pIndex} = spikeIdx / fs; % sec
+    spikeTimes{pIndex} = (spikeIdx - nShift) / fs; % sec
     clusterIdxs{pIndex} = clusterIdx;
 
     if exist(fullfile(SAVEPATHs{pIndex}, 'spkData.mat'), "file") && opts.skipMatExportExisted
@@ -206,6 +220,7 @@ for pIndex = 1:numel(BLOCKPATHs)
     data.sortdata = [spikeTimes{pIndex}, clusterIdxs{pIndex}];
     data.TTL_Onset = TTL_Onset{pIndex};
     data.fs = fs;
+    data.triggerMatch = triggerMatch;
 
     if ~exist(SAVEPATHs{pIndex}, "dir")
         mkdir(SAVEPATHs{pIndex});
