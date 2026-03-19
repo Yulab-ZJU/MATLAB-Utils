@@ -84,9 +84,10 @@ for pIndex = 1:numel(rhdPATHs)
         desired_lower_bandwidth      = fread(fid, 1, 'single');
         desired_upper_bandwidth      = fread(fid, 1, 'single');
 
+        nch = num_samples_per_data_block;
+        fs = sample_rate; % Hz
+
         if skipFlag
-            nch = num_samples_per_data_block;
-            fs = sample_rate; % Hz
             data_present = 0;
             break;
         end
@@ -407,7 +408,6 @@ for pIndex = 1:numel(rhdPATHs)
     end
 
     if data_present
-
         fprintf('Parsing data...\n');
         board_dig_in_data = cat(2, board_dig_in_data{:});
         board_dig_in_raw  = cat(2, board_dig_in_raw{:});

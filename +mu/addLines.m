@@ -2,25 +2,15 @@ function addLines(varargin)
 %ADDLINES  Add lines to all subplots in figures.
 %
 % SYNTAX:
-%     mu.addLines(Lines, 'ConstantLine', true/false, 'Layer', 'top'/'bottom', 'IgnoreInvisible', true/false)
+%     mu.addLines(LineStruct, 'ConstantLine', true/false, 'Layer', 'top'/'bottom', 'IgnoreInvisible', true/false)
 %     mu.addLines(Fig, Lines, ...)
 %
 % INPUTS:
 %   REQUIRED:
 %     Lines  - Struct array with fields:
-%              [X]                       : default = []
-%              [Y]                       : default = []
-%              [color]                   : default = "k"
-%              [width]                   : default = 1
-%              [style]                   : default = "--"
-%              [marker]                  : default = "none"
-%              [markerSize]              : default = 6
-%              [legend]                  : default = []
-%              [label]                   : default = [], for ConstantLine
-%              [labelHorizontalAlignment]: default = 'right' (|'center'|'left')
-%              [labelVerticalAlignment]  : default = 'top' (|'middle'|'bottom')
-%              [labelOrientation]        : default = 'aligned' (|'horizontal')
-%              and other namevalue pairs: valid to function plot
+%              [X] : default = []
+%              [Y] : default = []
+%              and other namevalue pairs (case-ignored) that is valid to function plot
 %   OPTIONAL:
 %     FigsOrAxes      - Figure object array or axes object array
 %   NAME-VALUE:
@@ -59,7 +49,7 @@ mIp.addParameter("IgnoreInvisible", mu.OptionState.On);
 mIp.parse(FigsOrAxes, varargin{:});
 
 Lines = mIp.Results.Lines;
-ConstantLineOpt = mu.OptionState.create(mIp.Results.ConstantLine);
+ConstantLineOpt = mu.OptionState.create(mIp.Results.ConstantLine).toLogical;
 Layer = validatestring(mIp.Results.Layer, {'top', 'bottom'});
 IgnoreInvisible = mu.OptionState.create(mIp.Results.IgnoreInvisible).toLogical;
 
@@ -83,93 +73,50 @@ end
 for lIndex = 1:length(Lines)
 
     for aIndex = 1:length(allAxes)
-        hold(allAxes(aIndex), "on");
-        X = mu.getor(Lines(lIndex), "X");
-        Y = mu.getor(Lines(lIndex), "Y");
-        legendStr  = mu.getor(Lines(lIndex), "legend");
-        color      = mu.getor(Lines(lIndex), "color",      mu.getor(Lines(1), "color", "k"),     true);
-        lineWidth  = mu.getor(Lines(lIndex), "width",      mu.getor(Lines(1), "width", 1),       true);
-        lineStyle  = mu.getor(Lines(lIndex), "style",      mu.getor(Lines(1), "style", "--"),    true);
-        marker     = mu.getor(Lines(lIndex), "marker",     mu.getor(Lines(1), "marker", "none"), true);
-        markerSize = mu.getor(Lines(lIndex), "markerSize", mu.getor(Lines(1), "markerSize", 6),  true);
-        % for constant line
-        label                    = mu.getor(Lines(lIndex), "label");
-        labelHorizontalAlignment = mu.getor(Lines(lIndex), "labelHorizontalAlignment", mu.getor(Lines(1), "labelHorizontalAlignment", "right"), true);
-        labelVerticalAlignment   = mu.getor(Lines(lIndex), "labelVerticalAlignment",   mu.getor(Lines(1), "labelVerticalAlignment", "top"),     true);
-        labelOrientation         = mu.getor(Lines(lIndex), "labelOrientation",         mu.getor(Lines(1), "labelOrientation", "aligned"),       true);
+        ax = allAxes(aIndex);
+        l = Lines(lIndex);
 
-        % other namevalue pairs
-        allParams = string(fieldnames(Lines(lIndex)));
-        builtinParams = ["X", "Y", "color", "width", "style", "marker", "markerSize", "legend", "label", ...
-                         "labelHorizontalAlignment", "labelVerticalAlignment", "labelOrientation"];
-        otherParams = allParams(~contains(allParams, builtinParams));
-        params = {};
-        for pIndex = 1:length(otherParams)
-            params = [params, cellstr(otherParams{pIndex}), {Lines(lIndex).(otherParams{pIndex})}];
-        end
+        hold(ax, "on");
+
+        X = mu.getor(l, "X");
+        Y = mu.getor(l, "Y");
+
+        if isfield(l, "X"), l = rmfield(l, "X"); end
+        if isfield(l, "Y"), l = rmfield(l, "Y"); end
+
+        % get params
+        params = mu.struct2nv(l, "FieldCase", "lower", "KeepEmpty", true);
+        l = mu.nv2struct(params); % normalize to lower case
 
         if isempty(X) && isscalar(Y) % yline
-            if ConstantLineOpt.toLogical
-                h = yline(allAxes(aIndex), Y, "Color", color, ...
-                                              "LineWidth", lineWidth, ...
-                                              "LineStyle", lineStyle, ...
-                                              "Label", label, ...
-                                              "LabelHorizontalAlignment", labelHorizontalAlignment, ...
-                                              "LabelVerticalAlignment", labelVerticalAlignment, ...
-                                              "LabelOrientation", labelOrientation, ...
-                                              params{:});
+            if ConstantLineOpt
+                h = yline(ax, Y);
             else
-                X = get(allAxes(aIndex), "XLim");
+                X = get(ax, "XLim");
                 Y = repmat(Y, 1, 2);
-                h = plot(allAxes(aIndex), X, Y, "Color", color, ...
-                                                "Marker", marker, ...
-                                                "MarkerSize", markerSize, ...
-                                                "LineWidth", lineWidth, ...
-                                                "LineStyle", lineStyle, ...
-                                                params{:});
+                h = plot(ax, X, Y);
             end
         elseif isempty(Y) && isscalar(X) % xline
-            if ConstantLineOpt.toLogical
-                h = xline(allAxes(aIndex), X, "Color", color, ...
-                                              "LineWidth", lineWidth, ...
-                                              "LineStyle", lineStyle, ...
-                                              "Label", label, ...
-                                              "LabelHorizontalAlignment", labelHorizontalAlignment, ...
-                                              "LabelVerticalAlignment", labelVerticalAlignment, ...
-                                              "LabelOrientation", labelOrientation, ...
-                                              params{:});
+            if ConstantLineOpt
+                h = xline(ax, X);
             else
-                Y = get(allAxes(aIndex), "YLim");
+                Y = get(ax, "YLim");
                 X = repmat(X, 1, 2);
-                h = plot(allAxes(aIndex), X, Y, "Color", color, ...
-                                                "Marker", marker, ...
-                                                "MarkerSize", markerSize, ...
-                                                "LineWidth", lineWidth, ...
-                                                "LineStyle", lineStyle, ...
-                                                params{:});
+                h = plot(ax, X, Y);
             end
         elseif isempty(X) && isempty(Y) % diagonal
-            X = get(allAxes(aIndex), "XLim");
-            Y = get(allAxes(aIndex), "YLim");
-            h = plot(allAxes(aIndex), X, Y, "Color", color, ...
-                                            "Marker", marker, ...
-                                            "MarkerSize", markerSize, ...
-                                            "LineWidth", lineWidth, ...
-                                            "LineStyle", lineStyle, ...
-                                            params{:});
+            X = get(ax, "XLim");
+            Y = get(ax, "YLim");
+            h = plot(ax, X, Y);
         else % custom
-            h = plot(allAxes(aIndex), X, Y, "Color", color, ...
-                                            "Marker", marker, ...
-                                            "MarkerSize", markerSize, ...
-                                            "LineWidth", lineWidth, ...
-                                            "LineStyle", lineStyle, ...
-                                            params{:});
+            h = plot(ax, X, Y);
         end
 
-        if ~isempty(legendStr)
-            set(h, "DisplayName", legendStr);
-            legend;
-        else
+        if ~isempty(params)
+            set(h, params{:});
+        end
+
+        if ~isfield(l, "displayname")
             mu.setLegendOff(h);
         end
 
