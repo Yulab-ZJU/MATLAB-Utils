@@ -1,5 +1,5 @@
 function trialsData2 = insertRulesRowToEvents(trialsData, rules, varargin)
-%INSERTRULESROWT OEVENTS  Insert rules row fields into trialsData.events by matching code.
+%INSERTRULESROWTOEVENTS  Insert rules row fields into trialsData.events by matching code.
 %
 % trialsData: struct array with fields:
 %   - trialIndex (optional)
