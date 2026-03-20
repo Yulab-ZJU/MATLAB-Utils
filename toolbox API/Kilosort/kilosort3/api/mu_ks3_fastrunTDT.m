@@ -60,6 +60,8 @@ if ~skipSorting
     
     if opts.nch == -1
         opts.nch = nch;
+    else
+        validateattributes(opts.nch, 'numeric', {'scalar', 'positive'});
     end
 
     % Get kilosort3 configuration
