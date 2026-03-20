@@ -2,8 +2,8 @@ function [S, names] = nv2struct(nv, opts)
 %NV2STRUCT Convert name-value cell array to struct safely.
 %
 % [S, names] = nv2struct(nv, 'format','lower'|'upper'|'keep', ...
-%                           'dupPolicy','error'|'lastwins', ...
-%                           'makeValidName',true|false)
+%                            'dupPolicy','error'|'lastwins', ...
+%                            'makeValidName',true|false)
 %
 % Notes:
 % - For NV parsing (e.g. mu.dotplot), it's usually better to NOT change keys
