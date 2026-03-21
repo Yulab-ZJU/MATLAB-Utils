@@ -38,6 +38,8 @@ I_padded = padarray(I, [1, 1], 0, 'post');
 hold_state = ishold(ax);
 h = pcolor(ax, X_grid, Y_grid, I_padded);
 
+mu.addDataTips(h, dataTipTextRow("index", I_padded, '%.4g'));
+
 set(h, 'EdgeColor', 'none', 'FaceColor', 'flat'); 
 axis(ax, 'tight');
 if y(1) < y(end)

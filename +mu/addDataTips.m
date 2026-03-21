@@ -18,87 +18,62 @@ arguments
     tips (:,1) matlab.graphics.datatip.DataTipTextRow
 end
 
-% ---------- convert DataTipTextRow -> text lines ----------
-tipLines = {};
-for i = 1:numel(tips)
-    row = tips(i);
+for i = 1:numel(H)
+    hObj = H(i);
+    if ~isgraphics(hObj), continue; end
+    
+    if isprop(hObj, 'DataTipTemplate')
+        hObj.DataTipTemplate.DataTipRows(end + 1:end + numel(tips)) = tips;
+    else
+        if ~isstruct(hObj.UserData), hObj.UserData = struct(); end
 
-    try
-        lbl = string(row.Label);
-        val = row.Value;
-        fmt = row.Format;
-
-        if isempty(val)
-            continue;
+        temp_tips = cell(numel(tips), 1);
+        for j = 1:numel(tips)
+            temp_tips{j}.Label = tips(j).Label;
+            temp_tips{j}.Value = tips(j).Value;
+            temp_tips{j}.Format = tips(j).Format;
         end
+        hObj.UserData.mu_compat_tips = temp_tips;
 
-        if isnumeric(val)
-            if isscalar(val)
-                txt = sprintf('\\bf{%s}:\\rm %s', lbl, sprintf(fmt, val));
-            else
-                txt = sprintf('\\bf{%s}:\\rm %s', lbl, sprintf(fmt, val(1), val(end)));
-            end
-        else
-            txt = sprintf('\\bf{%s}:\\rm %s', lbl, string(val));
-        end
-
-        tipLines{end + 1, 1} = txt; %#ok<AGROW>
-    catch
-        % skip malformed rows safely
+        fig = ancestor(hObj, 'figure');
+        dcm = datacursormode(fig);
+        dcm.UpdateFcn = @compatUpdateFcn;
+        dcm.Enable = 'on';
     end
-end
-
-if isempty(tipLines)
-    return;
-end
-
-% ---------- attach to each graphics object ----------
-for k = 1:numel(H)
-    hObj = H(k);
-    if ~isgraphics(hObj)
-        continue;
-    end
-
-    if ~isstruct(hObj.UserData)
-        hObj.UserData = struct();
-    end
-
-    hObj.UserData.mu_tipLines = tipLines;
-end
-
-% ---------- bind datacursor UpdateFcn once per figure ----------
-fig = ancestor(H(1), 'figure');
-
-if isempty(fig) || ~isgraphics(fig)
-    return;
-end
-
-if ~isappdata(fig, 'mu_datatip_bound') || ~getappdata(fig, 'mu_datatip_bound')
-    dcm = datacursormode(fig);
-    dcm.Enable = 'on';
-    dcm.UpdateFcn = @dataTipUpdateFcn;
-    setappdata(fig, 'mu_datatip_bound', true);
 end
 
 return;
 end
 
-%% helper
-function txt = dataTipUpdateFcn(~, evt)
-    % Generic datacursor UpdateFcn
-
+%% 
+function txt = compatUpdateFcn(~, evt)
     h = evt.Target;
     pos = evt.Position;
+    idx = evt.DataIndex;
     
-    % Always show cursor position
     txt = {sprintf('\\bf{X}:\\rm %.4g', pos(1)); sprintf('\\bf{Y}:\\rm %.4g', pos(2))};
-    
-    % Append custom tip lines if present
-    if isgraphics(h) && isstruct(h.UserData) && isfield(h.UserData, 'mu_tipLines')
-        lines = h.UserData.mu_tipLines;
-        if iscell(lines)
-            for i = 1:numel(lines)
-                txt{end + 1, 1} = lines{i};
+
+    if isgraphics(h) && isstruct(h.UserData) && isfield(h.UserData, 'mu_compat_tips')
+        ctips = h.UserData.mu_compat_tips;
+        for i = 1:numel(ctips)
+            valData = ctips{i}.Value;
+            lbl = ctips{i}.Label;
+            fmt = ctips{i}.Format;
+
+            if ismatrix(valData) && ~isscalar(valData)
+                if numel(idx) >= 2
+                    val = valData(idx(2), idx(1));
+                else
+                    val = valData(idx);
+                end
+            else
+                val = valData;
+            end
+            
+            try
+                txt{end + 1} = sprintf('\\bf{%s}:\\rm %s', lbl, sprintf(fmt, val));
+            catch
+                txt{end + 1} = sprintf('\\bf{%s}:\\rm error', lbl);
             end
         end
     end
