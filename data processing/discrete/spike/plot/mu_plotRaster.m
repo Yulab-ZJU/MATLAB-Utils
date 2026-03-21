@@ -4,12 +4,19 @@ function varargout = mu_plotRaster(opts)
 %% Params parse
 arguments
     opts.data               (1,1) struct = struct([])
-    opts.window             (1,2) double = [-100, 500] % ms
     opts.trialAll           (:,1) = []
+
+    opts.window             (1,2) double = [-100, 500] % ms
+    
     opts.clus               (1,1) double {mustBeInteger} = -1 % -1 for all
-    opts.TrigField          {mustBeTextScalar} = "Swep"
+
+    opts.TrigField          {mustBeTextScalar} = "Swep" % evt=epocs.(TrigField).onset*1e3
+    opts.filter             = [] % e.g., "epocs.ordr.data==1" or a logical array
+    opts.evt                = [] % event time array in ms, first priority
+
     opts.rasterSize         (1,1) double {mustBePositive}  = 20
     opts.psthParams         (1,:) cell = {"Color", "k", "LineWidth", 2}
+
     opts.latency            (1,1) logical = true
     opts.latencyWindowBase  (1,2) double = [-100, 0] % ms
     opts.latencyWindowOnset (1,2) double = [0, 300]  % ms
@@ -33,8 +40,22 @@ elseif ~isempty(opts.data)
     sortdata = opts.data.sortdata;
     sortdata(:, 1) = sortdata(:, 1) * 1e3; % ms
 
-    assert(isfield(opts.data.epocs, opts.TrigField), "[%s] is not a field of [epocs]", opts.TrigField);
-    evt = [opts.data.epocs.(opts.TrigField).onset] * 1e3; % ms
+    if isempty(opts.evt)
+        assert(isfield(opts.data.epocs, opts.TrigField), "[%s] is not a field of [epocs]", opts.TrigField);
+        evt = opts.data.epocs.(opts.TrigField).onset * 1e3; % ms
+    else
+        evt = opts.evt;
+    end
+    validateattributes(evt, 'numeric', {'vector', 'increasing'});
+    if ~isempty(opts.filter)
+        if mu.isTextScalar(opts.filter)
+            filt = eval(strcat("opts.data.", opts.filter));
+        else
+            filt = opts.filter;
+        end
+        validateattributes(filt, 'logical', {'vector', 'numel', numel(evt)});
+        evt = evt(filt);
+    end
     spikesByTrial = mu_selectSpikes(sortdata, evt, opts.window, [], true);
 else
     error("No sort data or spike data provided!");
