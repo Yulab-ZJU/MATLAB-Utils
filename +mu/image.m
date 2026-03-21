@@ -13,7 +13,7 @@ else
     ax = gca;
 end
 
-if numel(varargin) == 1
+if isscalar(varargin)
     I = varargin{1};
     x = 1:size(I, 2);
     y = 1:size(I, 1);
@@ -39,8 +39,10 @@ hold_state = ishold(ax);
 h = pcolor(ax, X_grid, Y_grid, I_padded);
 
 set(h, 'EdgeColor', 'none', 'FaceColor', 'flat'); 
-set(ax, 'YDir', 'reverse');
 axis(ax, 'tight');
+if y(1) < y(end)
+    set(ax, 'YDir', 'reverse');
+end
 
 if length(x) < 50
     set(ax, 'XTick', x);
