@@ -47,37 +47,55 @@ for dataIndex = 1:numel(ROOTPATHs)
     codes = arrayfun(@(x) str2double(x.type), EEG.event); % marker
     latency_temp = [EEG.event.latency]'; % unit: sample
     fs = EEG.srate; % Hz
-    if exist("trialsData", "var")
+    if exist("trialsData", "var") && exist("rules", "var")
         trialAll_temp = opts.behaviorProcessFcn(trialsData, rules);
-    end
     
-    % exclude accidental codes
-    if exist("rules", "var")
-        exIdx = isnan(codes) | ~ismember(codes, rules.code) | latency_temp > size(EEG.data, 2) - fix(window(2) / 1000 * fs);
+        % start from the first 1
+        assert(codes(1) == 1, "Head information lost. Code should start with 1.");
+        
+        % exclude non-stimulus/cue codes
+        exIdx = ismember(codes, [1; 2; 3]) | isnan(codes) | ~ismember(codes, rules.code) | latency_temp > size(EEG.data, 2) - fix(window(2) / 1000 * fs);
+        codes(exIdx) = [];
         latency_temp(exIdx) = [];
-
-        if exist("trialsData", "var") && numel(trialAll_temp) > numel(latency_temp)
-            trialAll_temp = trialAll_temp(1:numel(latency_temp));
+    
+        % For EEG-App latest version
+        if isfield(trialAll_temp, "events")
+            % validate
+            temp = arrayfun(@(x) [x.events(ismember([x.events.type], ["stimuli", "cue"])).code]', trialAll_temp, "UniformOutput", false);
+            temp = cat(1, temp{:}); % full record
+            assert(mu.findvectorloc(temp, codes, "first") == 1, "Missing codes in EEG recording! Please check data manually.");
+        
+            % find first stimulus/cue code in each trial
+            ncode = arrayfun(@(x) sum(ismember([x.events.type], ["stimuli", "cue"])), trialAll_temp);
+            assert(all(ncode == ncode(1)), "Inconsistent trial information.");
+            ncode = ncode(1); % total number of stimuli/cue per trial
+            ntrial = floor(numel(codes) / ncode); % in case of incomplete trial presented at last
+            ntrial0 = numel(trialAll_temp);
+            trialAll_temp = trialAll_temp(1:ntrial);
+            latency_temp = latency_temp(1:ncode:ncode * ntrial);
+    
+            fprintf("\nValid trials: %d/%d.\n\n", ntrial, ntrial0);
         end
-
-    end
-    latency_temp = latency_temp(find(arrayfun(@(x) str2double(x.type), EEG.event) == 1, 1):end);
-    latency = [latency; latency_temp(:)];
-
-    if exist("trialsData", "var")
-        trialAll = [trialAll; trialAll_temp(:)];
+    else
+        trialAll_temp = [];
     end
 
     % filter
     EEG.data = mu.filter(EEG.data, fs, "fhp", fhp, "flp", flp, "fnotch", 50);
     
     % epoching
-    trialsEEG = [trialsEEG; mu_selectWave(EEG.data, fs, latency_temp / fs * 1e3, window)];
+    fprintf("\nEpoching aligned to the first stimulus/cue onset of each trial.\n");
+    trialsEEG_temp = mu_selectWave(EEG.data, fs, latency_temp / fs * 1e3, window);
+
+    latency   = [latency; latency_temp(:)];   %#ok<AGROW>
+    trialAll  = [trialAll; trialAll_temp(:)]; %#ok<AGROW>
+    trialsEEG = [trialsEEG; trialsEEG_temp];  %#ok<AGROW>
 end
 
 % ICA
-if strcmpi(icaOpt, "on") && nargout >= 4
+if mu.OptionState.create(opts.icaOpt).toLogical && nargout >= 4
     if ~isempty(ICAPATH) && exist(fullfile(ICAPATH, "ICA res.mat"), "file")
+        fprintf("\nReconstructing data using existed ICA result...\n\n");
         load(fullfile(ICAPATH, "ICA res.mat"), "-mat", "comp");
         channels = comp.channels;
         ICs = comp.ICs;
@@ -85,35 +103,39 @@ if strcmpi(icaOpt, "on") && nargout >= 4
 
         % Re-reference
         if strcmpi(opts.reref, "CAR")
+            fprintf("\nRe-referencing with CAR...\n\n");
             trialsEEG = cellfun(@(x) x - mean(x(channels, :), 1), trialsEEG, "UniformOutput", false);
         end
 
     else
-        disp('ICA result does not exist. Performing ICA on data...');
+        fprintf("\nICA result does not exist. Performing ICA on data...\n\n");
         channels = 1:size(trialsEEG{1}, 1);
         Fig = mu_plotWaveArray(struct("chMean", mu.calchMean(trialsEEG), "chErr", mu.calchStd(trialsEEG)), window);
         mu.addTitle(Fig, "Original");
-        mu.scaleAxes(Fig, "y", [-20,20], "symOpts", "max");
-        bc = validateinput(['Input extra bad channels (besides ', num2str(badChs(:)'), '): '], @(x) isempty(x) || all(fix(x) == x & x > 0));
+        mu.scaleAxes(Fig, "y", [-20, 20], "symOpts", "max");
+        bc = validateinput(sprintf('Input extra bad channels (besides [%s]): ', strjoin(string(badChs), ', ')), ...
+                           @(x) isempty(x) || all(fix(x) == x & x > 0));
         badChs = [badChs(:); bc(:)]';
-        close(Fig);
+        if isvalid(Fig)
+            close(Fig);
+        end
 
         % first trial exclusion
         tIdx = mu_excludeTrials(trialsEEG, 0.4, 20, "userDefineOpt", "off", "badCHs", badChs);
         trialsEEG(tIdx) = [];
         latency(tIdx) = [];
-
-        if exist("trialAll", "var")
+        if ~isempty(trialAll)
             trialAll(tIdx) = [];
         end
 
         if ~isempty(badChs)
-            disp(['Channel ', num2str(badChs(:)'), ' are excluded from analysis.']);
+            fprintf('Channels %s are excluded from analysis.\n', strjoin(string(badChs), ', '));
             channels(badChs) = [];
         end
 
         % Re-reference
         if strcmpi(opts.reref, "CAR")
+            fprintf("\nRe-referencing with CAR...\n\n");
             trialsEEG = cellfun(@(x) x - mean(x(channels, :), 1), trialsEEG, "UniformOutput", false);
         end
         
@@ -124,6 +146,7 @@ if strcmpi(icaOpt, "on") && nargout >= 4
             idx = idx(randperm(numel(trialsEEG), min(numel(trialsEEG), nMaxIcaTrial)));
         end
         
+        fprintf("\nThe total number of trials included in ICA is %d.\n\n", numel(idx));
         [comp, ICs] = mu_ica(trialsEEG(idx), window, fs, EEGPos, "chs2doICA", channels);
     end
 
@@ -154,8 +177,7 @@ end
 exIdx = mu_excludeTrials(params{:});
 trialsEEG(exIdx) = [];
 latency(exIdx) = [];
-
-if exist("trialAll", "var")
+if ~isempty(trialAll)
     trialAll(exIdx) = [];
 else
     trialAll = struct("trialNum", num2cell((1:numel(trialsEEG))'));
