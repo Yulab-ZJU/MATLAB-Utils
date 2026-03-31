@@ -306,7 +306,7 @@ for pIndex = 1:numel(rhdPATHs)
             data_present = 1;
         end
 
-        num_data_blocks = bytes_remaining / bytes_per_block;
+        num_data_blocks = fix(bytes_remaining / bytes_per_block);
 
         num_amplifier_samples    = num_samples_per_data_block * num_data_blocks;
         num_board_dig_in_samples = num_samples_per_data_block * num_data_blocks;
