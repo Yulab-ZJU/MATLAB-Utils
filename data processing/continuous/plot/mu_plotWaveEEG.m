@@ -81,8 +81,8 @@ for gIndex = 1:ngroup
     else
         hsi(2) = 0.7 * hsi(2);
     end
-    errColor{gIndex} = mu.getor(chData(gIndex), "errColor", hsv2rgb(hsi));
-    errAlpha{gIndex} = mu.getor(chData(gIndex), "errAlpha", 0.5);
+    errColor{gIndex} = mu.getor(chData(gIndex), "errColor", hsv2rgb(hsi), true);
+    errAlpha{gIndex} = mu.getor(chData(gIndex), "errAlpha", 0.5, true);
 end
 chData = mu.addfield(chData, "errColor", errColor);
 chData = mu.addfield(chData, "errAlpha", errAlpha);
