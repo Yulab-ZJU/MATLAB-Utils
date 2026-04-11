@@ -1,4 +1,4 @@
-# md2word_equations.py
+# md2word.py
 import os
 import sys
 import shutil
