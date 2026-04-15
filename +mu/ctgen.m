@@ -1,20 +1,20 @@
 function [y, durs, ICIseq] = ctgen(ICIs, durs, fs, type, varargin)
 %CTGEN  Generate regular/irregular click trains with specified 
-%       [ICI1,ICI2,...ICIn] and [dur1,dur2,...,durn] for each section.
+%       [ICI1,ICI2,...ICIn] and [dur1,dur2,...,durn] for each segment.
 % INPUTS:
 %   REQUIRED:
-%     ICIs  - ICI for each section, scalar or vector, in sec
-%     durs  - duration for each section, must be the same size as [ICIs], in sec
+%     ICIs  - ICI for each segment, scalar or vector, in sec
+%     durs  - duration for each segment, must be the same size as [ICIs], in sec
 %     fs    - sample rate of the stimuli, in Hz
 %     type  - type of click train ("REG" or "IRREG")
 %   NAME-VALUE:
-%     sigmas    - sigma for each section, scalar or vector (if specified as a
+%     sigmas    - sigma for each segment, scalar or vector (if specified as a
 %                 vector, it must be the same size of [ICIs]). 
-%                 [sigma1,sigma2,...,sigman] for each section. The sigma 
+%                 [sigma1,sigma2,...,sigman] for each segment. The sigma 
 %                 value is a scale factor of standard deviation of a
 %                 Gaussian distribution (std = mean * sigma). If specified 
 %                 as a scalar, this sigma value will be applied to all 
-%                 sections. This parameter is valid only for type set as 
+%                 segments. This parameter is valid only for type set as 
 %                 "IRREG". (default: 0.5)
 %     pulseLen  - pulse duration of a click, in sec. (default: 2e-4)
 %     range     - a vector [lower,upper] that specifies the ICI range for
@@ -22,7 +22,7 @@ function [y, durs, ICIseq] = ctgen(ICIs, durs, fs, type, varargin)
 %
 % OUTPUTS:
 %     y       - sound stimulation, a row vector, in volt.
-%     durs    - the actual duration for each section, a column vector, in sec.
+%     durs    - the actual duration for each segment, a column vector, in sec.
 %     ICIseq  - ICI sequence vector.
 %
 % NOTES:
@@ -67,7 +67,7 @@ ICIs = ICIs(:);
 durs = durs(:);
 sigmas = ICIs(:) .* sigmas(:);
 
-clickCounts = ceil(fix(durs .* fs) ./ fix(ICIs .* fs));
+clickCounts = ceil(durs ./ ICIs);
 
 if strcmpi(type, "REG")
     % generate ICI sequence with fixed click numbers and ICIs
@@ -119,7 +119,7 @@ else % IRREG
 
     end
 
-    % return actual duration for each ICI
+    % return actual duration for each segment
     durs = cellfun(@sum, ICIseq);
 
     ICIseq = cat(1, ICIseq{:});
