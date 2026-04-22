@@ -72,7 +72,7 @@ end
 
 %%% ------------Time window for trial segmentation, in ms-----------------
 % DO NOT make it larger than your inter-trial interval
- opts.window = [-500, 1600];
+% opts.window = [-1000, 3000];
 
 %%% -------------Bad channel numbers in your recording--------------------
 % This setting may influence your ICA result. Be cautious
