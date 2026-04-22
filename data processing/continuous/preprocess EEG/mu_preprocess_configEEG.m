@@ -36,6 +36,7 @@ opts.badChs = [];
 opts.icaOpt = "on";
 opts.ICAPATH = []; % If [ICA res.mat] already exists in the SAVEPATH, ICA 
                    % will not be done
+opts.windowICA = opts.window;
 opts.nMaxIcaTrial = 100; % If left empty, use all trials
 opts.sameICAOpt = "off"; % If set "on", apply the ICA result of one 
                          % protocol to the others for one subject

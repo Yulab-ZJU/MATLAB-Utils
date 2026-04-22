@@ -26,6 +26,11 @@ if windowNew(2) > windowOld(2)
     windowNew(2) = windowOld(2);
 end
 
+if isequal(windowNew, windowOld)
+    window = windowNew;
+    return;
+end
+
 if isa(trialsData, "double") % For single trial input
     t = linspace(windowOld(1), windowOld(2), size(trialsData, 2));
     tIdx = find(t >= windowNew(1), 1):find(t >= windowNew(2), 1);

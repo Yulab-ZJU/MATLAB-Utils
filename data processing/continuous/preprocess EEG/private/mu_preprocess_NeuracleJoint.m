@@ -146,8 +146,10 @@ if mu.OptionState.create(opts.icaOpt).toLogical && nargout >= 4
             idx = idx(randperm(numel(trialsEEG), min(numel(trialsEEG), nMaxIcaTrial)));
         end
         
-        fprintf("\nThe total number of trials included in ICA is %d.\n\n", numel(idx));
-        [comp, ICs] = mu_ica(trialsEEG(idx), window, fs, EEGPos, "chs2doICA", channels);
+        fprintf("\nThe total number of trials included in ICA is %d.\n", numel(idx));
+        fprintf("ICA time span: [%g, %g] ms relative to sitmulus onset.\n", windowICA(1), windowICA(2));
+        temp = mu.cutdata(trialsEEG(idx), window, windowICA);
+        [comp, ICs] = mu_ica(temp, window, fs, EEGPos, "chs2doICA", channels);
     end
 
     % reconstruct data
