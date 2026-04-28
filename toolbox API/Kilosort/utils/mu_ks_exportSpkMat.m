@@ -7,7 +7,14 @@ function [spikeTimes, clusterIdxs, dataTDT, tShift] = ...
                        TRIGPATHs, ...
                        FORMAT, ...
                        nch, ...
-                       skipSpkExportExisted)
+                       skipSpkExportExisted, ...
+                       trigField)
+
+narginchk(9, 10);
+
+if nargin < 10
+    trigField = 'Swep';
+end
 
 % Get params
 sortIDs = unique(sortIDs);
@@ -122,11 +129,9 @@ for rIndex = 1:numel(RESPATHs)
 
         % Read from Trigger file
         dataTDT{rIndex}{pIndex} = TDTbin2mat(BLOCKPATHs{rIndex}{pIndex}, 'TYPE', {'epocs'});
-        if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
-            load(TRIGPATHs{rIndex}{pIndex}, "board_dig_in_data", "TTL");
-            try TTL = board_dig_in_data; end
-            epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
-
+        % Choose trigger field
+        epocsNames = fieldnames(dataTDT{rIndex}{pIndex}.epocs);
+        if isempty(trigField)
             % create a node tree of epocs field
             temp = TreeItem("epocs");
             for eIndex = 1:numel(epocsNames)
@@ -138,25 +143,30 @@ for rIndex = 1:numel(RESPATHs)
             if isempty(epocsNameSelected)
                 % auto-determine
                 if any(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"]))
-                    tempField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
+                    trigField = string(epocsNames(matches(fieldnames(dataTDT{rIndex}{pIndex}.epocs), ["ordr", "ord0"])));
                 else
-                    tempField = "Swep";
+                    trigField = "Swep";
                 end
             else
                 selectNodes = ckl.selectedData;
-                tempField = {selectNodes.Text}';
-                tempField(matches(tempField, 'epocs')) = [];
+                trigField = {selectNodes.Text}';
+                trigField(matches(trigField, 'epocs')) = [];
                 
-                if numel(tempField) > 1
+                if numel(trigField) > 1
                     error("Please select only one epocs field.");
                 end
 
-                tempField = tempField{1};
+                trigField = trigField{1};
             end
             delete(ckl);
+        end
 
-            trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset);
-            TDTStim  = dataTDT{rIndex}{pIndex}.epocs.(tempField);
+        if isfile(TRIGPATHs{rIndex}{pIndex}) % TTL.mat for RHD and NP
+            load(TRIGPATHs{rIndex}{pIndex}, "board_dig_in_data", "TTL");
+            try TTL = board_dig_in_data; end
+
+            trialNum = numel(dataTDT{rIndex}{pIndex}.epocs.(trigField).onset);
+            TDTStim  = dataTDT{rIndex}{pIndex}.epocs.(trigField);
             TTL_Onset_temp = find(diff(TTL) > 0.9) + 1; % rise edges of digital signal
             TTL_Onset_temp(find(diff(TTL_Onset_temp) < 0.05) + 1) = [];
 
@@ -179,12 +189,12 @@ for rIndex = 1:numel(RESPATHs)
             % end
 
             % Align TDT trigger with TTL trigger
-            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.(tempField).onset(1) * fs(rIndex), 0);
+            nShift = TTL_Onset_temp(1) - roundn(dataTDT{rIndex}{pIndex}.epocs.(trigField).onset(1) * fs(rIndex), 0);
             TTL_Onset{rIndex}{pIndex} = (TTL_Onset_temp - nShift) / fs(rIndex); % sec
 
         else % Use TDT trigger
             nShift = 0;
-            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.(tempField).onset; % sec
+            TTL_Onset{rIndex}{pIndex} = dataTDT{rIndex}{pIndex}.epocs.(trigField).onset; % sec
         end
 
         % Trigger aligment

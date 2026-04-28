@@ -33,7 +33,7 @@ switch nCh
 end
 
 % Generate temporary chan map file
-if ~isempty(badChs)
+if ~isempty(badChs) && ~isequal(badChs, 0)
     probe = load(chanMap);
     probe.connected(probe.chanMap(badChs)) = false;
     if ~exist(fullfile(chanMapRoot, 'temp'), "dir")

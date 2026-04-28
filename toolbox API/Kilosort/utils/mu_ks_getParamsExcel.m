@@ -7,6 +7,8 @@ end
 
 opts = detectImportOptions(recordExcelPath);
 opts = setvartype(opts, 'string');
+opts.DataRange = 'A2'; % read from second line
+
 tbl = readtable(recordExcelPath, opts);
 paramNames = tbl.Properties.VariableNames;
 paramTypes = tbl(1, :);
@@ -46,7 +48,7 @@ for i = 1:numel(ids)
     params(i).recTech = params(i).recTech(1);
     params(i).chNum = params(i).chNum(1);
     params(i).badChannel = params(i).badChannel(1);
-    if isnan(params(i).badChannel)
+    if ismissing(params(i).badChannel) || isnan(params(i).badChannel)
         params(i).badChannel = [];
     end
     params(i).cf = params(i).cf(1);
