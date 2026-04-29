@@ -104,9 +104,8 @@ ax1.TickLength = [0, 0];
 ax2 = mu.subplot(Fig, 1, 1, 1, [1, 0.48], ...
                 "paddings", [0.04, 0.06, 0.02, 0.08], ...
                 "alignment_vertical", "bottom", "margins", zeros(1, 4));
-h = imagesc(ax2, fr);
-set(ax2, "XLimitMethod", "tight");
-set(ax2, "YLimitMethod", "tight");
+h = mu.image(ax2, fr);
+box(ax2, "on");
 colormap(ax2, slanCM('YlOrRd'));
 cb = mu.colorbar(ax2, "Location", "eastoutside");
 cb.Label.String = 'Firing rate (Hz)';

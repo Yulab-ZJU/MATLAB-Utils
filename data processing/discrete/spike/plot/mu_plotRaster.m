@@ -3,7 +3,7 @@ function varargout = mu_plotRaster(opts)
 
 %% Params parse
 arguments
-    opts.data               (1,1) struct = struct([])
+    opts.data               (1,1) struct
     opts.trialAll           (:,1) = []
 
     opts.window             (1,2) double = [-100, 500] % ms
