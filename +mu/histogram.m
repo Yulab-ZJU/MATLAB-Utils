@@ -52,7 +52,7 @@ mIp.addOptional("edges", [], @(x) validateattributes(x, {'numeric'}, {'vector'})
 mIp.addParameter("LineWidth", 0.5, @(x) validateattributes(x, {'numeric'}, {'positive'}));
 mIp.addParameter("FaceColor", [], @(x) iscell(x) || strcmpi(x, "none"));
 mIp.addParameter("EdgeColor", {'k'}, @(x) iscell(x) || strcmpi(x, "none"));
-mIp.addParameter("DisplayName", [], @(x) iscell(x));
+mIp.addParameter("DisplayName", [], @mustBeText);
 mIp.addParameter("BinWidth", [], @(x) validateattributes(x, {'numeric'}, {'scalar', 'positive'}));
 mIp.addParameter("BinMethod", "auto");
 mIp.addParameter("GroupSpace", 0, @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
