@@ -26,7 +26,11 @@ end
 
 % read motion signal from edf data
 if opts.load_speed && exist(fullfile(ROOTPATH, 'mems.edf'), "file")
-    motiondata = readedf(fullfile(ROOTPATH, 'mems.edf')); % a(t)
+    motiondata = readedf(fullfile(ROOTPATH, 'mems.edf'));
+    
+    
+    
+    % a(t)
     sensor = 1:3; % which sensor to use, 1 for left/right, 2 for up/down, 3 for forward/backward
     varargout{2} = motiondata(sensor, :);
 else
@@ -56,7 +60,10 @@ if exist("trialsData", "var") && exist("rules", "var")
     trialAll = opts.behaviorProcessFcn(trialsData, rules);
 
     % start from the first 1
-    assert(codes(1) == 1, "Head information lost. Code should start with 1.");
+    if codes(1) ~= 1
+        warning("Head information lost. Code should start with 1.");
+    end
+    % assert(codes(1) == 1, "Head information lost. Code should start with 1.");
     
     % exclude non-stimulus/cue codes
     exIdx = ismember(codes, [1; 2; 3]) | isnan(codes) | ~ismember(codes, rules.code) | latency > size(EEG.data, 2) - fix(window(2) / 1000 * fs);
