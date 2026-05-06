@@ -24,7 +24,7 @@ function mu_export_Neuracle(DATAROOTPATH, SAVEROOTPATH, pIDs, opts)
 % at the beginning of the script.
 %
 % Usually, the storage is arranged in this way:
-%     E:\EEG\Neuracle\浙江省人民医院\DATA\ (DATAROOTPATH)
+%     E:\EEG\Neuracle\DATA\ (DATAROOTPATH)
 %     |----2024011401\ (subjectID)
 %     |----2024011402\
 %     |----2024032801\
