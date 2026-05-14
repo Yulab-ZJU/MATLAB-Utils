@@ -51,7 +51,7 @@ function varargout = mu_plotWaveArray(chData, window, opts)
 
 arguments
     chData (:,1) struct
-    window (1,2) double {mustBeIncreasing2}
+    window (1,2) double
 
     % Allow [] here; validate later if not empty
     opts.GridSize double = []
@@ -66,6 +66,8 @@ arguments
     opts.Margins  (1,4) double = [0.05, 0.05, 0.1, 0.1]
     opts.Paddings (1,4) double = [0.01, 0.05, 0.01, 0.05]
 end
+
+validateattributes(window, {'numeric'}, {'increasing'});
 
 % -------------------------
 % 0) Normalize + validate "style" inputs (NV pipeline)
@@ -294,14 +296,6 @@ end
 %% ========================================================================
 % Local validators / utilities
 % ========================================================================
-
-function mustBeIncreasing2(x)
-% Compatible with older MATLAB versions (no built-in mustBeIncreasing).
-if ~(x(2) > x(1))
-    error("window must be strictly increasing: window(2) > window(1).");
-end
-end
-
 function nv = groupLineParamsNV_(groupStructLower, lineDefaultsNV)
 % Compute the final Name-Value list used for plotting a group line.
 %
