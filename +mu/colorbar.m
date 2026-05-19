@@ -90,9 +90,9 @@ end
 
 if scaleFactor ~= 1
     if ~isempty(label)
-        label = [label, ' (\timesE^{', num2str(-log10(scaleFactor)), '})'];
+        label = [label, ' (×10^{', num2str(-log10(scaleFactor)), '})'];
     else
-        label = ['\timesE^{', num2str(-log10(scaleFactor)), '}'];
+        label = ['×10^{', num2str(-log10(scaleFactor)), '}'];
     end
 end
 
