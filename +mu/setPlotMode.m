@@ -301,6 +301,7 @@ f  = figure('Visible','off', ...
 ax = axes('Parent', f); hold(ax, 'on');
 
 plot(ax, [nan 1], [0 1]);
+contour(ax, [0 1], [0 1], [0 1; 1 1], [0 1]);
 scatter(ax, 0, 0);
 patch(ax, [0 1 1], [0 0 1], 'k');
 text(ax, 0, 0, 'x');
@@ -310,6 +311,7 @@ colorbar(ax);
 P.Figure   = f;
 P.Axes     = findall(f, 'Type', 'axes');     P.Axes     = P.Axes(1);
 P.Line     = findall(f, 'Type', 'line');     P.Line     = P.Line(1);
+P.Contour  = findall(f, 'Type', 'contour');  P.Contour  = P.Contour(1);
 P.Scatter  = findall(f, 'Type', 'scatter');  P.Scatter  = P.Scatter(1);
 P.Patch    = findall(f, 'Type', 'patch');    P.Patch    = P.Patch(1);
 P.Text     = findall(f, 'Type', 'text');     P.Text     = P.Text(1);
