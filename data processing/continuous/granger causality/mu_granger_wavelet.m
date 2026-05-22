@@ -15,6 +15,7 @@ function res = mu_granger_wavelet(cwtres, f, coi, fs, fRange, nperm)
 % 
 % [fRange] specifies frequency limit for granger causality computation. (default: [] for all)
 % 
+% Seed-trial-shuffled surrogate GC:
 % If [nperm] is larger than 1, perform permutation test by randomizing trial order.
 
 narginchk(4, 6);
@@ -76,7 +77,7 @@ if nperm > 1
         dataTemp.fourierspctrm(:, 1, :, :) = data.fourierspctrm(randord(index, :), 1, :, :);
         
         % GC computation
-        temp = mu_granger_wavelet_impl(data);
+        temp = mu_granger_wavelet_impl(dataTemp);
         grangerspctrm(:, :, :, 1 + index) = temp.grangerspctrm;
     end
 
