@@ -36,7 +36,7 @@ tol = opts.tol;
 % ---- Get border of axes ----
 % Copy a new figure
 tempFig = copyobj(figHandle, 0);
-set(tempFig, "Visible", "off");
+% set(tempFig, "Visible", "off");
 drawnow;  % ensure TightInset is up-to-date
 
 % ---- Treat [w h] as the whole figure size ----

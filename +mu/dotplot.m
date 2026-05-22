@@ -123,13 +123,14 @@ DefaultDotParams = struct("jitter", 0.25, ...
 DefaultSpreadParams = struct("metric", "IQR", ...
                              "plottype", "patch", ...
                              "range", [25, 75], ...            % for IQR
-                             "facecolor", [0.6, 0.6, 0.6], ... % for patch
+                             "facecolor", [0.7, 0.7, 0.7], ... % for patch
                              "edgecolor", "none", ...          % for patch
-                             "facealpha", 0.4);                % for patch
+                             "facealpha", 0.4, ...             % for patch
+                             "color", "auto");                 % for line
 
 DefaultLinkParams = struct("linewidth", 0.5, ...
                            "linestyle", "-", ...
-                           "color", [0.7, 0.7, 0.7]);
+                           "color", [0.8, 0.8, 0.8]);
 
 mIp = inputParser;
 mIp.addRequired("X", @(x) validateattributes(x, 'cell', {'vector'}));
@@ -166,8 +167,8 @@ assert(numel(Positions) == ngroup, "numel(Positions) should be equal to %d", ngr
 if isscalar(Positions)
     GroupWidth = 1 - GroupSpace;
 else
-    GroupWidth = diff(Positions) * (1 - GroupSpace);
-    GroupWidth = [GroupWidth; GroupWidth(end)];
+    GroupWidth = min(diff(Positions) * (1 - GroupSpace));
+    GroupWidth = repmat(GroupWidth, ngroup, 1);
 end
 
 GroupLabels = mIp.Results.GroupLabels;
@@ -310,9 +311,9 @@ for gIndex = 1:ngroup
                 center = mean(ydata);
         end
         if strcmpi(Orientation, "vertical")
-            h(gIndex).Center = line(ax, [x0 - gw/2, x0 + gw/2], [center, center]);
+            h(gIndex).Center = line(ax, [x0 - gw/3, x0 + gw/3], [center, center]);
         else % horizontal
-            h(gIndex).Center = line(ax, [center, center], [x0 - gw/2, x0 + gw/2]);
+            h(gIndex).Center = line(ax, [center, center], [x0 - gw/3, x0 + gw/3]);
         end
         applyNV_(h(gIndex).Center, paramsTemp);
     end
@@ -375,7 +376,7 @@ if Link
         y1 = h(g1).Dots.YData;
         y2 = h(g2).Dots.YData;
 
-        links = arrayfun(@(a, b, c, d) line([a, b], [c, d]), x1, x2, y1, y2);
+        links = arrayfun(@(a, b, c, d) line(ax, [a, b], [c, d]), x1, x2, y1, y2);
         applyNV_(links, paramsTemp);
     end
 end

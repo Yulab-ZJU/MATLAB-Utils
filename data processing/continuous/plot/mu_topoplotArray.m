@@ -76,7 +76,7 @@ imagesc(ax, "XData", X, "YData", Y, "CData", C);
 cRange = get(ax, "CLim");
 
 if strcmpi(ContourOpt, "on")
-    hold on;
+    hold(ax, "on");
 
     if isempty(ContourVal)
         % contour option may not work with linear array

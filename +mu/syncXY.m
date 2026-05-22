@@ -1,4 +1,4 @@
-function syncXY(ax)
+function xyRange = syncXY(ax)
 %SYNCXY  Link x-y range.
 
 narginchk(0, 1);

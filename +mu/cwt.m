@@ -7,7 +7,7 @@ function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
 %     mu.cwt(trialsData, fs)
 %     mu.cwt(trialsData, fs, segNum)
 %     mu.cwt(..., "mode", "auto | CPU | GPU")
-%     mu.cwt(..., "outType", "raw | power | phase" | "freq")
+%     mu.cwt(..., "outType", "raw | amp | phase" | "freq")
 %     mu.cwt(..., "tPad", tPad)
 %
 % INPUTS:
@@ -25,7 +25,7 @@ function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
 %     tPad     - The total duration of two-sided zero padding, in sec (default=[] for no padding)
 %     outType  - The output [cwtres] is a nTrial*nCh*nFreq*nTime matrix.
 %                "raw"  : [cwtres] is a complex double matrix. (default)
-%                "power": [cwtres] is returned as abs(cwtres).
+%                "amp"  : [cwtres] is returned as abs(cwtres).
 %                "phase": [cwtres] is returned as angle(cwtres).
 %                "freq" : return [f] only.
 %     wavelet  - "morse" | "amor" ("morlet", default) | "bump"
@@ -59,7 +59,7 @@ mIp.parse(trialsData, fs, varargin{:});
 
 segNum   = mIp.Results.segNum;
 workMode = validatestring(mIp.Results.mode, {'auto', 'CPU', 'GPU'});
-outType  = validatestring(mIp.Results.outType, {'raw', 'power', 'phase', 'freq'});
+outType  = validatestring(mIp.Results.outType, {'raw', 'amp', 'phase', 'freq'});
 tPad     = mIp.Results.tPad; % total duration of padding (sec)
 wname    = char(validatestring(mIp.Results.wavelet, {'amor', 'morse', 'bump'}));
 
@@ -266,7 +266,7 @@ end
 switch outType
     case "raw"
         % do nothing
-    case "power"
+    case "amp"
         cwtres = abs(cwtres);
     case "phase"
         cwtres = angle(cwtres);
