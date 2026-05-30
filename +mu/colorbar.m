@@ -77,7 +77,7 @@ end
 
 if strcmpi(format, 'default')
     if scaleFactor ~= 1
-        cb.TickLabels = compose('%g', cb.Ticks * scaleFactor);
+        cb.TickLabels = compose('%.2g', cb.Ticks * scaleFactor);
         cb.TickLabelsMode = "auto";
     end
 else
