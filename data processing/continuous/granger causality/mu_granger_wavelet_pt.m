@@ -252,9 +252,9 @@ if opts.useParallel
 
     if isempty(pool)
         if isempty(opts.nWorkers)
-            pool = parpool("local");
+            pool = parpool();
         else
-            pool = parpool("local", opts.nWorkers);
+            pool = parpool(opts.nWorkers);
         end
     else
         if ~isempty(opts.nWorkers) && pool.NumWorkers ~= opts.nWorkers
