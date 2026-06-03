@@ -80,8 +80,8 @@ IntVal    = cat(1, IntCell{:});
 Fig = figure("WindowState", "maximized");
 % Rasterplot
 ax1 = mu.subplot(Fig, 1, 1, 1, [1, 0.48], ...
-                "paddings", [0.04, 0.06, 0.02, 0.08], ...
-                "alignment_vertical", "top", "margins", zeros(1, 4));
+                "margins", [0.04, 0.06, 0.02, 0.08], ...
+                "alignment_vertical", "top", "paddings", zeros(1, 4));
 S = scatter(X, Y, 10, "red", "filled");
 S.UserData = struct('Freq', FreqVal, 'Int', IntVal, 'Trial', TrialNum, 'Time', SpikeTime);
 xline((1:nfreq - 1) * window(2), "Color", [0, 0, 0], "LineWidth", 1);
@@ -102,8 +102,8 @@ ax1.TickLength = [0, 0];
 
 % Heat map of firing rate
 ax2 = mu.subplot(Fig, 1, 1, 1, [1, 0.48], ...
-                "paddings", [0.04, 0.06, 0.02, 0.08], ...
-                "alignment_vertical", "bottom", "margins", zeros(1, 4));
+                "margins", [0.04, 0.06, 0.02, 0.08], ...
+                "alignment_vertical", "bottom", "paddings", zeros(1, 4));
 h = mu.image(ax2, fr);
 box(ax2, "on");
 colormap(ax2, slanCM('YlOrRd'));

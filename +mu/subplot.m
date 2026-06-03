@@ -79,7 +79,7 @@ if isempty(varargin)
     error('mu.subplot requires at least row, col, and index inputs.');
 end
 
-if strcmp(class(varargin{1}), "matlab.ui.Figure")
+if isscalar(varargin{1}) && isgraphics(varargin{1}, "figure")
     Fig = varargin{1};
     varargin = varargin(2:end);
 else

@@ -20,8 +20,8 @@ function varargout = mu_plotWaveEEG(chData, window, EEGPos, varargin)
 %   - 'LineWidth': General line width setting (default=1)
 %   - 'Scaleplate' : Hide x, y ticks and show a scaleplate instead. This option only works when
 %                    plotting in actual electrode positions. (default='hide')
-%   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
-%   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
+%   - 'margings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
+%   - 'paddings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %        See `mu.subplot` for detail.
 %
 %--------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ mIp = inputParser;
 mIp.addRequired("chData", @isstruct);
 mIp.addRequired("window", @(x) validateattributes(x, {'numeric'}, {'numel', 2, 'increasing'}));
 mIp.addRequired("EEGPos", @(x) isstruct(x) && isscalar(x));
-mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("paddings", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("margins", [.01, .05, .01, .05], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("paddings", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 mIp.addParameter("LineWidth", 1, @(x) validateattributes(x, 'numeric', {'scalar', 'positive'}));
 mIp.addParameter("Scaleplate", "hide");
 mIp.parse(chData, window, EEGPos, varargin{:});

@@ -5,7 +5,7 @@ Fig = figure;
 %% plot
 dataAll = (1:10) .* [1;2;3];
 set(Fig, "UserData", []);
-ax = mu.subplot(Fig, 1, 1, 1, 1, [0, 0, 0, 0], [0.1, 0.1, 0.1, 0.1]);
+ax = mu.subplot(Fig, 1, 1, 1, 1, [0.1, 0.1, 0.1, 0.1], [0, 0, 0, 0]);
 cm = uicontextmenu(Fig);
 m = uimenu(cm, 'Text', 'select points');
 ax.ContextMenu = cm;
