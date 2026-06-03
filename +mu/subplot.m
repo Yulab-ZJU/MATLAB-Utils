@@ -94,8 +94,8 @@ mIp.addOptional("margins0",  [], @(x) validateattributes(x, 'numeric', {'vector'
 mIp.addOptional("paddings0", [], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
 mIp.addOptional("shape0", [], @mustBeTextScalar);
 mIp.addParameter("nSize", [1, 1], @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
-mIp.addParameter("margins",  [0.05, 0.05, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
-mIp.addParameter("paddings", [0.03, 0.03, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
+mIp.addParameter("margins",  [0.03, 0.03, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
+mIp.addParameter("paddings", [0.05, 0.05, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
 mIp.addParameter("shape", "auto", @mustBeTextScalar);
 mIp.addParameter("alignment"           , "center", @(x) isnumeric(x) || mu.isTextScalar(x));
 mIp.addParameter("alignment_horizontal", []      , @(x) isnumeric(x) || mu.isTextScalar(x));
