@@ -31,9 +31,6 @@ function stat = mu_cbpt_impl(data, cfg)
 %                       sample to be included in the clustering algorithm (default = 0).
 %          - latency: time interval over which the experimental conditions must be compared (in seconds)
 %          - channel: cell-array with selected channel labels (default = 'all')
-%          - design: design matrix of trialinfo (DO NOT SPECIFY IN YOUR cfg)
-%          - ivar: number or list with indices indicating the independent variable(s)
-%                  (default = 1, DO NOT SPECIFY IN YOUR cfg)
 % Output:
 %     stat: result of fieldtrip
 %           - prob: prob of cluster-based Monte Carlo permutation test, [nCh, nSample]
