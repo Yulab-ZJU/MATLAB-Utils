@@ -1,850 +1,3931 @@
 {
     "_schemaVersion": "1.0.0",
-
     "mu.filter": {
         "inputs": [
-            {"name": "data", "kind": "required", "type": [["numeric"], ["cell"]], "purpose": "data"},
-            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate"},
-            {"name": "fhp", "kind": "namevalue", "type": ["numeric"], "purpose": "high-pass cutoff frequency"},
-            {"name": "flp", "kind": "namevalue", "type": ["numeric"], "purpose": "low-pass cutoff frequency"},
-            {"name": "fnotch", "kind": "namevalue", "type": ["numeric"], "purpose": "notch frequency"},
-            {"name": "order", "kind": "namevalue", "type": ["numeric"], "purpose": "order of Butterworth filter"},
-            {"name": "BW", "kind": "namevalue", "type": ["numeric"], "purpose": "band width of notch filter (Hz)"}
+            {
+                "name": "data",
+                "kind": "required",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ],
+                "purpose": "data"
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "sample rate"
+            },
+            {
+                "name": "fhp",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "high-pass cutoff frequency"
+            },
+            {
+                "name": "flp",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "low-pass cutoff frequency"
+            },
+            {
+                "name": "fnotch",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "notch frequency"
+            },
+            {
+                "name": "order",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "order of Butterworth filter"
+            },
+            {
+                "name": "BW",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "band width of notch filter (Hz)"
+            }
         ],
         "description": "Applies a zero-phase shift filter to the data"
     },
-
     "mu.prepareANOVA": {
         "inputs": [
-            {"name": "data", "kind": "required", "type": ["numeric", "vector"], "repeating": true}
+            {
+                "name": "data",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "repeating": true
+            }
         ],
         "description": "prepare data for ANOVA analysis"
     },
-
     "mu.se": {
         "inputs": [
-            {"name": "x", "kind": "required", "type": ["numeric", "2d"]},
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "dim", "kind": "ordered", "type": ["integer", "scalar", "positive"]}
-                ],
-                [
-                    {"name": "dim", "kind": "ordered", "type": ["choices={'all'}"]}
+            {
+                "name": "x",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "2d"
                 ]
-            ]},
-            {"name": "omitnan", "kind": "ordered", "type": ["choices={'omitnan'}"]}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "dim",
+                            "kind": "ordered",
+                            "type": [
+                                "integer",
+                                "scalar",
+                                "positive"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "dim",
+                            "kind": "ordered",
+                            "type": [
+                                "choices={'all'}"
+                            ]
+                        }
+                    ]
+                ]
+            },
+            {
+                "name": "omitnan",
+                "kind": "ordered",
+                "type": [
+                    "choices={'omitnan'}"
+                ]
+            }
         ],
         "description": "Calculate the standard error of the mean"
     },
-
     "mu.fft": {
         "inputs": [
-            {"name": "X", "kind": "required", "type": ["numeric"], "purpose": "data"},
-            {"name": "fs", "kind": "required", "type": ["numeric"], "purpose": "sample rate (Hz)"},
-            {"name": "N", "kind": "ordered", "type": [["numeric"], ["choices = {'nextpow2'}"]], "purpose": "N-point fft (default:[])"},
-            {"name": "dim", "kind": "ordered", "type": ["scalar", "positive", "integer"]},
-            {"name": "foi", "kind": "namevalue", "type": ["numeric", "2d"], "purpose": "frequency of interest"}
+            {
+                "name": "X",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "data"
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "sample rate (Hz)"
+            },
+            {
+                "name": "N",
+                "kind": "ordered",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "choices = {'nextpow2'}"
+                    ]
+                ],
+                "purpose": "N-point fft (default:[])"
+            },
+            {
+                "name": "dim",
+                "kind": "ordered",
+                "type": [
+                    "scalar",
+                    "positive",
+                    "integer"
+                ]
+            },
+            {
+                "name": "foi",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "2d"
+                ],
+                "purpose": "frequency of interest"
+            }
         ],
         "description": "FFT: single-sided amplitude and phase spectrum"
     },
-
     "mu.cwt": {
         "inputs": [
-            {"name": "trialsData", "kind": "required", "type": [["cell"], ["numeric"]]},
-            {"name": "fs", "kind": "required", "type": ["numeric", "scalar", "@(x) x > 0"], "purpose": "sample rate in Hz"},
-            {"name": "segNum", "kind": "ordered", "type": ["numeric", "scalar", "@(x) x > 0 && fix(x) == x"]},
-            {"name": "mode", "kind": "namevalue", "type": ["choices={'auto', 'GPU', 'CPU'}"]},
-            {"name": "outType", "kind": "namevalue", "type": ["choices={'raw', 'amp', 'phase', 'freq'}"]},
-            {"name": "tPad", "kind": "namevalue", "type": ["numeric", "scalar", "@(x) x > 0"], "purpose": "total duration after padding in sec"},
-            {"name": "wavelet", "kind": "namevalue", "type": ["choices={'morse', 'amor', 'bump'}"], "purpose": "default: 'amor'"}
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "numeric"
+                    ]
+                ]
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "@(x) x > 0"
+                ],
+                "purpose": "sample rate in Hz"
+            },
+            {
+                "name": "segNum",
+                "kind": "ordered",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "@(x) x > 0 && fix(x) == x"
+                ]
+            },
+            {
+                "name": "mode",
+                "kind": "namevalue",
+                "type": [
+                    "choices={'auto', 'GPU', 'CPU'}"
+                ]
+            },
+            {
+                "name": "outType",
+                "kind": "namevalue",
+                "type": [
+                    "choices={'raw', 'amp', 'phase', 'freq'}"
+                ]
+            },
+            {
+                "name": "tPad",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "@(x) x > 0"
+                ],
+                "purpose": "total duration after padding in sec"
+            },
+            {
+                "name": "wavelet",
+                "kind": "namevalue",
+                "type": [
+                    "choices={'morse', 'amor', 'bump'}"
+                ],
+                "purpose": "default: 'amor'"
+            }
         ],
         "description": "Continuous wavelet transform (CWT) for time-frequency analysis"
     },
-
     "mu.calchMean": {
         "inputs": [
-            {"name": "trialsData", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "padDir",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'head', 'tail'}"
+                ],
+                "purpose": "padding direction (default='tail')"
+            }
         ],
         "description": "Calculate the mean of trial data with padding direction"
     },
-
     "mu.calchErr": {
         "inputs": [
-            {"name": "trialsData", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "padDir",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'head', 'tail'}"
+                ],
+                "purpose": "padding direction (default='tail')"
+            }
         ],
         "description": "Calculate the standard error of the mean of trial data with padding direction"
     },
-
     "mu.calchStd": {
         "inputs": [
-            {"name": "trialsData", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "padDir",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'head', 'tail'}"
+                ],
+                "purpose": "padding direction (default='tail')"
+            }
         ],
         "description": "Calculate the standard deviation of trial data with padding direction"
     },
-
     "mu.calchFunc": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle"], "purpose": "function handle with signature fcn(data,dim,varargin)"},
-            {"name": "trialsData", "kind": "required", "type": ["cell"]},
-            {"name": "padDir", "kind": "ordered", "type": ["choices = {'head', 'tail'}"], "purpose": "padding direction (default='tail')"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle"
+                ],
+                "purpose": "function handle with signature fcn(data,dim,varargin)"
+            },
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "padDir",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'head', 'tail'}"
+                ],
+                "purpose": "padding direction (default='tail')"
+            }
         ],
         "description": "Calculate a function over trial data with padding direction"
     },
-
     "mu.checkdata": {
         "inputs": [
-            {"name": "trialsData", "kind": "required", "type": ["cell"], "repeating": true}
+            {
+                "name": "trialsData",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ],
+                "repeating": true
+            }
         ],
         "description": "Validate trial data"
     },
-
     "mu.findpeaktrough": {
         "inputs": [
-            {"name": "data", "kind": "required", "type": ["numeric", "2d"]},
-            {"name": "dim", "kind": "ordered", "type": ["numeric", "choices={2, 1}"]}
+            {
+                "name": "data",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "2d"
+                ]
+            },
+            {
+                "name": "dim",
+                "kind": "ordered",
+                "type": [
+                    "numeric",
+                    "choices={2, 1}"
+                ]
+            }
         ],
         "description": "Find peaks and troughs in data along a specified dimension"
     },
-
     "mu.findvectorloc": {
         "inputs": [
-            {"name": "X", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "pat", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "direction", "kind": "ordered", "type": ["choices={'first', 'last'}"]}
+            {
+                "name": "X",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "pat",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "direction",
+                "kind": "ordered",
+                "type": [
+                    "choices={'first', 'last'}"
+                ]
+            }
         ],
         "description": "Find the location of a vector pattern in another vector"
     },
-
     "mu.obtainArgoutN": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle"], "purpose": "函数句柄"},
-            {"name": "Ns", "kind": "required", "type": ["vector", "integer", "positive"], "purpose": "返回fcn的第[n1,n2,...,nN]个输出"},
-            {"name": "arg", "kind": "ordered", "repeating": true, "purpose": "args of fcn"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle"
+                ],
+                "purpose": "函数句柄"
+            },
+            {
+                "name": "Ns",
+                "kind": "required",
+                "type": [
+                    "vector",
+                    "integer",
+                    "positive"
+                ],
+                "purpose": "返回fcn的第[n1,n2,...,nN]个输出"
+            },
+            {
+                "name": "arg",
+                "kind": "ordered",
+                "repeating": true,
+                "purpose": "args of fcn"
+            }
         ],
         "description": "Get specified outputs from a function"
     },
-
     "mu.path2func": {
         "inputs": [
-            {"name": "P", "kind": "required", "type": ["file=*.m"], "purpose": "full path to the function file"}
+            {
+                "name": "P",
+                "kind": "required",
+                "type": [
+                    "file=*.m"
+                ],
+                "purpose": "full path to the function file"
+            }
         ],
         "description": "Convert path to function handle"
     },
-
     "mu.parcellfun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "A", "kind": "required", "type": ["cell"]},
-            {"name": "B", "kind": "ordered", "type": ["cell"], "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
-            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "type": [
+                    "cell"
+                ],
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            },
+            {
+                "name": "BlockSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ],
+                "purpose": "size of each block to process in parallel"
+            }
         ],
         "description": "Apply a function to each cell in parallel"
     },
-
     "mu.pararrayfun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "A", "kind": "required"},
-            {"name": "B", "kind": "ordered", "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
-            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required"
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            },
+            {
+                "name": "BlockSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ],
+                "purpose": "size of each block to process in parallel"
+            }
         ],
         "description": "Apply a function to each element in an array in parallel"
     },
-
     "mu.parrowfun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "A", "kind": "required"},
-            {"name": "B", "kind": "ordered", "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
-            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required"
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            },
+            {
+                "name": "BlockSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ],
+                "purpose": "size of each block to process in parallel"
+            }
         ],
         "description": "Apply a function to each row in parallel"
     },
-
     "mu.parslicefun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "dim", "kind": "required", "type": ["numeric", "scalar", "positive"]},
-            {"name": "A", "kind": "required"},
-            {"name": "B", "kind": "ordered", "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]},
-            {"name": "BlockSize", "kind": "namevalue", "type": ["numeric", "scalar", "positive"], "purpose": "size of each block to process in parallel"}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "dim",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required"
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            },
+            {
+                "name": "BlockSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ],
+                "purpose": "size of each block to process in parallel"
+            }
         ],
         "description": "Apply a function to each slice in parallel"
     },
-
     "mu.rowfun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "A", "kind": "required"},
-            {"name": "B", "kind": "ordered", "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required"
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            }
         ],
         "description": "Apply a function to each row"
     },
-
     "mu.slicefun": {
         "inputs": [
-            {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]},
-            {"name": "dim", "kind": "required", "type": ["numeric", "scalar", "positive"]},
-            {"name": "A", "kind": "required"},
-            {"name": "B", "kind": "ordered", "repeating": true},
-            {"name": "UniformOutput", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "ErrorHandler", "kind": "namevalue", "type": ["scalar", "function_handle"]}
+            {
+                "name": "fcn",
+                "kind": "required",
+                "type": [
+                    "function_handle",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "dim",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "A",
+                "kind": "required"
+            },
+            {
+                "name": "B",
+                "kind": "ordered",
+                "repeating": true
+            },
+            {
+                "name": "UniformOutput",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "ErrorHandler",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "function_handle"
+                ]
+            }
         ],
         "description": "Apply a function to each slice"
     },
-
     "mu.shiftmatrix": {
         "inputs": [
-            {"name": "X", "kind": "required", "type": ["numeric", "2d"], "purpose": "data matrix"},
-            {"name": "N", "kind": "required", "type": ["numeric", "numel=2"], "purpose": "number of shifts in each dimension"},
-            {"name": "opt", "kind": "ordered", "type": ["choices={'zero', 'repliacte', 'loop'}"], "purpose": "shift option"}
+            {
+                "name": "X",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "2d"
+                ],
+                "purpose": "data matrix"
+            },
+            {
+                "name": "N",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "number of shifts in each dimension"
+            },
+            {
+                "name": "opt",
+                "kind": "ordered",
+                "type": [
+                    "choices={'zero', 'repliacte', 'loop'}"
+                ],
+                "purpose": "shift option"
+            }
         ],
         "description": "Shift a matrix in specified dimensions"
     },
-
     "mu.parsestruct": {
         "inputs": [
-            {"name": "S", "kind": "required", "type": ["@(arg) isstruct(arg)"]},
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "fieldName", "kind": "ordered", "type": [["string"], ["char"]], "repeating": true}
-                ],
-                [
-                    {"name": "sIndex", "kind": "ordered", "type": ["scalar", "positive", "integer"]},
-                    {"name": "fieldName", "kind": "ordered", "type": [["string"], ["char"]], "repeating": true}
+            {
+                "name": "S",
+                "kind": "required",
+                "type": [
+                    "@(arg) isstruct(arg)"
                 ]
-            ]}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "fieldName",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "char"
+                                ]
+                            ],
+                            "repeating": true
+                        }
+                    ],
+                    [
+                        {
+                            "name": "sIndex",
+                            "kind": "ordered",
+                            "type": [
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ]
+                        },
+                        {
+                            "name": "fieldName",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "char"
+                                ]
+                            ],
+                            "repeating": true
+                        }
+                    ]
+                ]
+            }
         ],
         "description": "Parse the fields of a struct array"
     },
-
     "mu.validatestruct": {
         "inputs": [
-            {"name": "s", "kind": "required", "type": ["struct"]},
-            {"tuple": [
-                {"name": "field", "kind": "required", "type": [["char"], ["string"]]},
-                {"name": "fcn", "kind": "required", "type": ["function_handle", "scalar"]}
-            ], "repeating": true}
+            {
+                "name": "s",
+                "kind": "required",
+                "type": [
+                    "struct"
+                ]
+            },
+            {
+                "tuple": [
+                    {
+                        "name": "field",
+                        "kind": "required",
+                        "type": [
+                            [
+                                "char"
+                            ],
+                            [
+                                "string"
+                            ]
+                        ]
+                    },
+                    {
+                        "name": "fcn",
+                        "kind": "required",
+                        "type": [
+                            "function_handle",
+                            "scalar"
+                        ]
+                    }
+                ],
+                "repeating": true
+            }
         ]
     },
-
     "mu.getabspath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
+            {
+                "name": "path",
+                "kind": "required",
+                "type": [
+                    [
+                        "folder"
+                    ],
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "file"
+                    ]
+                ],
+                "purpose": "path to a folder or file"
+            }
         ],
         "description": "Get absolute path of a folder or file"
     },
-
     "mu.getlastpath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
+            {
+                "name": "path",
+                "kind": "required",
+                "type": [
+                    [
+                        "folder"
+                    ],
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "file"
+                    ]
+                ],
+                "purpose": "path to a folder or file"
+            }
         ],
         "description": "Get last path component of a folder or file"
     },
-
     "mu.getrootpath": {
         "inputs": [
-            {"name": "path", "kind": "required", "type": [["folder"], ["string"], ["char"], ["file"]], "purpose": "path to a folder or file"}
+            {
+                "name": "path",
+                "kind": "required",
+                "type": [
+                    [
+                        "folder"
+                    ],
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "file"
+                    ]
+                ],
+                "purpose": "path to a folder or file"
+            }
         ],
         "description": "Get first path component of a folder or file"
     },
-
     "mu.getorfull": {
         "inputs": [
-            {"name": "s", "kind": "required", "type": [["struct"], ["cell"]]},
-            {"name": "default", "kind": "required", "type": [["struct"], ["cell"]]},
-            {"name": "ReplaceEmpty", "kind": "namevalue", "type": ["logical", "scalar"]}
+            {
+                "name": "s",
+                "kind": "required",
+                "type": [
+                    [
+                        "struct"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ]
+            },
+            {
+                "name": "default",
+                "kind": "required",
+                "type": [
+                    [
+                        "struct"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ]
+            },
+            {
+                "name": "ReplaceEmpty",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            }
         ],
-        "description": "Complete struct or Name-Value list with defaults; optionally replace empty values using defaults."
+        "description": "Complete struct or Name-Value list with defaults; orderedly replace empty values using defaults."
     },
-
     "mu.addfield": {
         "inputs": [
-            {"name": "s", "kind": "required", "type": ["struct", "vector"]},
-            {"tuple": [
-                {"name": "fName", "kind": "required", "type": [["char"], ["string"]]},
-                {"name": "fVal", "kind": "required", "type": [["cell"], ["numeric"]]}
-            ]}
+            {
+                "name": "s",
+                "kind": "required",
+                "type": [
+                    "struct"
+                ]
+            },
+            {
+                "tuple": [
+                    {
+                        "name": "fName",
+                        "kind": "required",
+                        "type": [
+                            [
+                                "char"
+                            ],
+                            [
+                                "string"
+                            ]
+                        ]
+                    },
+                    {
+                        "name": "fVal",
+                        "kind": "required",
+                        "type": [
+                            [
+                                "cell"
+                            ],
+                            [
+                                "numeric"
+                            ]
+                        ]
+                    }
+                ]
+            }
         ]
     },
-
     "mu.structcat": {
         "inputs": [
-            {"name": "A", "kind": "required", "type": ["struct"], "repeating": true}
+            {
+                "name": "A",
+                "kind": "required",
+                "type": [
+                    "struct"
+                ],
+                "repeating": true
+            }
         ],
         "description": "Concatenate multiple structs into one"
     },
-
     "mu.save": {
         "inputs": [
-            {"name": "filename", "kind": "required", "type": [["file=*.mat"], ["string"], ["char"]]},
-            {"name": "variable", "kind": "required", "type": ["@(x) ~contains(x, '-')"], "repeating": true},
-            {"name": "option", "kind": "ordered", "type": ["@(x) contains(x, '-')"], "repeating": true}
+            {
+                "name": "filename",
+                "kind": "required",
+                "type": [
+                    [
+                        "file=*.mat"
+                    ],
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ]
+                ]
+            },
+            {
+                "name": "variable",
+                "kind": "required",
+                "type": [
+                    "@(x) ~contains(x, '-')"
+                ],
+                "repeating": true
+            },
+            {
+                "name": "option",
+                "kind": "ordered",
+                "type": [
+                    "@(x) contains(x, '-')"
+                ],
+                "repeating": true
+            }
         ],
         "description": "Skip saving if file exists"
     },
-
     "mu.print": {
         "inputs": [
-            {"name": "target", "kind": "required", "type": ["@(x) isscalar(x) && isgraphics(x)"]},
-            {"name": "FILENAME", "kind": "required", "type": [["string"], ["char"]]},
-            {"name": "formattype", "kind": "ordered", "type": ["choices={'-djpeg', '-dpng', '-dtiff', '-dtiffn', '-dmeta'}"]},
-            {"name": "resolution", "kind": "ordered", "type": ["string", "choices={'-r600', '-r300', '-r0'}"]}
+            {
+                "name": "target",
+                "kind": "required",
+                "type": [
+                    "@(x) isscalar(x) && isgraphics(x)"
+                ]
+            },
+            {
+                "name": "FILENAME",
+                "kind": "required",
+                "type": [
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ]
+                ]
+            },
+            {
+                "name": "formattype",
+                "kind": "ordered",
+                "type": [
+                    "choices={'-djpeg', '-dpng', '-dtiff', '-dtiffn', '-dmeta'}"
+                ]
+            },
+            {
+                "name": "resolution",
+                "kind": "ordered",
+                "type": [
+                    "string",
+                    "choices={'-r600', '-r300', '-r0'}"
+                ]
+            }
         ],
         "description": "Skip printing if file exists"
     },
-
     "mu.load": {
         "inputs": [
-            {"name": "FILENAME", "kind": "required", "type": [["file=*.mat"], ["@(arg) isempty(arg)"]]},
-            {"name": "varNames", "kind": "ordered", "type": [["string"], ["char"], ["cell"]]}
+            {
+                "name": "FILENAME",
+                "kind": "required",
+                "type": [
+                    [
+                        "file=*.mat"
+                    ],
+                    [
+                        "@(arg) isempty(arg)"
+                    ]
+                ]
+            },
+            {
+                "name": "varNames",
+                "kind": "ordered",
+                "type": [
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ]
+            }
         ],
         "description": "Skip loading if variables exist"
     },
-
     "mu.exportFigure2PDF": {
         "inputs": [
-            {"name": "figHandle", "kind": "required", "type": ["@(x) isscalar(x) && isa(x, 'matlab.ui.Figure')"]},
-            {"name": "filename", "kind": "required", "type": [["file=*.pdf"], ["string"], ["char"]]},
-            {"name": "width_mm", "kind": "required", "type": ["scalar", "positive"]},
-            {"name": "height_mm", "kind": "required", "type": ["scalar", "positive"]},
-            {"name": "expandMode", "kind": "namevalue", "type": ["choices = {'fixed','keepratio-width','keepratio-height','keepratio-min','keepratio-max'}"], "purpose": "default='fixed'"},
-            {"name": "adjustOpt", "kind": "namevalue", "type": ["choices = {'on', 'off'}"], "purpose": "default='on'"}
+            {
+                "name": "figHandle",
+                "kind": "required",
+                "type": [
+                    "@(x) isscalar(x) && isa(x, 'matlab.ui.Figure')"
+                ]
+            },
+            {
+                "name": "filename",
+                "kind": "required",
+                "type": [
+                    [
+                        "file=*.pdf"
+                    ],
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ]
+                ]
+            },
+            {
+                "name": "width_mm",
+                "kind": "required",
+                "type": [
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "height_mm",
+                "kind": "required",
+                "type": [
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "expandMode",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'fixed','keepratio-width','keepratio-height','keepratio-min','keepratio-max'}"
+                ],
+                "purpose": "default='fixed'"
+            },
+            {
+                "name": "adjustOpt",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'on', 'off'}"
+                ],
+                "purpose": "default='on'"
+            },
+            {
+                "name": "adjustPositionType",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'Position','TightInset'}"
+                ],
+                "purpose": "default='TightInset'"
+            }
         ]
     },
-
     "mu.getVarsFromWorkspace": {
         "inputs": [
-            {"name": "regexp", "kind": "ordered", "type": [["string"], ["char"], ["@(x) isempty(x)"]], "repeating": true}
+            {
+                "name": "regexp",
+                "kind": "ordered",
+                "type": [
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "@(x) isempty(x)"
+                    ]
+                ],
+                "repeating": true
+            }
         ],
         "description": "Retrieve variables from the workspace using regular expressions"
     },
-
     "mu.getObjVal": {
         "inputs": [
-            {"name": "Fig", "kind": "required", "type": ["@(args) all(isgraphics(args))"]},
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "ObjType", "kind": "required", "type": ["choices = {'line'}"]},
-                    {"name": "getParams", "kind": "ordered", "type": [["choices = {'Color', 'LineStyle', 'LineWidth', 'DisplayName', 'XData', 'YData', 'ZData'}"], ["@(args) isempty(args)"]]},
-                    {"name": "searchParams", "kind": "ordered", "type": ["choices = {'Color', 'LineStyle', 'LineWidth', 'DisplayName'}"]},
-                    {"name": "searchValue", "kind": "ordered"}
-                ],
-                [
-                    {"name": "ObjType", "kind": "required", "type": ["choices = {'image'}"]},
-                    {"name": "getParams", "kind": "ordered", "type": [["choices = {'XData', 'YData', 'CData', 'AlphaData'}"], ["@(args) isempty(args)"]]},
-                    {"name": "searchParams", "kind": "ordered", "type": ["choices = {'AlphaData'}"]},
-                    {"name": "searchValue", "kind": "ordered"}
-                ],
-                [
-                    {"name": "ObjType", "kind": "required", "type": ["choices = {'axes'}"]},
-                    {"name": "getParams", "kind": "ordered", "type": [["choices = {'Tag', 'XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"], ["@(args) isempty(args)"]]},
-                    {"name": "searchParams", "kind": "ordered", "type": ["choices = {'Tag','XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"]},
-                    {"name": "searchValue", "kind": "ordered"}
-                ],
-                [
-                    {"name": "ObjType", "kind": "required", "type": ["choices = {'figure', 'FigOrAxes'}"]},
-                    {"name": "getParams", "kind": "ordered", "type": [["choices = {'Tag', 'Children', 'Position'}"], ["@(args) isempty(args)"]]},
-                    {"name": "searchParams", "kind": "ordered", "type": ["choices = {'Tag','XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"]},
-                    {"name": "searchValue", "kind": "ordered"}
+            {
+                "name": "Fig",
+                "kind": "required",
+                "type": [
+                    "@(args) all(isgraphics(args))"
                 ]
-            ]}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "ObjType",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'line'}"
+                            ]
+                        },
+                        {
+                            "name": "getParams",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'Color', 'LineStyle', 'LineWidth', 'DisplayName', 'XData', 'YData', 'ZData'}"
+                                ],
+                                [
+                                    "@(args) isempty(args)"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "searchParams",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'Color', 'LineStyle', 'LineWidth', 'DisplayName'}"
+                            ]
+                        },
+                        {
+                            "name": "searchValue",
+                            "kind": "ordered"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ObjType",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'image'}"
+                            ]
+                        },
+                        {
+                            "name": "getParams",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'XData', 'YData', 'CData', 'AlphaData'}"
+                                ],
+                                [
+                                    "@(args) isempty(args)"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "searchParams",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'AlphaData'}"
+                            ]
+                        },
+                        {
+                            "name": "searchValue",
+                            "kind": "ordered"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ObjType",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'axes'}"
+                            ]
+                        },
+                        {
+                            "name": "getParams",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'Tag', 'XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"
+                                ],
+                                [
+                                    "@(args) isempty(args)"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "searchParams",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'Tag','XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"
+                            ]
+                        },
+                        {
+                            "name": "searchValue",
+                            "kind": "ordered"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ObjType",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'figure', 'FigOrAxes'}"
+                            ]
+                        },
+                        {
+                            "name": "getParams",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'Tag', 'Children', 'Position'}"
+                                ],
+                                [
+                                    "@(args) isempty(args)"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "searchParams",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'Tag','XLim', 'YLim', 'Title', 'Position', 'XTickLabel', 'XTick', 'YTickLabel', 'YTick', 'XScale', 'YScale'}"
+                            ]
+                        },
+                        {
+                            "name": "searchValue",
+                            "kind": "ordered"
+                        }
+                    ]
+                ]
+            }
         ]
     },
-
     "mu.dashline": {
         "inputs": [
-            {"name": "ax", "kind": "ordered", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
-            {"name": "DashLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 3"},
-            {"name": "GapLength", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"},
-            {"name": "StartOffset", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 0" },
-            {"name": "KeepEndPoints", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default true"},
-            {"name": "MinSegPoint", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 2"}
+            {
+                "name": "ax",
+                "kind": "ordered",
+                "type": [
+                    "@(args) isscalar(args) && all(isgraphics(args))"
+                ]
+            },
+            {
+                "name": "DashLength",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default 3"
+            },
+            {
+                "name": "GapLength",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default 2"
+            },
+            {
+                "name": "StartOffset",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default 0"
+            },
+            {
+                "name": "KeepEndPoints",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ],
+                "purpose": "default true"
+            },
+            {
+                "name": "MinSegPoint",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default 2"
+            }
         ]
     },
-
     "mu.addBars": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "xval", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "color", "kind": "ordered", "type": [["choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"], ["numeric", "vector"]]},
-                    {"name": "alpha", "kind": "ordered", "type": ["numeric", "scalar"], "purpose": "default 0.1"}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.Graphics')"]},
-                    {"name": "xval", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "color", "kind": "ordered", "type": [["choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"], ["numeric", "vector"]]},
-                    {"name": "alpha", "kind": "ordered", "type": ["numeric", "scalar"], "purpose": "default 0.1"}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "xval",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "color",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"
+                                ],
+                                [
+                                    "numeric"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "alpha",
+                            "kind": "ordered",
+                            "type": [
+                                "numeric",
+                                "scalar"
+                            ],
+                            "purpose": "default 0.1"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.Graphics')"
+                            ]
+                        },
+                        {
+                            "name": "xval",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "color",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"
+                                ],
+                                [
+                                    "numeric"
+                                ]
+                            ]
+                        },
+                        {
+                            "name": "alpha",
+                            "kind": "ordered",
+                            "type": [
+                                "numeric",
+                                "scalar"
+                            ],
+                            "purpose": "default 0.1"
+                        }
+                    ]
                 ]
-            ]}
+            }
         ],
         "description": "Add shaded bars to a plot"
     },
-
     "mu.addLines": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "lines", "kind": "ordered", "type": ["struct"]}
-                ],
-                [
-                    {"name": "FigOrAxes", "kind": "required", "type": ["@(args) all(isgraphics(args))"]},
-                    {"name": "Lines", "kind": "ordered", "type": ["struct"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "lines",
+                            "kind": "ordered",
+                            "type": [
+                                "struct"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "FigOrAxes",
+                            "kind": "required",
+                            "type": [
+                                "@(args) all(isgraphics(args))"
+                            ]
+                        },
+                        {
+                            "name": "Lines",
+                            "kind": "ordered",
+                            "type": [
+                                "struct"
+                            ]
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "ConstantLine", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "use xline/yline to create vertical/horizontal lines"},
-            {"name": "Layer", "kind": "namevalue", "type": ["choices={'top', 'bottom'}"]},
-            {"name": "IgnoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]}
+            },
+            {
+                "name": "ConstantLine",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ],
+                "purpose": "use xline/yline to create vertical/horizontal lines"
+            },
+            {
+                "name": "Layer",
+                "kind": "namevalue",
+                "type": [
+                    "choices={'top', 'bottom'}"
+                ]
+            },
+            {
+                "name": "IgnoreInvisible",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            }
         ],
         "description": "Add lines to a all subplots in a figure or to specific axes"
     },
-
     "mu.addTicks": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "axisName", "kind": "required", "type": ["choices={'x', 'y', 'z'}"]},
-                    {"name": "vals", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "labelStrs", "kind": "ordered", "type": [["string", "vector"], ["@iscellstr"]]}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]},
-                    {"name": "axisName", "kind": "required", "type": ["choices={'x', 'y', 'z'}"]},
-                    {"name": "vals", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "labelStrs", "kind": "ordered", "type": [["string", "vector"], ["@iscellstr"]]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "axisName",
+                            "kind": "required",
+                            "type": [
+                                "choices={'x', 'y', 'z'}"
+                            ]
+                        },
+                        {
+                            "name": "vals",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "labelStrs",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "@iscellstr"
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"
+                            ]
+                        },
+                        {
+                            "name": "axisName",
+                            "kind": "required",
+                            "type": [
+                                "choices={'x', 'y', 'z'}"
+                            ]
+                        },
+                        {
+                            "name": "vals",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "labelStrs",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "@iscellstr"
+                                ]
+                            ]
+                        }
+                    ]
                 ]
-            ]}
+            }
         ],
         "description": "Add custom ticks to a specific axis in a plot"
     },
-
     "mu.addTitle": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "str", "kind": "required", "type": [["string"], ["char"]]}
-                ],
-                [
-                    {"name": "Fig", "kind": "required", "type": ["@(args) isa(x, 'matlab.ui.Figure')"]},
-                    {"name": "str", "kind": "required", "type": [["string"], ["char"]]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "str",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "char"
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "Fig",
+                            "kind": "required",
+                            "type": [
+                                "@(args) isa(x, 'matlab.ui.Figure')"
+                            ]
+                        },
+                        {
+                            "name": "str",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "string"
+                                ],
+                                [
+                                    "char"
+                                ]
+                            ]
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "HorizontalAlignment", "kind": "namevalue", "type": ["choices = {'left', 'center', 'right'}"]},
-            {"name": "Position", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "FontSize", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "FontWeight", "kind": "namevalue", "type": ["choices = {'normal', 'bold'}"]},
-            {"name": "Interpreter", "kind": "namevalue", "type": ["choices = {'none', 'latex', 'tex'}"]}
+            },
+            {
+                "name": "HorizontalAlignment",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'left', 'center', 'right'}"
+                ]
+            },
+            {
+                "name": "Position",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "FontSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "FontWeight",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'normal', 'bold'}"
+                ]
+            },
+            {
+                "name": "Interpreter",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'none', 'latex', 'tex'}"
+                ]
+            }
         ],
         "description": "Add a title to a figure"
     },
-
     "mu.addWaveError": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "t", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "Y", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "E", "kind": "required", "type": ["numeric", "vector"]}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.Graphics')"]},
-                    {"name": "t", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "Y", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "E", "kind": "required", "type": ["numeric", "vector"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "t",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "Y",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "E",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.Graphics')"
+                            ]
+                        },
+                        {
+                            "name": "t",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "Y",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "E",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "Color", "kind": "namevalue", "type": [["choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"], ["numeric", "vector"]]},
-            {"name": "Alpha", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default 0.3"}
+            },
+            {
+                "name": "Color",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "choices = {'r', 'g', 'b', 'y', 'm', 'k', 'w'}"
+                    ],
+                    [
+                        "numeric"
+                    ]
+                ]
+            },
+            {
+                "name": "Alpha",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default 0.3"
+            }
         ],
         "description": "Add wave error to a plot"
     },
-
     "mu.boxplot": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "X", "kind": "required", "type": ["cell"], "purpose": "Each column is a category"}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
-                    {"name": "X", "kind": "required", "type": ["cell"], "purpose": "Each column is a category"}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                "cell"
+                            ],
+                            "purpose": "Each column is a category"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) isscalar(args) && all(isgraphics(args))"
+                            ]
+                        },
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                "cell"
+                            ],
+                            "purpose": "Each column is a category"
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "Positions", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]]},
-            {"name": "Notch", "kind": "namevalue", "type": ["choices = {'on', 'off'}"]},
-            {"name": "BoxEdgeType", "kind": "namevalue", "type": [["choices = {'SE', 'STD'}"], ["numeric", "numel=2"]], "purpose": "default:[25,75]"},
-            {"name": "BoxParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'LineStyle','-','LineWidth',0.5,'FaceColor','none','FaceAlpha',0.5}"},
-            {"name": "CenterLineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Type','Median','LineStyle','-','LineWidth','auto','Color','auto'}"},
-            {"name": "Whisker", "kind": "namevalue", "type": ["numeric", ["numel=1"], ["numel=2"]], "purpose": "default: 1.5"},
-            {"name": "WhiskerParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'LineStyle','-','LineWidth','auto','Color','auto'}"},
-            {"name": "WhiskerCapParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'LineStyle','-','LineWidth','auto','Color','auto','Width',0.4}"},
-            {"name": "GroupLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]]},
-            {"name": "GroupLegends", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]]},
-            {"name": "GroupLines", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1"},
-            {"name": "CategoryLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]]},
-            {"name": "CategorySpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.4"},
-            {"name": "IndividualDataPoint", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'hide'"},
-            {"name": "SymbolParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Marker','o','SizeData',36,'MarkerEdgeColor','w','MarkerFaceColor','auto','MarkerFaceAlpha',0.3,'LineWidth',0.1}"},
-            {"name": "Jitter", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1"},
-            {"name": "Outlier", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default:'show'"},
-            {"name": "OutlierParameters", "kind": "namevalue", "type": ["cell"], "purpose": "default:{'Marker','+','MarkerEdgeColor','auto','MarkerFaceColor','auto','SizeData',36,'LineWidth',0.5"}
+            },
+            {
+                "name": "Positions",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "Colors",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ]
+            },
+            {
+                "name": "Notch",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'on', 'off'}"
+                ]
+            },
+            {
+                "name": "BoxEdgeType",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "choices = {'SE', 'STD'}"
+                    ],
+                    [
+                        "numeric"
+                    ]
+                ],
+                "purpose": "default:[25,75]"
+            },
+            {
+                "name": "BoxParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'LineStyle','-','LineWidth',0.5,'FaceColor','none','FaceAlpha',0.5}"
+            },
+            {
+                "name": "CenterLineParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'Type','Median','LineStyle','-','LineWidth','auto','Color','auto'}"
+            },
+            {
+                "name": "Whisker",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    [
+                        "numel=1"
+                    ],
+                    [
+                        "numel=2"
+                    ]
+                ],
+                "purpose": "default: 1.5"
+            },
+            {
+                "name": "WhiskerParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'LineStyle','-','LineWidth','auto','Color','auto'}"
+            },
+            {
+                "name": "WhiskerCapParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'LineStyle','-','LineWidth','auto','Color','auto','Width',0.4}"
+            },
+            {
+                "name": "GroupLabels",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "string"
+                    ]
+                ]
+            },
+            {
+                "name": "GroupLegends",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "string"
+                    ]
+                ]
+            },
+            {
+                "name": "GroupLines",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "GroupSpace",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.1"
+            },
+            {
+                "name": "CategoryLabels",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "string"
+                    ]
+                ]
+            },
+            {
+                "name": "CategorySpace",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.4"
+            },
+            {
+                "name": "IndividualDataPoint",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ],
+                "purpose": "default:'hide'"
+            },
+            {
+                "name": "SymbolParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'Marker','o','SizeData',36,'MarkerEdgeColor','w','MarkerFaceColor','auto','MarkerFaceAlpha',0.3,'LineWidth',0.1}"
+            },
+            {
+                "name": "Jitter",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.1"
+            },
+            {
+                "name": "Outlier",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ],
+                "purpose": "default:'show'"
+            },
+            {
+                "name": "OutlierParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "default:{'Marker','+','MarkerEdgeColor','auto','MarkerFaceColor','auto','SizeData',36,'LineWidth',0.5"
+            }
         ],
         "description": "Create a boxplot with various customization options"
     },
-
     "mu.dotplot": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) isscalar(args) && all(isgraphics(args))"]},
-                    {"name": "X", "kind": "required", "type": [["cell"], ["numeric"]], "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"}
-                ]
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "cell"
+                                ],
+                                [
+                                    "numeric"
+                                ]
+                            ],
+                            "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) isscalar(args) && all(isgraphics(args))"
+                            ]
+                        },
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "cell"
+                                ],
+                                [
+                                    "numeric"
+                                ]
+                            ],
+                            "purpose": "cell(1 x nGroup) of vectors/matrices, or numeric matrix [nSample x nGroup]"
+                        }
+                    ]
                 ]
             },
-            {"name": "Positions", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "Group positions; default: 1:nGroup" },
-            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "Spacing between groups when Positions not provided; default: 0.2" },
-            {"name": "Orientation", "kind": "namevalue", "type": ["choices = {'vertical','horizontal'}"], "purpose": "default:'vertical'" },
-            {"name": "HDirection", "kind": "namevalue", "type": ["choices = {'right','left'}"], "purpose": "horizontal data direction; default:'right'" },
-            {"name": "Colors", "kind": "namevalue", "type": [["numeric"], ["cell"]], "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]" },
-            {"name": "GroupLabels", "kind": "namevalue", "type": [["cell"], ["char"], ["string"]], "purpose": "Labels for groups (tick labels)" },
-            {"name": "Dot", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "DotParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','sizedata','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."},
-            {"name": "Spread", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "SpreadParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for spread summary. Reserved keys: {'metric','plottype','range','k'}. metric:{'IQR','SE','STD'}; plottype:{'patch','line'}. Remaining Name-Value pairs are passed to patch() or line()."},
-            {"name": "CenterLine", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "CenterLineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for center statistic. Reserved keys: {'stat'}. stat:{'median','mean'}. Remaining Name-Value pairs are passed to line()."},
-            {"name": "CI", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]},
-            {"name": "CIParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."},
-            {"name": "LinkPairs", "kind": "namevalue", "type": ["numeric"], "purpose": "default: [] for no linking" },
-            {"name": "LinkParameters", "kind": "namevalue", "type": ["cell"], "purpose": "Cell-spec for linking lines. Remaining Name-Value pairs are passed to line()."},
-            {"name": "Tag", "kind": "namevalue", "type": ["choices = {'setPlotModeExclusion'}"], "purpose": "Tag for the created axes"}
+            {
+                "name": "Positions",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "Group positions; default: 1:nGroup"
+            },
+            {
+                "name": "GroupSpace",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Spacing between groups when Positions not provided; default: 0.2"
+            },
+            {
+                "name": "Orientation",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'vertical','horizontal'}"
+                ],
+                "purpose": "default:'vertical'"
+            },
+            {
+                "name": "HDirection",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'right','left'}"
+                ],
+                "purpose": "horizontal data direction; default:'right'"
+            },
+            {
+                "name": "Colors",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "cell"
+                    ]
+                ],
+                "purpose": "nGroup x 3 RGB, 1 x 3 RGB, or cell(1,nGroup) of RGB; default:[0.35 0.55 0.80]"
+            },
+            {
+                "name": "GroupLabels",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "char"
+                    ],
+                    [
+                        "string"
+                    ]
+                ],
+                "purpose": "Labels for groups (tick labels)"
+            },
+            {
+                "name": "Dot",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ]
+            },
+            {
+                "name": "DotParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "Cell-spec for individual data points. Reserved keys: {'method','jitter','sizedata','facealpha','edgecolor','linewidth'}. Remaining Name-Value pairs are passed to swarmchart()."
+            },
+            {
+                "name": "Spread",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ]
+            },
+            {
+                "name": "SpreadParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "Cell-spec for spread summary. Reserved keys: {'metric','plottype','range','k'}. metric:{'IQR','SE','STD'}; plottype:{'patch','line'}. Remaining Name-Value pairs are passed to patch() or line()."
+            },
+            {
+                "name": "CenterLine",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ]
+            },
+            {
+                "name": "CenterLineParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "Cell-spec for center statistic. Reserved keys: {'stat'}. stat:{'median','mean'}. Remaining Name-Value pairs are passed to line()."
+            },
+            {
+                "name": "CI",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ]
+            },
+            {
+                "name": "CIParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "Cell-spec for confidence interval of the center statistic. Reserved keys: {'method','nperm','alpha'}. method:{'bootstrap','t'}. Remaining Name-Value pairs are passed to line()."
+            },
+            {
+                "name": "LinkPairs",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "default: [] for no linking"
+            },
+            {
+                "name": "LinkParameters",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "Cell-spec for linking lines. Remaining Name-Value pairs are passed to line()."
+            },
+            {
+                "name": "Tag",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'setPlotModeExclusion'}"
+                ],
+                "purpose": "Tag for the created axes"
+            }
         ],
-        "description": "Create a swarm/dot plot with optional Spread (IQR/SE/STD), CenterLine (median/mean), and CI (bootstrap/t)"
+        "description": "Create a swarm/dot plot with ordered Spread (IQR/SE/STD), CenterLine (median/mean), and CI (bootstrap/t)"
     },
-
     "mu.colorbar": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "ax", "kind": "ordered", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "ordered",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"
+                            ]
+                        }
+                    ],
+                    []
+                ]
+            },
+            {
+                "name": "Location",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'northoutside', 'southoutside', 'eastoutside', 'westoutside'}"
+                ]
+            },
+            {
+                "name": "Interval",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "numeric"
                 ],
-                []
-            ]},
-            {"name": "Location", "kind": "namevalue", "type": ["choices = {'northoutside', 'southoutside', 'eastoutside', 'westoutside'}"]},
-            {"name": "Interval", "kind": "namevalue", "type": ["scalar", "numeric"], "purpose": "default:0.01"},
-            {"name": "Width", "kind": "namevalue", "type": ["scalar", "numeric"]},
-            {"name": "Label", "kind": "namevalue", "type": [["string"], ["char"]]},
-            {"name": "ShowLimOnly", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default=false"},
-            {"name": "Format", "kind": "namevalue", "type": [["char"], ["string"]], "purpose": "Tick label format (e.g., '%2g')"},
-            {"name": "ScaleFactor", "kind": "namevalue", "type": ["scalar", "positive"]}
+                "purpose": "default:0.01"
+            },
+            {
+                "name": "Width",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "numeric"
+                ]
+            },
+            {
+                "name": "Label",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "string"
+                    ],
+                    [
+                        "char"
+                    ]
+                ]
+            },
+            {
+                "name": "ShowLimOnly",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ],
+                "purpose": "default=false"
+            },
+            {
+                "name": "Format",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "char"
+                    ],
+                    [
+                        "string"
+                    ]
+                ],
+                "purpose": "Tick label format (e.g., '%2g')"
+            },
+            {
+                "name": "ScaleFactor",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "positive"
+                ]
+            }
         ],
         "description": "Add a colorbar to a figure with specified location and properties"
     },
-
     "mu.image": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]}
-                ],
-                []
-            ]},
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "I", "kind": "required", "type": ["numeric", "2d"]}
-                ],
-                [
-                    {"name": "x", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "y", "kind": "required", "type": ["numeric", "vector"]},
-                    {"name": "I", "kind": "required", "type": ["numeric", "2d"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"
+                            ]
+                        }
+                    ],
+                    []
                 ]
-            ]}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "I",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "2d"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "x",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "y",
+                            "kind": "required",
+                            "type": [
+                                "numeric"
+                            ]
+                        },
+                        {
+                            "name": "I",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "2d"
+                            ]
+                        }
+                    ]
+                ]
+            }
         ]
     },
-
     "mu.groupFigures": {
         "inputs": [
-            {"name": "Figs", "kind": "ordered", "type": ["@(args) isempty(x) || all(isgraphics(args))"]},
-            {"name": "TabLocation", "kind": "namevalue", "type": ["choices = {'top', 'left', 'right', 'bottom'}"], "purpose": "default: 'top'"},
-            {"name": "KeepOriginal", "kind": "namevalue", "type": ["logical", "scalar"], "purpose": "default: false"}
+            {
+                "name": "Figs",
+                "kind": "ordered",
+                "type": [
+                    "@(args) isempty(x) || all(isgraphics(args))"
+                ]
+            },
+            {
+                "name": "TabLocation",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'top', 'left', 'right', 'bottom'}"
+                ],
+                "purpose": "default: 'top'"
+            },
+            {
+                "name": "KeepOriginal",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ],
+                "purpose": "default: false"
+            }
         ],
         "description": "Group multiple figure windows under a single tabbed interface"
     },
-
     "mu.histogram": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
-                ],
-                [
-                    {"name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"]},
-                    {"name": "X", "kind": "required", "type": [["numeric"], ["cell"]]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric"
+                                ],
+                                [
+                                    "cell"
+                                ]
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"
+                            ]
+                        },
+                        {
+                            "name": "X",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric"
+                                ],
+                                [
+                                    "cell"
+                                ]
+                            ]
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "edges", "kind": "ordered", "type": ["numeric", "vector"]},
-            {"name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]]},
-            {"name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'"},
-            {"name": "GroupSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0"},
-            {"name": "BinSpace", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0"},
-            {"name": "DisplayName", "kind": "namevalue", "type": ["cell"]},
-            {"name": "BinWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"]},
-            {"name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"], "purpose": "default: 'auto'"},
-            {"name": "DistributionCurve", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "default: 'hide'"},
-            {"name": "FitCurveLineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 1"}
+            },
+            {
+                "name": "edges",
+                "kind": "ordered",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "LineWidth",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "FaceColor",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "choices = {'none'}"
+                    ]
+                ]
+            },
+            {
+                "name": "EdgeColor",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "choices = {'none'}"
+                    ]
+                ],
+                "purpose": "default: 'none'"
+            },
+            {
+                "name": "GroupSpace",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0"
+            },
+            {
+                "name": "BinSpace",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0"
+            },
+            {
+                "name": "DisplayName",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "BinWidth",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "BinMethod",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"
+                ],
+                "purpose": "default: 'auto'"
+            },
+            {
+                "name": "DistributionCurve",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ],
+                "purpose": "default: 'hide'"
+            },
+            {
+                "name": "FitCurveLineWidth",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 1"
+            }
         ],
         "description": "Create a histogram with various customization options"
     },
-
     "mu.polarhistogram": {
         "inputs": [
             {
                 "mutuallyExclusiveGroup": [
                     [
-                        { "name": "theta", "kind": "required", "type": [["numeric"], ["cell"]] }
+                        {
+                            "name": "theta",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric"
+                                ],
+                                [
+                                    "cell"
+                                ]
+                            ]
+                        }
                     ],
                     [
-                        { "name": "ax", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"] },
-                        { "name": "theta", "kind": "required", "type": [["numeric"], ["cell"]] }
+                        {
+                            "name": "ax",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.axis.Axes')"
+                            ]
+                        },
+                        {
+                            "name": "theta",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric"
+                                ],
+                                [
+                                    "cell"
+                                ]
+                            ]
+                        }
                     ]
                 ]
             },
-            { "name": "edges", "kind": "ordered", "type": ["numeric", "vector"] },
-
-            { "name": "LineWidth", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.5" },
-            { "name": "FaceColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]] },
-            { "name": "EdgeColor", "kind": "namevalue", "type": [["cell"], ["choices = {'none'}"]], "purpose": "default: 'none'" },
-            { "name": "DisplayName", "kind": "namevalue", "type": ["cell"] },
-            { "name": "BinWidth", "kind": "namevalue", "type": ["numeric", "scalar", "positive"] },
-            { "name": "BinMethod", "kind": "namevalue", "type": ["choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"], "purpose": "default: 'auto'" },
-            { "name": "FaceAlpha", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.7" },
-            { "name": "Normalization", "kind": "namevalue", "type": ["choices = {'count', 'probability', 'pdf', 'countdensity'}"], "purpose": "default: 'count'" },
-            { "name": "Center", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0 (radian)" },
-            { "name": "GroupSpacing", "kind": "namevalue", "type": ["numeric", "scalar"], "purpose": "default: 0.1" },
-            { "name": "RTicks", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "radial tick values (in plotted units)" },
-            { "name": "RTickLabel", "kind": "namevalue", "type": ["cell"], "purpose": "labels for RTicks; default auto (numbers or %)" },
-            { "name": "ThetaTicks", "kind": "namevalue", "type": ["numeric", "vector"], "purpose": "default: 0:30:330 (degrees)" },
-            { "name": "ThetaTickLabel", "kind": "namevalue", "type": ["cell"], "purpose": "labels for ThetaTicks; default auto" },
-            { "name": "RTickLabelPlacement", "kind": "namevalue", "type": [["choices = {'auto'}"], ["numeric", "scalar"]], "purpose": "default: 'auto' (place labels at emptiest angle); numeric gives angle in degrees" }
+            {
+                "name": "edges",
+                "kind": "ordered",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "LineWidth",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.5"
+            },
+            {
+                "name": "FaceColor",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "choices = {'none'}"
+                    ]
+                ]
+            },
+            {
+                "name": "EdgeColor",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "cell"
+                    ],
+                    [
+                        "choices = {'none'}"
+                    ]
+                ],
+                "purpose": "default: 'none'"
+            },
+            {
+                "name": "DisplayName",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ]
+            },
+            {
+                "name": "BinWidth",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive"
+                ]
+            },
+            {
+                "name": "BinMethod",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'auto', 'scott', 'fd', 'integers', 'sturges', 'sqrt'}"
+                ],
+                "purpose": "default: 'auto'"
+            },
+            {
+                "name": "FaceAlpha",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.7"
+            },
+            {
+                "name": "Normalization",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'count', 'probability', 'pdf', 'countdensity'}"
+                ],
+                "purpose": "default: 'count'"
+            },
+            {
+                "name": "Center",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0 (radian)"
+            },
+            {
+                "name": "GroupSpacing",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "default: 0.1"
+            },
+            {
+                "name": "RTicks",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "radial tick values (in plotted units)"
+            },
+            {
+                "name": "RTickLabel",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "labels for RTicks; default auto (numbers or %)"
+            },
+            {
+                "name": "ThetaTicks",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "default: 0:30:330 (degrees)"
+            },
+            {
+                "name": "ThetaTickLabel",
+                "kind": "namevalue",
+                "type": [
+                    "cell"
+                ],
+                "purpose": "labels for ThetaTicks; default auto"
+            },
+            {
+                "name": "RTickLabelPlacement",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "choices = {'auto'}"
+                    ],
+                    [
+                        "numeric",
+                        "scalar"
+                    ]
+                ],
+                "purpose": "default: 'auto' (place labels at emptiest angle); numeric gives angle in degrees"
+            }
         ],
         "description": "Create a grouped polar histogram with separated bars per bin on a custom polar grid; supports normalization, binning, colors, spacing, custom/automatic radial & angular ticks, and auto-placement of radial tick labels to avoid bars."
     },
-
     "mu.rasterplot": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "rasterData", "kind": "required", "type": ["struct"]},
-                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"], "purpose": "default:40"}
-                ],
-                [
-                    {"name": "axes", "kind": "required", "type": ["@(args) strcmp(class(args), 'matlab.graphics.Graphics')"]},
-                    {"name": "rasterData", "kind": "required", "type": ["struct"]},
-                    {"name": "sz", "kind": "ordered", "type": ["scalar", "positive", "integer"], "purpose": "default:40"}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "rasterData",
+                            "kind": "required",
+                            "type": [
+                                "struct"
+                            ]
+                        },
+                        {
+                            "name": "sz",
+                            "kind": "ordered",
+                            "type": [
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "default:40"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "axes",
+                            "kind": "required",
+                            "type": [
+                                "@(args) strcmp(class(args), 'matlab.graphics.Graphics')"
+                            ]
+                        },
+                        {
+                            "name": "rasterData",
+                            "kind": "required",
+                            "type": [
+                                "struct"
+                            ]
+                        },
+                        {
+                            "name": "sz",
+                            "kind": "ordered",
+                            "type": [
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "default:40"
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "border", "kind": "namevalue", "type": ["logical", "scalar"]}
+            },
+            {
+                "name": "border",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            }
         ],
         "description": "Create a raster plot from spike data"
     },
-
     "mu.scaleAxes": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "axisName", "kind": "required", "type": ["choices = {'x', 'y', 'c', 'z'}"]},
-                    {"name": "autoScale", "kind": "ordered", "type": ["choices = {'on', 'off'}"], "purpose": "auto scale y/c from current axes"}
-                ],
-                [
-                    {"name": "FigOrAxes", "kind": "required", "type": ["@(args) all(isgraphics(args), 'all')"]},
-                    {"name": "axisName", "kind": "ordered", "type": ["choices = {'x', 'y', 'c', 'z'}"]}
-                ],
-                [
-                    {"name": "FigOrAxes", "kind": "required", "type": ["@(args) all(isgraphics(args), 'all')"]},
-                    {"name": "axisName", "kind": "ordered", "type": ["choices = {'x', 'y', 'c', 'z'}"]},
-                    {"name": "autoScale", "kind": "ordered", "type": ["choices = {'on', 'off'}"], "purpose": "auto scale y/c from current axes"}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "axisName",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'x', 'y', 'c', 'z'}"
+                            ]
+                        },
+                        {
+                            "name": "autoScale",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'on', 'off'}"
+                            ],
+                            "purpose": "auto scale y/c from current axes"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "FigOrAxes",
+                            "kind": "required",
+                            "type": [
+                                "@(args) all(isgraphics(args), 'all')"
+                            ]
+                        },
+                        {
+                            "name": "axisName",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'x', 'y', 'c', 'z'}"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "FigOrAxes",
+                            "kind": "required",
+                            "type": [
+                                "@(args) all(isgraphics(args), 'all')"
+                            ]
+                        },
+                        {
+                            "name": "axisName",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'x', 'y', 'c', 'z'}"
+                            ]
+                        },
+                        {
+                            "name": "autoScale",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'on', 'off'}"
+                            ],
+                            "purpose": "auto scale y/c from current axes"
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "axisRange", "kind": "ordered", "type": ["numeric"]},
-            {"name": "cutoffRange", "kind": "ordered", "type": [["numeric", "numel=2"], ["@(args) isempty(args)"]]},
-            {"name": "symOpt", "kind": "ordered", "type": ["choices = {'none', 'min', 'max', 'positive', 'negative'}"], "purpose": "symmetrical option"},
-            {"name": "cutoffRange", "kind": "namevalue", "type": [["numeric", "numel=2"], ["@(args) isempty(args)"]]},
-            {"name": "symOpt", "kind": "namevalue", "type": ["choices = {'none', 'min', 'max', 'positive', 'negative'}"], "purpose": "symmetrical option"},
-            {"name": "uiOpt", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"], "purpose": "call an App for scaling"},
-            {"name": "IgnoreInvisible", "kind": "namevalue", "type": ["logical", "scalar"]},
-            {"name": "autoTh", "kind": "namevalue", "type": ["numel=2", "numeric"], "purpose": "quantiles of range for auto scaling (default:[0.01,0.99])"}
+            },
+            {
+                "name": "axisRange",
+                "kind": "ordered",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "cutoffRange",
+                "kind": "ordered",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "@(args) isempty(args)"
+                    ]
+                ]
+            },
+            {
+                "name": "symOpt",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'none', 'min', 'max', 'positive', 'negative'}"
+                ],
+                "purpose": "symmetrical option"
+            },
+            {
+                "name": "cutoffRange",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "@(args) isempty(args)"
+                    ]
+                ]
+            },
+            {
+                "name": "symOpt",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'none', 'min', 'max', 'positive', 'negative'}"
+                ],
+                "purpose": "symmetrical option"
+            },
+            {
+                "name": "uiOpt",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show', 'hide'}"
+                ],
+                "purpose": "call an App for scaling"
+            },
+            {
+                "name": "IgnoreInvisible",
+                "kind": "namevalue",
+                "type": [
+                    "logical",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "autoTh",
+                "kind": "namevalue",
+                "type": [
+                    "numel=2",
+                    "numeric"
+                ],
+                "purpose": "quantiles of range for auto scaling (default:[0.01,0.99])"
+            }
         ],
         "description": "Scale axes of a figure or axes with various options"
     },
-
     "mu.subplot": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [],
-                [
-                    {"name": "Fig", "kind": "required", "type": ["@(args) all(isgraphics(args))"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [],
+                    [
+                        {
+                            "name": "Parent",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "scalar",
+                                    "matlab.ui.Figure"
+                                ],
+                                [
+                                    "scalar",
+                                    "matlab.graphics.layout.TiledChartLayout"
+                                ]
+                            ],
+                            "purpose": "Target parent. If omitted, gcf is used. If Parent is a tiledlayout, axes are created by nexttile. In tiledlayout mode, row/col can be omitted when GridSize is available, and position-related options are parsed but not applied."
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "row", "kind": "required", "type": ["scalar", "positive", "integer"]},
-            {"name": "col", "kind": "required", "type": ["scalar", "positive", "integer"]},
-            {"name": "index", "kind": "required", "type": ["vector", "positive", "integer"]},
-            {"name": "nSize", "kind": "ordered", "type": ["numeric", "vector"]},
-            {"name": "margins", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-            {"name": "paddings", "kind": "ordered", "type": ["numeric", "vector", "numel=4"]},
-            {"name": "shape", "kind": "ordered", "type": ["choices = {'auto', 'square-min', 'square-max', 'fill'}"]},
-            {"name": "nSize", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "margins", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"], "purpose": "[left,right,bottom,top]([.03,.03,.08,.05])"},
-            {"name": "paddings", "kind": "namevalue", "type": ["numeric", "vector", "numel=4"], "purpose": "[left,right,bottom,top]([.05,.05,.08,.05])"},
-            {"name": "shape", "kind": "namevalue", "type": ["choices = {'auto', 'square-min', 'square-max', 'fill'}"]},
-            {"name": "alignment", "kind": "namevalue", "type": [["numeric"], ["choices = {'left-bottom', 'left-center', 'left-top', 'center-bottom', 'center', 'center-top', 'right-bottom', 'right-center', 'right-top'}"]], "purpose": "[horizontal,vertical]"},
-            {"name": "alignment_horizontal", "kind": "namevalue", "type": [["numeric", "scalar"], ["choices = {'left', 'center', 'right'}"]]},
-            {"name": "alignment_vertical", "kind": "namevalue", "type": [["numeric", "scalar"], ["choices = {'bottom', 'center', 'top'}"]]},
-            {"name": "margin_left", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.03"},
-            {"name": "margin_right", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.04"},
-            {"name": "margin_bottom", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.08"},
-            {"name": "margin_top", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.05"},
-            {"name": "padding_left", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.05"},
-            {"name": "padding_right", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.05"},
-            {"name": "padding_bottom", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.08"},
-            {"name": "padding_top", "kind": "namevalue", "type": ["scalar"], "purpose": "default: 0.05"},
-            {"name": "divBox", "kind": "namevalue", "type": ["choices = {'show', 'hide'}"]}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "row",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "Number of subplot rows used to interpret index. Required in manual-position mode and supported for backward compatibility in tiledlayout mode."
+                        },
+                        {
+                            "name": "col",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "Number of subplot columns used to interpret index. Required in manual-position mode and supported for backward compatibility in tiledlayout mode."
+                        },
+                        {
+                            "name": "index",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric",
+                                    "positive",
+                                    "integer"
+                                ]
+                            ],
+                            "purpose": "Subplot location. Scalar uses MATLAB-style linear index; [row,col] uses subscript index; [rowStart,colStart,rowSpan,colSpan] uses explicit spanning; linear index vectors are supported with indexMode='linear'."
+                        }
+                    ],
+                    [
+                        {
+                            "name": "index",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "numeric",
+                                    "positive",
+                                    "integer"
+                                ]
+                            ],
+                            "purpose": "Tiledlayout shorthand syntax. Only valid when Parent is a fixed tiledlayout object. row/col are inferred from Parent.GridSize."
+                        }
+                    ]
+                ]
+            },
+            {
+                "name": "nSize",
+                "kind": "ordered",
+                "type": [
+                    "numeric",
+                    "positive"
+                ],
+                "purpose": "Legacy ordered input. Axes target-box size relative to the drawable area inside each div. Scalar applies to both x and y; vector is [nX,nY]. Default: [1,1]."
+            },
+            {
+                "name": "margins",
+                "kind": "ordered",
+                "type": [
+                    "numeric",
+                    "vector",
+                    "numel=4"
+                ],
+                "purpose": "Legacy ordered input. Outer space around the whole subplot grid, relative to parent. Format: [left,right,bottom,top]. Default: [0.03,0.03,0.08,0.05]."
+            },
+            {
+                "name": "paddings",
+                "kind": "ordered",
+                "type": [
+                    "numeric",
+                    "vector",
+                    "numel=4"
+                ],
+                "purpose": "Legacy ordered input. Inner space inside each subplot div, relative to div. Format: [left,right,bottom,top]. Default: [0.05,0.05,0.08,0.05]."
+            },
+            {
+                "name": "shape",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'auto','square-min','square-max','fill'}"
+                ],
+                "purpose": "Legacy ordered input. Axes shape mode. 'fill' fills the whole div, ignoring paddings and nSize while keeping margins. Default: 'auto'."
+            },
+            {
+                "name": "nSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "positive"
+                ],
+                "purpose": "Axes target-box size relative to the drawable area inside each div. Scalar applies to both x and y; vector is [nX,nY]. Default: [1,1]."
+            },
+            {
+                "name": "margins",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "vector",
+                    "numel=4"
+                ],
+                "purpose": "Outer space around the whole subplot grid, relative to parent. Format: [left,right,bottom,top]. Default: [0.03,0.03,0.08,0.05]."
+            },
+            {
+                "name": "paddings",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "vector",
+                    "numel=4"
+                ],
+                "purpose": "Inner space inside each subplot div, relative to div. Format: [left,right,bottom,top]. Default: [0.05,0.05,0.08,0.05]."
+            },
+            {
+                "name": "shape",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'auto','square-min','square-max','fill'}"
+                ],
+                "purpose": "Axes shape mode. In tiledlayout mode, this option is parsed but not applied. Default: 'auto'."
+            },
+            {
+                "name": "indexMode",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'auto','linear','subscript','span'}"
+                ],
+                "purpose": "How to interpret index. 'auto' keeps [row,col] backward-compatible; use 'linear' for vector tile indices; use 'span' for [rowStart,colStart,rowSpan,colSpan]. Default: 'auto'."
+            },
+            {
+                "name": "PositionType",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'position','outerposition'}"
+                ],
+                "purpose": "Manual-position mode only. Controls whether the computed target box is assigned to ax.Position or ax.OuterPosition. 'position' keeps backward-compatible behavior. 'outerposition' keeps xlabel/ylabel/title/tick labels inside the allocated subplot box more effectively. In tiledlayout mode, this option is parsed but ignored. Default: 'position'."
+            },
+            {
+                "name": "alignment",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric",
+                        "vector",
+                        "numel=2"
+                    ],
+                    [
+                        "choices = {'left-bottom','left-center','left-top','center-bottom','center','center-top','right-bottom','right-center','right-top'}"
+                    ]
+                ],
+                "purpose": "Axes target-box alignment inside the padded div. Numeric form is [horizontal,vertical]. In tiledlayout mode, this option is parsed but not applied. Default: 'center'."
+            },
+            {
+                "name": "alignment_horizontal",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric",
+                        "scalar"
+                    ],
+                    [
+                        "choices = {'left','center','right'}"
+                    ]
+                ],
+                "purpose": "Horizontal alignment. Overrides the horizontal component of alignment. In tiledlayout mode, this option is parsed but not applied."
+            },
+            {
+                "name": "alignment_vertical",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric",
+                        "scalar"
+                    ],
+                    [
+                        "choices = {'bottom','center','top'}"
+                    ]
+                ],
+                "purpose": "Vertical alignment. Overrides the vertical component of alignment. In tiledlayout mode, this option is parsed but not applied."
+            },
+            {
+                "name": "margin_left",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(1). Outer left margin relative to parent. Default: 0.03."
+            },
+            {
+                "name": "margin_right",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(2). Outer right margin relative to parent. Default: 0.03."
+            },
+            {
+                "name": "margin_bottom",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(3). Outer bottom margin relative to parent. Default: 0.08."
+            },
+            {
+                "name": "margin_top",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(4). Outer top margin relative to parent. Default: 0.05."
+            },
+            {
+                "name": "padding_left",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(1). Inner left padding relative to div. Default: 0.05."
+            },
+            {
+                "name": "padding_right",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(2). Inner right padding relative to div. Default: 0.05."
+            },
+            {
+                "name": "padding_bottom",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(3). Inner bottom padding relative to div. Default: 0.08."
+            },
+            {
+                "name": "padding_top",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(4). Inner top padding relative to div. Default: 0.05."
+            },
+            {
+                "name": "divBox",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'on','off','show','hide',true,false}"
+                ],
+                "purpose": "Whether to show the div boundary for layout debugging. Ignored in tiledlayout mode. Default: 'off'."
+            }
         ],
-        "description": "Create a subplot with specified rows, columns, and index, with various layout options"
+        "description": "Create an advanced subplot axes with flexible control of grid margins, div paddings, axes size, shape, alignment, spanning index, and tiledlayout parent support. Uses an H5/CSS-like box model where margins are outside the subplot grid and paddings are inside each div."
     },
-
+    "mu.tiledlayout": {
+        "inputs": [
+            {
+                "mutuallyExclusiveGroup": [
+                    [],
+                    [
+                        {
+                            "name": "Parent",
+                            "kind": "required",
+                            "type": [
+                                [
+                                    "scalar",
+                                    "matlab.ui.Figure"
+                                ],
+                                [
+                                    "scalar",
+                                    "matlab.ui.container.Panel"
+                                ],
+                                [
+                                    "scalar",
+                                    "matlab.ui.container.Tab"
+                                ],
+                                [
+                                    "scalar",
+                                    "matlab.graphics.layout.TiledChartLayout"
+                                ]
+                            ],
+                            "purpose": "Target parent container. If omitted, gcf is used. If Parent is another tiledlayout, position/alignment options are ignored and Tile/TileSpan should be used."
+                        }
+                    ]
+                ]
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "row",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "Number of tiledlayout rows."
+                        },
+                        {
+                            "name": "col",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "scalar",
+                                "positive",
+                                "integer"
+                            ],
+                            "purpose": "Number of tiledlayout columns."
+                        }
+                    ],
+                    [
+                        {
+                            "name": "flow",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'flow'}"
+                            ],
+                            "purpose": "Create a flow tiledlayout."
+                        }
+                    ]
+                ]
+            },
+            {
+                "name": "nSize",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "positive"
+                ],
+                "purpose": "Size of the tiledlayout target box relative to the drawable box. Scalar applies to both x and y; vector is [nX,nY]. Default: [1,1]."
+            },
+            {
+                "name": "margins",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "Outer space around the margin box, relative to parent. Format: [left,right,bottom,top]. Default: [0,0,0,0]."
+            },
+            {
+                "name": "paddings",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "Inner space inside the margin box, relative to the margin box. Format: [left,right,bottom,top]. Default: [0,0,0,0]."
+            },
+            {
+                "name": "alignment",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric"
+                    ],
+                    [
+                        "choices = {'left-bottom','left-center','left-top','center-bottom','center','center-top','right-bottom','right-center','right-top'}"
+                    ]
+                ],
+                "purpose": "Alignment of the tiledlayout target box inside the drawable box. Numeric form is [horizontal,vertical]. Default: 'center'."
+            },
+            {
+                "name": "alignment_horizontal",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric",
+                        "scalar"
+                    ],
+                    [
+                        "choices = {'left','center','right'}"
+                    ]
+                ],
+                "purpose": "Horizontal alignment of the tiledlayout target box. Overrides the horizontal component of alignment."
+            },
+            {
+                "name": "alignment_vertical",
+                "kind": "namevalue",
+                "type": [
+                    [
+                        "numeric",
+                        "scalar"
+                    ],
+                    [
+                        "choices = {'bottom','center','top'}"
+                    ]
+                ],
+                "purpose": "Vertical alignment of the tiledlayout target box. Overrides the vertical component of alignment."
+            },
+            {
+                "name": "margin_left",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(1). Outer left margin relative to parent. Default: 0."
+            },
+            {
+                "name": "margin_right",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(2). Outer right margin relative to parent. Default: 0."
+            },
+            {
+                "name": "margin_bottom",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(3). Outer bottom margin relative to parent. Default: 0."
+            },
+            {
+                "name": "margin_top",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override margins(4). Outer top margin relative to parent. Default: 0."
+            },
+            {
+                "name": "padding_left",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(1). Inner left padding relative to margin box. Default: 0."
+            },
+            {
+                "name": "padding_right",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(2). Inner right padding relative to margin box. Default: 0."
+            },
+            {
+                "name": "padding_bottom",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(3). Inner bottom padding relative to margin box. Default: 0."
+            },
+            {
+                "name": "padding_top",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "Override paddings(4). Inner top padding relative to margin box. Default: 0."
+            },
+            {
+                "name": "PositionType",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'outerposition','innerposition','position'}"
+                ],
+                "purpose": "Which tiledlayout position property is controlled by the computed target box. 'outerposition' controls tiledlayout.OuterPosition and is the default. 'innerposition' or 'position' controls tiledlayout.Position/InnerPosition."
+            },
+            {
+                "name": "PositionConstraint",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'outerposition','innerposition'}"
+                ],
+                "purpose": "Native tiledlayout PositionConstraint property. If provided, it has final priority after PositionType is applied. Default: []."
+            },
+            {
+                "name": "Tile",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar",
+                    "positive",
+                    "integer"
+                ],
+                "purpose": "Tile location when Parent is another tiledlayout. Passed to t.Layout.Tile. Default: []."
+            },
+            {
+                "name": "TileSpan",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "positive",
+                    "integer"
+                ],
+                "purpose": "Tile span when Parent is another tiledlayout. Passed to t.Layout.TileSpan. Format: [rowSpan,colSpan]. Default: []."
+            },
+            {
+                "name": "LayoutBox",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'show','hide'}"
+                ],
+                "purpose": "Whether to draw debug annotation boxes for margin box, drawable box, and tiledlayout target box. Default: 'off'."
+            },
+            {
+                "name": "TileSpacing",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'loose','compact','tight','none'}"
+                ],
+                "purpose": "Native MATLAB tiledlayout TileSpacing property. Forwarded to tiledlayout. Default: 'compact'."
+            },
+            {
+                "name": "Padding",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'loose','compact','tight','none'}"
+                ],
+                "purpose": "Native MATLAB tiledlayout Padding property. Different from mu-style paddings. Forwarded to tiledlayout. Default: 'compact'."
+            },
+            {
+                "name": "TileIndexing",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'rowmajor','columnmajor'}"
+                ],
+                "purpose": "Native MATLAB tiledlayout TileIndexing property. Forwarded to tiledlayout."
+            }
+        ],
+        "description": "Create a MATLAB tiledlayout with mu-style box-model position control. margins define the margin box, paddings define the drawable box, nSize defines the size of the tiledlayout target box, and alignment controls where the target box is placed. By default, the target box controls tiledlayout.OuterPosition so visible decorations stay inside the target box. Native tiledlayout options such as TileSpacing, Padding, and TileIndexing are forwarded."
+    },
     "mu.setPlotMode": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [],
-                [
-                    {"name": "roots", "kind": "ordered", "type": ["@(args) all(isgraphics(args), 'all')"], "purpose": "Optional root graphics handle(s). If omitted, uses groot."}
+            {
+                "mutuallyExclusiveGroup": [
+                    [],
+                    [
+                        {
+                            "name": "roots",
+                            "kind": "ordered",
+                            "type": [
+                                "@(args) all(isgraphics(args), 'all')"
+                            ],
+                            "purpose": "ordered root graphics handle(s). If omitted, uses groot."
+                        }
+                    ]
                 ]
-            ]},
-            {"name": "modeOrFile", "kind": "ordered", "type": [["choices = {'pdf', 'factory', 'manual'}"], ["file=*.m"]], "purpose": "Optional mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path that returns parameters (cell/nv)."},
-            {"name": "-default", "kind": "ordered", "type": ["choices = {'-default'}"], "purpose": "Optional flag. When present, forces setting Default* properties even when no matching objects exist."},
-            {"tuple": [
-                {"name": "-except", "kind": "ordered", "type": ["choices = {'-except'}"], "purpose": "Optional triplet option: '-except', Prop, Value. Excludes objects matched by findall(root,Prop,Value) (and their descendants) in non-default mode."},
-                {"name": "exceptProp", "kind": "required", "type": [["string"], ["char"]], "purpose": "Property name for '-except' triplet."},
-                {"name": "exceptValue", "kind": "required", "purpose": "Property value for '-except' triplet."}
-            ], "repeating": true},
-            {"tuple": [
-                {"name": "TargetProperty", "kind": "ordered", "type": [["string"], ["char"]], "purpose": "TargetProperty string (supports dot style 'Axes.Title.FontSize' and chain style 'AxesTitleFontSize'). Supports single '*' token in the target chain."},
-                {"name": "Value", "kind": "required", "purpose": "Value paired with TargetProperty."}
-            ], "repeating": true}
+            },
+            {
+                "name": "modeOrFile",
+                "kind": "ordered",
+                "type": [
+                    [
+                        "choices = {'pdf', 'factory', 'manual'}"
+                    ],
+                    [
+                        "file=*.m"
+                    ]
+                ],
+                "purpose": "ordered mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path that returns parameters (cell/nv)."
+            },
+            {
+                "name": "-default",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'-default'}"
+                ],
+                "purpose": "ordered flag. When present, forces setting Default* properties even when no matching objects exist."
+            },
+            {
+                "tuple": [
+                    {
+                        "name": "-except",
+                        "kind": "ordered",
+                        "type": [
+                            "choices = {'-except'}"
+                        ],
+                        "purpose": "ordered triplet option: '-except', Prop, Value. Excludes objects matched by findall(root,Prop,Value) (and their descendants) in non-default mode."
+                    },
+                    {
+                        "name": "exceptProp",
+                        "kind": "required",
+                        "type": [
+                            [
+                                "string"
+                            ],
+                            [
+                                "char"
+                            ]
+                        ],
+                        "purpose": "Property name for '-except' triplet."
+                    },
+                    {
+                        "name": "exceptValue",
+                        "kind": "required",
+                        "purpose": "Property value for '-except' triplet."
+                    }
+                ],
+                "repeating": true
+            },
+            {
+                "tuple": [
+                    {
+                        "name": "TargetProperty",
+                        "kind": "ordered",
+                        "type": [
+                            [
+                                "string"
+                            ],
+                            [
+                                "char"
+                            ]
+                        ],
+                        "purpose": "TargetProperty string (supports dot style 'Axes.Title.FontSize' and chain style 'AxesTitleFontSize'). Supports single '*' token in the target chain."
+                    },
+                    {
+                        "name": "Value",
+                        "kind": "required",
+                        "purpose": "Value paired with TargetProperty."
+                    }
+                ],
+                "repeating": true
+            }
         ],
         "description": "Set plot mode for graphics objects with various options"
     },
-
     "mu.ctgen": {
         "inputs": [
-            {"name": "ICIs", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "durs", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "fs", "kind": "required", "type": ["numeric", "scalar"]},
-            {"name": "type", "kind": "required", "type": ["choices = {'REG', 'IRREG'}"]},
-            {"name": "sigmas", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "pulseLen", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "range", "kind": "namevalue", "type": ["numeric", "vector"]}
+            {
+                "name": "ICIs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "durs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "type",
+                "kind": "required",
+                "type": [
+                    "choices = {'REG', 'IRREG'}"
+                ]
+            },
+            {
+                "name": "sigmas",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "pulseLen",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "range",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            }
         ],
         "description": "Generate click trains"
     },
-
     "mu.tonegen": {
         "inputs": [
-            {"name": "f", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "durs", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "fs", "kind": "required", "type": ["numeric", "scalar"]},
-            {"name": "fsDevice", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "harmonics", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "amps", "kind": "namevalue", "type": ["numeric"], "purpose": "row for frequency, column for harmonic"},
-            {"name": "rfTime", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "rfOpt", "kind": "namevalue", "type": ["choices = {'both', 'rise', 'fall'}"]},
-            {"name": "normOpt", "kind": "namevalue", "type": ["scalar", "logical"]}
+            {
+                "name": "f",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "durs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "fsDevice",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "harmonics",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "amps",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "row for frequency, column for harmonic"
+            },
+            {
+                "name": "rfTime",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "rfOpt",
+                "kind": "namevalue",
+                "type": [
+                    "choices = {'both', 'rise', 'fall'}"
+                ]
+            },
+            {
+                "name": "normOpt",
+                "kind": "namevalue",
+                "type": [
+                    "scalar",
+                    "logical"
+                ]
+            }
         ],
         "description": "Generate tones or complex tones"
     },
-
     "mu.tbgen": {
         "inputs": [
-            {"name": "ICIs", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "durs", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "f", "kind": "required", "type": ["numeric", "vector"]},
-            {"name": "fs", "kind": "required", "type": ["numeric", "scalar"]},
-            {"name": "type", "kind": "required", "type": ["choices = {'REG', 'IRREG'}"]},
-            {"name": "sigmas", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "pulseLen", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "range", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "fsDevice", "kind": "namevalue", "type": ["numeric", "scalar"]},
-            {"name": "harmonics", "kind": "namevalue", "type": ["numeric", "vector"]},
-            {"name": "rfTime", "kind": "namevalue", "type": ["numeric", "scalar"]}
+            {
+                "name": "ICIs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "durs",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "f",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "type",
+                "kind": "required",
+                "type": [
+                    "choices = {'REG', 'IRREG'}"
+                ]
+            },
+            {
+                "name": "sigmas",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "pulseLen",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "range",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "fsDevice",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "harmonics",
+                "kind": "namevalue",
+                "type": [
+                    "numeric"
+                ]
+            },
+            {
+                "name": "rfTime",
+                "kind": "namevalue",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            }
         ],
         "description": "Generate tone bursts"
     },
-
     "mu.genRiseFallEdge": {
         "inputs": [
-            {"name": "y", "kind": "required", "type": ["numeric"], "purpose": "[nch,nsample]"},
-            {"name": "fs", "kind": "required", "type": ["numeric", "scalar"]},
-            {"name": "rfTime", "kind": "required", "type": ["numeric", "scalar"], "purpose": "rise-fall time, in sec"},
-            {"name": "rfOpt", "kind": "ordered", "type": ["choices = {'both', 'rise', 'fall'}"]}
+            {
+                "name": "y",
+                "kind": "required",
+                "type": [
+                    "numeric"
+                ],
+                "purpose": "[nch,nsample]"
+            },
+            {
+                "name": "fs",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ]
+            },
+            {
+                "name": "rfTime",
+                "kind": "required",
+                "type": [
+                    "numeric",
+                    "scalar"
+                ],
+                "purpose": "rise-fall time, in sec"
+            },
+            {
+                "name": "rfOpt",
+                "kind": "ordered",
+                "type": [
+                    "choices = {'both', 'rise', 'fall'}"
+                ]
+            }
         ],
         "description": "Generate rise and fall edges for a signal"
     },
-
     "playAudio": {
         "inputs": [
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "y", "kind": "required", "type": ["numeric", "2d"]},
-                    {"name": "fsSound", "kind": "required", "type": ["positive", "scalar"]},
-                    {"name": "fsDevice", "kind": "ordered", "type": ["positive", "scalar"]}
-                ],
-                [
-                    {"name": "filepath", "kind": "required", "type": ["file"]},
-                    {"name": "fsDevice", "kind": "ordered", "type": ["positive", "scalar"]}
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "y",
+                            "kind": "required",
+                            "type": [
+                                "numeric",
+                                "2d"
+                            ]
+                        },
+                        {
+                            "name": "fsSound",
+                            "kind": "required",
+                            "type": [
+                                "positive",
+                                "scalar"
+                            ]
+                        },
+                        {
+                            "name": "fsDevice",
+                            "kind": "ordered",
+                            "type": [
+                                "positive",
+                                "scalar"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "filepath",
+                            "kind": "required",
+                            "type": [
+                                "file"
+                            ]
+                        },
+                        {
+                            "name": "fsDevice",
+                            "kind": "ordered",
+                            "type": [
+                                "positive",
+                                "scalar"
+                            ]
+                        }
+                    ]
                 ]
-            ]}
+            }
         ],
         "description": "Play audio from a signal or file"
     },
-
     "validateinput": {
         "inputs": [
-            {"name": "prompt", "kind": "required", "type": ["string", "char"]},
-            {"mutuallyExclusiveGroup": [
-                [
-                    {"name": "validateFcn", "kind": "ordered", "type": ["function_handle"]},
-                    {"name": "sInput", "kind": "ordered", "type": ["choices = {'s'}"], "purpose": "str input"}
-                ],
-                [
-                    {"name": "validateFcn", "kind": "ordered", "type": ["function_handle"]}
-                ],
-                [
-                    {"name": "sInput", "kind": "ordered", "type": ["choices = {'s'}"], "purpose": "str input"}
+            {
+                "name": "prompt",
+                "kind": "required",
+                "type": [
+                    "string",
+                    "char"
                 ]
-            ]},
-            {"name": "UI", "kind": "namevalue", "type": "choices = {'on', 'off'}"}
+            },
+            {
+                "mutuallyExclusiveGroup": [
+                    [
+                        {
+                            "name": "validateFcn",
+                            "kind": "ordered",
+                            "type": [
+                                "function_handle"
+                            ]
+                        },
+                        {
+                            "name": "sInput",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'s'}"
+                            ],
+                            "purpose": "str input"
+                        }
+                    ],
+                    [
+                        {
+                            "name": "validateFcn",
+                            "kind": "ordered",
+                            "type": [
+                                "function_handle"
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "name": "sInput",
+                            "kind": "ordered",
+                            "type": [
+                                "choices = {'s'}"
+                            ],
+                            "purpose": "str input"
+                        }
+                    ]
+                ]
+            },
+            {
+                "name": "UI",
+                "kind": "namevalue",
+                "type": "choices = {'on', 'off'}"
+            }
         ],
-        "description": "Validate user input with a prompt and optional validation function"
+        "description": "Validate user input with a prompt and ordered validation function"
     }
-    
 }
