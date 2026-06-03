@@ -1,84 +1,84 @@
 function varargout = subplot(varargin)
-%SUBPLOT  Advanced subplot function.
+%SUBPLOT Advanced subplot function.
+%
+% This function creates axes with more flexible control than MATLAB built-in
+% subplot. It divides a figure into row-by-column "div" regions, and then
+% places one axes object inside the selected div.
+%
+% H5/CSS-like box model:
+%
+%   figure
+%   └── margin area
+%       └── div
+%           └── padding area
+%               └── axes
+%
+% In this function:
+%   margins  : outer space around the whole subplot grid, relative to figure
+%   paddings : inner space inside each div, relative to div
 %
 % SCHEMATIC:
-%     % The following figure is created by script:
-%     figure("WindowState", "maximized");
-%     set(0, "DefaultAxesBox", "on");
-%     % div1
-%     mu.subplot(1, 2, 1, "paddings", [1/9, 1/18, 2/9, 1/9], ...
-%                         "shape", "fill");
-%     text(0.05, 0.95, 'div1', 'Color', 'r');
-%     % ax1
-%     mu.subplot(1, 2, 1, "paddings", [1/9, 1/18, 2/9, 1/9], ...
-%                         "margins", [1/5, 1/2, 1/6, 1/6]);
-%     text(0.05, 0.95, 'ax1', 'Color', 'r');
-%     % div2
-%     mu.subplot(1, 2, 2, "paddings", [1/9, 1/18, 2/9, 1/9], ...
-%                         "shape", "fill");
-%     text(0.05, 0.95, 'div2', 'Color', 'r');
-%     % ax2
-%     mu.subplot(1, 2, 2, "paddings", [1/9, 1/18, 2/9, 1/9], ...
-%                         "margins", zeros(1, 4), ...
-%                         "nSize", [1/4, 1/2], ...
-%                         "alignment", "left-bottom");
-%     text(0.05, 0.95, 'ax2', 'Color', 'r');
-%     set(0, "DefaultAxesBox", "factory");
-%
-%  ____________________________________________________________________
-% |figure _________________________________________________________    |
-% |      |div1  _______               |div2                        |   |
-% |      |     |       |              |                            |   |
-% |      |     | ax1   |←------------→|_______                     |   |
-% |      |     |       | margin_right |       |                    |   |
-% |      |     |_______|              | ax2   |                    |   |
-% |←----→|____________________________|_______|____________________|   |
-% |padding_left      ↑ padding_bottom                                  |
-% |__________________↓_________________________________________________|
-%
+%   See /demo/demo_subplot.m for details.
 % INPUTS:
 %   REQUIRED:
-%     row/col/index  - Same usage of function subplot
+%   row/col/index - Same usage as MATLAB built-in subplot.
+%
 %   OPTIONAL:
-%     Fig       - Figure handle (default=gcf)
+%   Fig - Figure handle. If omitted, gcf is used.
+%
 %   NAME-VALUE:
-%     nSize     - [nX, nY] specifies size of subplot (default: [1, 1]). 
-%                 [nSize] is relative to axes.
-%     margins   - Margins of subplot specified as [left, right, bottom, top].
-%                 [margins] is the outer space around the whole subplot grid,
-%                 relative to figure. (default: [0.03, 0.03, 0.08, 0.05])
-%                 You can also set them separately using name-value pair:
-%                 [margin_left], [margin_right], [margin_bottom], [margin_top]
-%     paddings  - Paddings of subplot specified as [left, right, bottom, top].
-%                 [paddings] is the inner space inside each subplot div,
-%                 relative to div. (default: [0.05, 0.05, 0.08, 0.05])
-%                 You can also set them separately using name-value pair:
-%                 [padding_left], [padding_right], [padding_bottom], [padding_top]
-%     shape     - 'auto'(default), 'square-min', 'square-max', or 'fill'.
-%                 Option 'fill' is prior to [margins] and [nSize] options.
-%     alignment - How axes aligns to <div>, either preset string or a 2-element vector that 
-%                 specifies axes center [x,y] relative to <div> (normalized).
-%                 If set positive, relative to left and bottom.
-%                 If set negative, relative to right and top.
-%                 This option influences how the axes is expanded or shrinked using [nSize] option.
-%                 Optional values:
-%                 'left-bottom', 'left-center', 'left-top', 
-%                 'center-bottom', 'center' (default), 'center-top', 
-%                 'right-bottom', 'right-center', 'right-top'
-%                 You can also specify [alignment_horizontal] and [alignment_vertical] separately, 
-%                 which is prior to [alignment].
-%     divBox    - Show <div> box (default: "hide"). 
-%                 This is a developer option to locate axes.
+%   nSize - [nX, nY] specifies size of axes. Default: [1, 1].
+%           nSize is relative to the drawable area inside each div.
+%
+%   margins - Margins specified as [left, right, bottom, top].
+%             Margins are outer spaces around the whole subplot grid,
+%             relative to figure. Default: [0.03, 0.03, 0.08, 0.05].
+%             You can also set them separately using:
+%             margin_left, margin_right, margin_bottom, margin_top.
+%
+%   paddings - Paddings specified as [left, right, bottom, top].
+%              Paddings are inner spaces inside each subplot div,
+%              relative to div. Default: [0.05, 0.05, 0.08, 0.05].
+%              You can also set them separately using:
+%              padding_left, padding_right, padding_bottom, padding_top.
+%
+%   shape - 'auto'(default), 'square-min', 'square-max', or 'fill'.
+%           Option 'fill' fills the whole div and ignores paddings/nSize,
+%           but keeps margins.
+%
+%   alignment - How axes aligns to the div. It can be either a preset string
+%               or a 2-element numeric vector that specifies axes center
+%               [x, y] relative to the padded div area.
+%               If positive, relative to left and bottom.
+%               If negative, relative to right and top.
+%               Optional values:
+%               'left-bottom', 'left-center', 'left-top',
+%               'center-bottom', 'center', 'center-top',
+%               'right-bottom', 'right-center', 'right-top'.
+%
+%   alignment_horizontal - 'left', 'center', 'right', or numeric scalar.
+%                          This has higher priority than alignment.
+%
+%   alignment_vertical - 'bottom', 'center', 'top', or numeric scalar.
+%                        This has higher priority than alignment.
+%
+%   divBox - Show div box. Default: "hide".
+%            This is a developer option to locate the div area.
 %
 % OUTPUTS:
-%     ax    - Subplot axes object
-%     opts  - Subplot options
+%   ax   - Subplot axes object.
+%   opts - Subplot options and computed positions.
 %
 % NOTES:
-%   - All parameters here are normalized in unit.
-%   - MAXIMIZE your figure before using mu.subplot to create axes is recommended.
+%   - All position parameters are normalized.
+%   - Maximizing your figure before using mu.subplot is recommended.
 
 %% Parameter validation
+
+if isempty(varargin)
+    error('mu.subplot requires at least row, col, and index inputs.');
+end
+
 if strcmp(class(varargin{1}), "matlab.ui.Figure")
     Fig = varargin{1};
     varargin = varargin(2:end);
@@ -87,62 +87,95 @@ else
 end
 
 mIp = inputParser;
-mIp.addRequired("Fig",   @(x) isscalar(x) && isa(x, "matlab.ui.Figure"));
-mIp.addRequired("row",   @(x) validateattributes(x, 'numeric', {'numel', 1, 'positive', 'integer'}));
-mIp.addRequired("col",   @(x) validateattributes(x, 'numeric', {'numel', 1, 'positive', 'integer'}));
+
+mIp.addRequired("Fig", @(x) isscalar(x) && isa(x, "matlab.ui.Figure"));
+mIp.addRequired("row", @(x) validateattributes(x, 'numeric', {'numel', 1, 'positive', 'integer'}));
+mIp.addRequired("col", @(x) validateattributes(x, 'numeric', {'numel', 1, 'positive', 'integer'}));
 mIp.addRequired("index", @(x) validateattributes(x, 'numeric', {'vector', 'positive', 'integer'}));
-mIp.addOptional("nSize0",    [], @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
-mIp.addOptional("margins0",  [], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
+
+% Positional optional inputs are kept for backward calling style:
+% mu.subplot(row, col, index, nSize, margins, paddings, shape)
+% But their semantics are now H5/CSS-like:
+% margins = outer space, paddings = inner space.
+mIp.addOptional("nSize0", [], @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
+mIp.addOptional("margins0", [], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
 mIp.addOptional("paddings0", [], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
 mIp.addOptional("shape0", [], @mustBeTextScalar);
+
 mIp.addParameter("nSize", [1, 1], @(x) validateattributes(x, 'numeric', {'vector', 'real'}));
-mIp.addParameter("margins",  [0.03, 0.03, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
+
+% IMPORTANT:
+% Defaults are swapped compared with the old implementation to preserve
+% the old visual layout as much as possible after the semantic correction.
+%
+% New definition:
+%   margins  -> outer space around grid, relative to figure
+%   paddings -> inner space inside div, relative to div
+mIp.addParameter("margins", [0.03, 0.03, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
 mIp.addParameter("paddings", [0.05, 0.05, 0.08, 0.05], @(x) validateattributes(x, 'numeric', {'vector', 'real', 'numel', 4}));
+
 mIp.addParameter("shape", "auto", @mustBeTextScalar);
+
 mIp.addParameter("alignment"           , "center", @(x) isnumeric(x) || mu.isTextScalar(x));
 mIp.addParameter("alignment_horizontal", []      , @(x) isnumeric(x) || mu.isTextScalar(x));
 mIp.addParameter("alignment_vertical"  , []      , @(x) isnumeric(x) || mu.isTextScalar(x));
-mIp.addParameter("margin_left"   , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
-mIp.addParameter("margin_right"  , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
-mIp.addParameter("margin_bottom" , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
-mIp.addParameter("margin_top"    , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+
+mIp.addParameter("margin_left"  , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+mIp.addParameter("margin_right" , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+mIp.addParameter("margin_bottom", [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+mIp.addParameter("margin_top"   , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
+
 mIp.addParameter("padding_left"  , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
 mIp.addParameter("padding_right" , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
 mIp.addParameter("padding_bottom", [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
 mIp.addParameter("padding_top"   , [], @(x) validateattributes(x, 'numeric', {'scalar', 'real'}));
-mIp.addParameter("divBox", mu.OptionState.Off, @mu.OptionState.validate);
-mIp.parse(Fig, varargin{:})
 
-% Grid size
-Fig   = mIp.Results.Fig  ;
-row   = mIp.Results.row  ;
-col   = mIp.Results.col  ;
+mIp.addParameter("divBox", mu.OptionState.Off, @mu.OptionState.validate);
+
+mIp.parse(Fig, varargin{:});
+
+%% Grid size
+
+Fig   = mIp.Results.Fig;
+row   = mIp.Results.row;
+col   = mIp.Results.col;
 index = mIp.Results.index;
+
 if isscalar(index)
-    assert(index <= col * row, 'Grid index %d should not exceed grid size %d x %d', index, col, row);
+    assert(index <= col * row, ...
+        'Grid index %d should not exceed grid size %d x %d.', ...
+        index, col, row);
+
     [cIndex, rIndex] = ind2sub([col, row], index);
+
 elseif numel(index) == 2
     rIndex = index(1);
     cIndex = index(2);
-    assert(rIndex <= row, 'Row number should not exceed %d', row);
-    assert(cIndex <= col, 'Column number should not exceed %d', col);
+
+    assert(rIndex <= row, 'Row number should not exceed %d.', row);
+    assert(cIndex <= col, 'Column number should not exceed %d.', col);
+
 else
-    error('Grid number should either be a scalar or a 2-element vector');
+    error('Grid number should either be a scalar or a 2-element vector.');
 end
 
-% Alignment
+%% Alignment
+
 validShape = {'auto', 'square-min', 'square-max', 'fill'};
-validAlignment = {'left-bottom', ...
-                  'left-center', ...
-                  'left-top', ...
-                  'center-bottom', ...
-                  'center', ...
-                  'center-top', ...
-                  'right-bottom', ...
-                  'right-center', ...
-                  'right-top'};
+
+validAlignment = { ...
+    'left-bottom', ...
+    'left-center', ...
+    'left-top', ...
+    'center-bottom', ...
+    'center', ...
+    'center-top', ...
+    'right-bottom', ...
+    'right-center', ...
+    'right-top'};
 
 alignment = mIp.Results.alignment;
+
 if isnumeric(alignment)
     validateattributes(alignment, 'numeric', {'numel', 2, 'real'});
 else
@@ -150,6 +183,7 @@ else
 end
 
 alignment_horizontal = mIp.Results.alignment_horizontal;
+
 if isnumeric(alignment_horizontal)
     if isempty(alignment_horizontal)
         if isnumeric(alignment)
@@ -166,6 +200,7 @@ else
 end
 
 alignment_vertical = mIp.Results.alignment_vertical;
+
 if isnumeric(alignment_vertical)
     if isempty(alignment_vertical)
         if isnumeric(alignment)
@@ -181,15 +216,18 @@ else
     alignment_vertical = validatestring(alignment_vertical, {'bottom', 'center', 'top'});
 end
 
-% Axes scaling
+%% Axes scaling
+
 nSize = mu.getor(mIp.Results, "nSize0", mIp.Results.nSize, true);
+
 nX = nSize(1);
+
 if isscalar(nSize)
     nY = nSize(1);
-elseif numel(nSize) == 2 % nSize = [nX, nY]
+elseif numel(nSize) == 2
     nY = nSize(2);
 else
-    error('Size should be a scalar or a 2-element vector');
+    error('Size should be a scalar or a 2-element vector.');
 end
 
 if isempty(mIp.Results.shape0)
@@ -198,110 +236,198 @@ else
     shape = validatestring(mIp.Results.shape0, validShape);
 end
 
-% Margins and paddings
-margins        = mu.getor(mIp.Results, "margins0" , mIp.Results.margins , true);
-paddings       = mu.getor(mIp.Results, "paddings0", mIp.Results.paddings, true);
-margin_left    = mIp.Results.margin_left   ;
-margin_right   = mIp.Results.margin_right  ;
-margin_bottom  = mIp.Results.margin_bottom ;
-margin_top     = mIp.Results.margin_top    ;
-padding_left   = mIp.Results.padding_left  ;
-padding_right  = mIp.Results.padding_right ;
+%% Margins and paddings
+
+% H5/CSS-like definition:
+%   margins  = outer space around the subplot grid, relative to figure
+%   paddings = inner space inside each subplot div, relative to div
+%
+% Order is [left, right, bottom, top].
+
+margins  = mu.getor(mIp.Results, "margins0" , mIp.Results.margins , true);
+paddings = mu.getor(mIp.Results, "paddings0", mIp.Results.paddings, true);
+
+margin_left   = mIp.Results.margin_left;
+margin_right  = mIp.Results.margin_right;
+margin_bottom = mIp.Results.margin_bottom;
+margin_top    = mIp.Results.margin_top;
+
+padding_left   = mIp.Results.padding_left;
+padding_right  = mIp.Results.padding_right;
 padding_bottom = mIp.Results.padding_bottom;
-padding_top    = mIp.Results.padding_top   ;
+padding_top    = mIp.Results.padding_top;
 
-if ~isempty(margin_left   ), margins (1) = margin_left   ; end
-if ~isempty(margin_right  ), margins (2) = margin_right  ; end
-if ~isempty(margin_bottom ), margins (3) = margin_bottom ; end
-if ~isempty(margin_top    ), margins (4) = margin_top    ; end
-if ~isempty(padding_left  ), paddings(1) = padding_left  ; end
-if ~isempty(padding_right ), paddings(2) = padding_right ; end
+% Individual margin settings overwrite the corresponding value in margins.
+if ~isempty(margin_left)  , margins(1) = margin_left;   end
+if ~isempty(margin_right) , margins(2) = margin_right;  end
+if ~isempty(margin_bottom), margins(3) = margin_bottom; end
+if ~isempty(margin_top)   , margins(4) = margin_top;    end
+
+% Individual padding settings overwrite the corresponding value in paddings.
+if ~isempty(padding_left)  , paddings(1) = padding_left;   end
+if ~isempty(padding_right) , paddings(2) = padding_right;  end
 if ~isempty(padding_bottom), paddings(3) = padding_bottom; end
-if ~isempty(padding_top   ), paddings(4) = padding_top   ; end
+if ~isempty(padding_top)   , paddings(4) = padding_top;    end
 
-% Show <div> box
+%% Show div box
+
 divBox = mu.OptionState.create(mIp.Results.divBox);
 
 %% Axes position computation
-% paddings or margins is [Left, Right, Bottom, Top]
-divWidth  = (1 - paddings(1) - paddings(2)) / col;
-divHeight = (1 - paddings(3) - paddings(4)) / row;
 
-divX = paddings(1) + divWidth  * (cIndex - 1);
-divY = paddings(3) + divHeight * (row - rIndex);
-axesWidth  = (1 - margins(1) - margins(2)) * divWidth  * nX;
-axesHeight = (1 - margins(3) - margins(4)) * divHeight * nY;
+% Sanity checks. These catch collapsed layouts early, before MATLAB creates
+% invisible or negative-sized axes.
+assert(margins(1) + margins(2) < 1, ...
+    'The sum of margin_left and margin_right should be smaller than 1.');
+assert(margins(3) + margins(4) < 1, ...
+    'The sum of margin_bottom and margin_top should be smaller than 1.');
+assert(paddings(1) + paddings(2) < 1, ...
+    'The sum of padding_left and padding_right should be smaller than 1.');
+assert(paddings(3) + paddings(4) < 1, ...
+    'The sum of padding_bottom and padding_top should be smaller than 1.');
 
-% Adjust for maximized figure size
+% The outer margin defines the available grid area in the figure.
+% This is the key correction:
+%   old code: div size was controlled by paddings
+%   new code: div size is controlled by margins
+divWidth  = (1 - margins(1) - margins(2)) / col;
+divHeight = (1 - margins(3) - margins(4)) / row;
+
+divX = margins(1) + divWidth  * (cIndex - 1);
+divY = margins(3) + divHeight * (row - rIndex);
+
+% The inner padding defines the drawable axes area inside each div.
+% This is the second key correction:
+%   old code: axes size was controlled by margins
+%   new code: axes size is controlled by paddings
+axesWidth  = (1 - paddings(1) - paddings(2)) * divWidth  * nX;
+axesHeight = (1 - paddings(3) - paddings(4)) * divHeight * nY;
+
+% Adjust for maximized figure size.
+% This keeps square-min/square-max visually square on a maximized figure.
 FigSize = get(0, "screensize");
 adjIdx = FigSize(4) / FigSize(3);
 
 borderMin = min([axesWidth / adjIdx, axesHeight]);
 borderMax = max([axesWidth / adjIdx, axesHeight]);
+
 switch shape
     case 'auto'
-        % default: without adjustment
+        % Default: no shape adjustment.
+
     case 'square-min'
         axesWidth  = borderMin * adjIdx;
         axesHeight = borderMin;
+
     case 'square-max'
         axesWidth  = borderMax * adjIdx;
         axesHeight = borderMax;
+
     case 'fill'
+        % Fill the whole div.
+        % In the new H5/CSS-like definition, fill ignores paddings and nSize,
+        % but still respects the outer margins.
         axesWidth  = divWidth;
         axesHeight = divHeight;
-        margins   = zeros(1, 4);
+        paddings   = zeros(1, 4);
+
     otherwise
-        error('Invalid shape input');
+        error('Invalid shape input.');
 end
+
+%% Horizontal alignment
 
 if isnumeric(alignment_horizontal)
     if alignment_horizontal >= 0
-        axesX = divX + ((1 - margins(1) - margins(2)) * alignment_horizontal + margins(1)) * divWidth - axesWidth / 2;
-        X = (1 - margins(1) - margins(2)) * alignment_horizontal + margins(1);
+        % Numeric positive alignment:
+        %   0   -> left edge of padded region
+        %   0.5 -> center of padded region
+        %   1   -> right edge of padded region
+        axesX = divX ...
+            + ((1 - paddings(1) - paddings(2)) * alignment_horizontal + paddings(1)) * divWidth ...
+            - axesWidth / 2;
+
+        X = (1 - paddings(1) - paddings(2)) * alignment_horizontal + paddings(1);
     else
-        axesX = divX + ((1 - margins(1) - margins(2)) * (1 + alignment_horizontal) + margins(1)) * divWidth - axesWidth / 2;
-        X = (1 - margins(1) - margins(2)) * (1 + alignment_horizontal) + margins(1);
+        % Numeric negative alignment:
+        %   -1   -> left edge of padded region
+        %   -0.5 -> center of padded region
+        %   0    -> right edge of padded region
+        axesX = divX ...
+            + ((1 - paddings(1) - paddings(2)) * (1 + alignment_horizontal) + paddings(1)) * divWidth ...
+            - axesWidth / 2;
+
+        X = (1 - paddings(1) - paddings(2)) * (1 + alignment_horizontal) + paddings(1);
     end
 else
     switch alignment_horizontal
         case 'left'
-            axesX = divX + margins(1) * divWidth;
-            X = margins(1) + axesWidth / divWidth / 2;
+            axesX = divX + paddings(1) * divWidth;
+            X = paddings(1) + axesWidth / divWidth / 2;
+
         case 'center'
-            axesX = divX + (1 + margins(1) - margins(2)) * divWidth / 2 - axesWidth / 2;
-            X = (1 + margins(1) - margins(2)) / 2;
+            axesX = divX ...
+                + (1 + paddings(1) - paddings(2)) * divWidth / 2 ...
+                - axesWidth / 2;
+
+            X = (1 + paddings(1) - paddings(2)) / 2;
+
         case 'right'
-            axesX = divX + divWidth  * (1 - margins(2)) - axesWidth;
-            X = 1 - margins(2) - axesWidth / divWidth / 2;
+            axesX = divX + divWidth * (1 - paddings(2)) - axesWidth;
+            X = 1 - paddings(2) - axesWidth / divWidth / 2;
     end
 end
 
+%% Vertical alignment
+
 if isnumeric(alignment_vertical)
     if alignment_vertical >= 0
-        axesY = divY + ((1 - margins(3) - margins(4)) * alignment_vertical + margins(3)) * divHeight - axesHeight / 2;
-        Y = (1 - margins(3) - margins(4)) * alignment_vertical + margins(3);
+        % Numeric positive alignment:
+        %   0   -> bottom edge of padded region
+        %   0.5 -> center of padded region
+        %   1   -> top edge of padded region
+        axesY = divY ...
+            + ((1 - paddings(3) - paddings(4)) * alignment_vertical + paddings(3)) * divHeight ...
+            - axesHeight / 2;
+
+        Y = (1 - paddings(3) - paddings(4)) * alignment_vertical + paddings(3);
     else
-        axesY = divY + ((1 - margins(3) - margins(4)) * (1 + alignment_vertical) + margins(3)) * divHeight - axesHeight / 2;
-        Y = (1 - margins(3) - margins(4)) * (1 + alignment_vertical) + margins(3);
+        % Numeric negative alignment:
+        %   -1   -> bottom edge of padded region
+        %   -0.5 -> center of padded region
+        %   0    -> top edge of padded region
+        axesY = divY ...
+            + ((1 - paddings(3) - paddings(4)) * (1 + alignment_vertical) + paddings(3)) * divHeight ...
+            - axesHeight / 2;
+
+        Y = (1 - paddings(3) - paddings(4)) * (1 + alignment_vertical) + paddings(3);
     end
 else
     switch alignment_vertical
         case 'bottom'
-            axesY = divY + margins(3) * divHeight;
-            Y = margins(3) + axesHeight / divHeight / 2;
+            axesY = divY + paddings(3) * divHeight;
+            Y = paddings(3) + axesHeight / divHeight / 2;
+
         case 'center'
-            axesY = divY + (1 + margins(3) - margins(4)) * divHeight / 2 - axesHeight / 2;
-            Y = (1 + margins(3) - margins(4)) / 2;
+            axesY = divY ...
+                + (1 + paddings(3) - paddings(4)) * divHeight / 2 ...
+                - axesHeight / 2;
+
+            Y = (1 + paddings(3) - paddings(4)) / 2;
+
         case 'top'
-            axesY = divY + divHeight * (1 - margins(4)) - axesHeight;
-            Y = 1 - margins(4) - axesHeight / divHeight / 2;
+            axesY = divY + divHeight * (1 - paddings(4)) - axesHeight;
+            Y = 1 - paddings(4) - axesHeight / divHeight / 2;
     end
 end
 
-%% Show <div> box
+%% Show div box
+
 if divBox.toLogical
-    divAx = axes(Fig, "Position", [divX, divY, divWidth, divHeight], "Box", "on");
+    divAx = axes(Fig, ...
+        "Position", [divX, divY, divWidth, divHeight], ...
+        "Box", "on");
+
     set(divAx, "LineWidth", 1);
     set(divAx, "TickLength", [0, 0]);
     set(divAx, "XLim", [0, 1]);
@@ -319,14 +445,16 @@ if divBox.toLogical
     if ~isempty(Y)
         yline(divAx, Y, "r--");
         mu.addTicks(divAx, "y", Y);
+        mu.addTicks(divAx, "y", Y);
     end
-
 end
 
 %% Draw axes
+
 ax = axes(Fig, "Position", [axesX, axesY, axesWidth, axesHeight]);
 
 %% Outputs
+
 if nargout >= 1
     varargout{1} = ax;
 end
@@ -335,13 +463,18 @@ if nargout == 2
     opts.row = row;
     opts.col = col;
     opts.index = index;
-    opts.margins = margins;
+
+    % These are returned with the new H5/CSS-like meanings.
+    opts.margins  = margins;
     opts.paddings = paddings;
+
     opts.nSize = nSize;
     opts.shape = shape;
     opts.alignment = [X, Y];
+
     opts.divPosition = [divX, divY, divWidth, divHeight];
     opts.axesPosition = [axesX, axesY, axesWidth, axesHeight];
+
     varargout{2} = opts;
 end
 
