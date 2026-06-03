@@ -63,8 +63,8 @@ arguments
     opts.BarParameters  cell = {}
     opts.LineParameters cell = {}
 
-    opts.Margins  (1,4) double = [0.05, 0.05, 0.1, 0.1]
-    opts.Paddings (1,4) double = [0.01, 0.05, 0.01, 0.05]
+    opts.Margins  (1,4) double = [0.01, 0.05, 0.01, 0.05]
+    opts.Paddings (1,4) double = [0.05, 0.05, 0.1, 0.1]
 end
 
 validateattributes(window, {'numeric'}, {'increasing'});

@@ -41,8 +41,8 @@ function varargout = mu_plotTFR(data, f, windowData, varargin)
 %        numel(Channels)<prod(GridSize) is okay. The last several subplots
 %        are hided. numel(Channels)>prod(GridSize) reports an error.
 %
-%   - 'margings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
-%   - 'paddings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
+%   - 'margings': [left,right,bottom,top] (default=[.01, .03, .01, .01])
+%   - 'paddings': [left,right,bottom,top] (default=[.05, .05, .1, .1])
 %        See `mu.subplot` for detail.
 % 
 %--------------------------------------------------------------------------------
@@ -57,8 +57,8 @@ mIp.addParameter("fLimits", [], @(x) validateattributes(x, 'numeric', {'numel', 
 mIp.addParameter("coi", 'auto');
 mIp.addParameter("GridSize", [], @(x) validateattributes(x, 'numeric', {'numel', 2, 'positive'}));
 mIp.addParameter("Channels", [], @(x) validateattributes(x, 'numeric', {'2d'}));
-mIp.addParameter("margins", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
-mIp.addParameter("paddings", [.01, .03, .01, .01], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("margins",  [.01, .03, .01, .01], @(x) validateattributes(x, 'numeric', {'numel', 4}));
+mIp.addParameter("paddings", [.05, .05, .1, .1], @(x) validateattributes(x, 'numeric', {'numel', 4}));
 
 mIp.parse(f, windowData, varargin{:});
 

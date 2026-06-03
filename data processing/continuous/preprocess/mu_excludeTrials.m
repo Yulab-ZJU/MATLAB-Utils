@@ -93,8 +93,8 @@ else
             % histogram
             temp = mu.reslice(tIdx, 1);
             figure("WindowState", "maximized");
-            margins = [0.05, 0.05, 0.1, 0.1];
-            paddings = [0.01, 0.03, 0.01, 0.01];
+            margins = [0.01, 0.03, 0.01, 0.01];
+            paddings = [0.05, 0.05, 0.1, 0.1];
             pltsz = mu.autoplotsize(numel(channels));
             for index = 1:numel(channels)
                 ax = mu.subplot(pltsz(1), pltsz(2), index, "margins", margins, "paddings", paddings);
