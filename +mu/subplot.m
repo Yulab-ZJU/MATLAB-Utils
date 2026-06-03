@@ -40,17 +40,19 @@ function varargout = subplot(varargin)
 %   REQUIRED:
 %     row/col/index  - Same usage of function subplot
 %   OPTIONAL:
-%     Fig      - Figure handle (default=gcf)
+%     Fig       - Figure handle (default=gcf)
 %   NAME-VALUE:
 %     nSize     - [nX, nY] specifies size of subplot (default: [1, 1]). 
 %                 [nSize] is relative to axes.
 %     margins   - Margins of subplot specified as [left, right, bottom, top].
-%                 [margins] is relative to div. (default: [0.05, 0.05, 0.08, 0.05])
-%                 You can also set them separately using name-value pair (prior to [margins]):
+%                 [margins] is the outer space around the whole subplot grid,
+%                 relative to figure. (default: [0.03, 0.03, 0.08, 0.05])
+%                 You can also set them separately using name-value pair:
 %                 [margin_left], [margin_right], [margin_bottom], [margin_top]
 %     paddings  - Paddings of subplot specified as [left, right, bottom, top].
-%                 [paddings] is relative to figure. (default: [0.03, 0.03, 0.08, 0.05])
-%                 You can also set them separately using name-value pair (prior to [paddings]):
+%                 [paddings] is the inner space inside each subplot div,
+%                 relative to div. (default: [0.05, 0.05, 0.08, 0.05])
+%                 You can also set them separately using name-value pair:
 %                 [padding_left], [padding_right], [padding_bottom], [padding_top]
 %     shape     - 'auto'(default), 'square-min', 'square-max', or 'fill'.
 %                 Option 'fill' is prior to [margins] and [nSize] options.
