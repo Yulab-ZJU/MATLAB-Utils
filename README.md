@@ -56,6 +56,7 @@ updateMATLABUtils
 | `mu.setLegendOff` | Hide legends for selected targets. |
 | `mu.setPlotMode` | Switch plot display mode or graphical state for selected plot objects. |
 | `mu.subplot` | Create subplots with advanced control of margins, spacing, and panel sizes. |
+| `mu.tiledlayout` | Create tiled layout with advanced control of margins, spacing, and panel sizes. |
 | `mu.syncXY` | Synchronize x and y axis ranges. |
 
 ### 2. Data structure, array, and utility functions in `+mu`
