@@ -831,11 +831,7 @@ if ~isempty(restArgs)
     end
 
     names = restArgs(1:2:end);
-<<<<<<< HEAD
-    if ~all(cellfun(@local_isTextScalar, names))
-=======
     if ~all(cellfun(@mu.isTextScalar, names))
->>>>>>> dd4f9c9115824e22eeea4a3650eb1f1978a1164b
         error("After mu.subplot(t, index, ...), remaining inputs should be name-value pairs.");
     end
 end
@@ -1234,15 +1230,3 @@ opts.shape = shape;
 
 return;
 end
-<<<<<<< HEAD
-
-function tf = local_isTextScalar(x)
-%LOCAL_ISTEXTSCALAR True for char row vector or scalar string.
-
-tf = (ischar(x) && (isrow(x) || isempty(x))) || ...
-     (isstring(x) && isscalar(x));
-
-return;
-end
-=======
->>>>>>> dd4f9c9115824e22eeea4a3650eb1f1978a1164b
