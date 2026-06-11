@@ -21,9 +21,7 @@
             {"name": "coi", "kind": "namevalue", "type": [["numeric"], ["choices = {'auto'}"]]},
             {"name": "GridSize", "kind": "namevalue", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
             {"name": "Channels", "kind": "namevalue", "type": ["numeric"]},
-            {"name": "fLimits", "kind": "namevalue", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)", "positive"]},
-            {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .03, .01, .01]"},
-            {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"}
+            {"name": "fLimits", "kind": "namevalue", "type": ["numeric", "numel=2", "@(x) x(2) > x(1)", "positive"]}
         ]
     },
 
@@ -34,8 +32,6 @@
             {"name": "GridSize", "kind": "namevalue", "type": ["@(x) numel(x) <= 2", "integer", "positive"]},
             {"name": "Channels", "kind": "namevalue", "type": ["numeric"]},
             {"name": "Labels", "kind": "namevalue", "type": ["@iscellstr"]},
-            {"name": "paddings", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.01, .05, .01, .05]"},
-            {"name": "margins", "kind": "namevalue", "type": ["numel=4", "numeric"], "purpose": "default=[.05, .05, .1, .1]"},
             {"name": "LineParameters", "kind": "namevalue", "type": ["cell"], "purpose": "{'color','b','lineWidth',1,'lineStyle','-'}"},
             {"name": "BarParameters", "kind": "namevalue", "type": ["cell"], "purpose": "{'mask',M,'color','k','alpha',0.1}"}
         ]

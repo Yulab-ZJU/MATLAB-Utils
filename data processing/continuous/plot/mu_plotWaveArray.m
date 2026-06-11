@@ -41,9 +41,6 @@ function varargout = mu_plotWaveArray(chData, window, opts)
 %                         Common fields: 'mask', 'color', 'alpha'
 %                         Normalized to lower-case struct fields.
 %
-%   opts.Margins  : [left right bottom top] for mu.subplot
-%   opts.Paddings : [left right bottom top] for mu.subplot
-%
 % -------------------------------------------------------------------------
 % OUTPUTS
 %   Fig : figure handle
@@ -62,9 +59,6 @@ arguments
     % NV cells
     opts.BarParameters  cell = {}
     opts.LineParameters cell = {}
-
-    opts.Margins  (1,4) double = [0.01, 0.05, 0.01, 0.05]
-    opts.Paddings (1,4) double = [0.05, 0.05, 0.1, 0.1]
 end
 
 validateattributes(window, {'numeric'}, {'increasing'});
@@ -163,14 +157,15 @@ end
 % -------------------------
 % 5) Plot
 % -------------------------
-margins  = opts.Margins;
-paddings = opts.Paddings;
-
 Fig = figure("WindowState", "maximized");
 lastAx = [];
 
 nrow = GridSize(1);
 ncol = GridSize(2);
+
+tl = mu.tiledlayout(Fig, nrow, ncol, ...
+    "margins", zeros(1, 4), ...
+    "paddings", [0, 0.02, 0, 0]);
 
 for rIndex = 1:nrow
     for cIndex = 1:ncol
@@ -181,8 +176,7 @@ for rIndex = 1:nrow
 
         subIndex = (rIndex - 1) * ncol + cIndex;
 
-        ax = mu.subplot(Fig, nrow, ncol, subIndex, ...
-            "margins", margins, "paddings", paddings);
+        ax = mu.subplot(tl, subIndex);
         lastAx = ax;
         hold(ax, "on");
 
@@ -248,7 +242,9 @@ for rIndex = 1:nrow
     end
 end
 
-mu.scaleAxes(Fig, "y");
+mu.scaleAxes(tl, "y");
+xlabel(tl, "Time");
+ylabel(tl, "Response");
 
 % -------------------------
 % 6) Legend (match line style/width from final chLineParams)

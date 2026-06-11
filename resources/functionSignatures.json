@@ -1491,7 +1491,7 @@
                     ],
                     [
                         {
-                            "name": "FigOrAxes",
+                            "name": "Targets",
                             "kind": "required",
                             "type": [
                                 "@(args) all(isgraphics(args))"
@@ -1626,10 +1626,10 @@
                     ],
                     [
                         {
-                            "name": "Fig",
+                            "name": "Targets",
                             "kind": "required",
                             "type": [
-                                "@(args) isa(x, 'matlab.ui.Figure')"
+                                "@(args) all(isgraphics(args))"
                             ]
                         },
                         {
@@ -2782,7 +2782,7 @@
                     ],
                     [
                         {
-                            "name": "FigOrAxes",
+                            "name": "Targets",
                             "kind": "required",
                             "type": [
                                 "@(args) all(isgraphics(args), 'all')"
@@ -2798,7 +2798,7 @@
                     ],
                     [
                         {
-                            "name": "FigOrAxes",
+                            "name": "Targets",
                             "kind": "required",
                             "type": [
                                 "@(args) all(isgraphics(args), 'all')"
