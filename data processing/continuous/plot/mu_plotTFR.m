@@ -215,7 +215,7 @@ colorbar('position', [min(max(temp(:, 1)) + temp(1, 3) + 0.005, 0.97), 0.1, 0.01
 mu.scaleAxes(Fig, "c");
 
 if ~isempty(coi)
-    mu.addLines(struct("X", t, "Y", coi, "color", "w", "style", "--", "width", 0.6));
+    mu.addLines(struct("X", t, "Y", coi, "color", "w", "linestyle", "--", "linewidth", 0.6));
 end
 
 if nargout == 1
