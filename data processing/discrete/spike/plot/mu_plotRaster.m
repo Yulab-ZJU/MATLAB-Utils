@@ -16,6 +16,8 @@ arguments
 
     opts.rasterSize         (1,1) double {mustBePositive}  = 20
     opts.psthParams         (1,:) cell = {"Color", "k", "LineWidth", 2}
+    opts.psthBinSize        (1,1) double = 10 % ms
+    opts.psthStep           (1,1) double = 5  % ms
 
     opts.latency            (1,1) logical = true
     opts.latencyWindowBase  (1,2) double = [-100, 0] % ms
@@ -69,18 +71,22 @@ end
 
 %% Plot
 Fig = figure;
-axRaster = mu.subplot(Fig, 1, 1, 1, [1/2, 2/3], "alignment", "center-top");
+tl = mu.tiledlayout(Fig, 3, 1, ...
+    "nSize", [0.5, 1], ...
+    "margins", [0, 0, 0.05, 0.05], ...
+    "TileSpacing", "none");
+axRaster = mu.subplot(tl, [1, 1, 2, 1]);
 rasterData.X = spikesByTrial;
 mu.rasterplot(axRaster, rasterData, opts.rasterSize);
 ylim(axRaster, [0, numel(rasterData.X) + 1]);
 xticklabels(axRaster, '');
 yticklabels(axRaster, '');
 
-axPSTH = mu.subplot(Fig, 1, 1, 1, [1/2, 1/3], "alignment", "center-bottom");
-[psth, edges] = mu_calPSTH(spikesByTrial, opts.window, 10, 5);
+axPSTH = mu.subplot(tl, [3, 1, 1, 1]);
+[psth, edges] = mu_calPSTH(spikesByTrial, opts.window, opts.psthBinSize, opts.psthStep);
 plot(axPSTH, edges, psth, opts.psthParams{:});
-xlabel(axPSTH, "Time (ms)");
 ylabel(axPSTH, "Firing rate (Hz)");
+xlabel(tl, "Time (ms)");
 
 mu.scaleAxes(Fig, "x", opts.window);
 
@@ -97,22 +103,25 @@ if ~isempty(latency)
     else
         titleStr = sprintf('Latency for onset response: %.2f ms', latency);
     end
-    title(axRaster, titleStr);
 else
-    if opts.clus ~= -1
-        titleStr = sprintf('Cluster %d | No significant onset response found', opts.clus);
+    if opts.latency
+        if opts.clus ~= -1
+            titleStr = sprintf('Cluster %d | No significant onset response found', opts.clus);
+        else
+            titleStr = 'No significant onset response found';
+        end
     else
-        titleStr = 'No significant onset response found';
+        if opts.clus ~= -1
+            titleStr = sprintf('Cluster %d', opts.clus);
+        else
+            titleStr = '';
+        end
     end
-    title(axRaster, titleStr);
 end
+title(tl, titleStr);
 
 if nargout == 1
-    varargout{1} = Fig;
-elseif nargout == 2
-    varargout{2} = axRaster;
-elseif nargout == 3
-    varargout{3} = axPSTH;
+    varargout{1} = tl;
 end
 
 return;

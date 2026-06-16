@@ -166,23 +166,44 @@ end
 
 %%
 function trial = selectTrialClus(trial, clus, keepClus)
-    validateattributes(clus, 'numeric', {'vector', 'integer'});
+    if ~isempty(clus)
+        validateattributes(clus, 'numeric', {'vector', 'integer'});
+        selectClus = true;
+    else
+        selectClus = false;
+    end
     
     if iscell(trial)
-        sz = cellfun(@(x) size(x, 2), trial);
-        assert(all(sz == sz(1), 'all'), 'No cluster information found');
-        if keepClus
-            trial = cellfun(@(x) x(ismember(x(:, 2), clus(:)), :), trial, "UniformOutput", false);
+        if selectClus
+            sz = cellfun(@(x) size(x, 2), trial);
+            assert(all(sz == sz(1), 'all'), 'No cluster information found');
+            if keepClus
+                trial = cellfun(@(x) x(ismember(x(:, 2), clus(:)), :), trial, "UniformOutput", false);
+            else
+                trial = cellfun(@(x) x(ismember(x(:, 2), clus(:)), 1), trial, "UniformOutput", false);
+            end
         else
-            trial = cellfun(@(x) x(ismember(x(:, 2), clus(:)), 1), trial, "UniformOutput", false);
+            if keepClus
+                return;
+            else
+                trial = cellfun(@(x) x(:, 1), trial, "UniformOutput", false);
+            end
         end
     elseif isstruct(trial)
         validateattributes(trial, 'struct', {'vector', 'nonempty'});
         assert(isfield(trial, 'spike'), '[trial] should contain field spike');
-        if keepClus
-            temp = arrayfun(@(x) x.spike(ismember(x.spike(:, 2), clus(:)), :), trial, "UniformOutput", false);
+        if selectClus
+            if keepClus
+                temp = arrayfun(@(x) x.spike(ismember(x.spike(:, 2), clus(:)), :), trial, "UniformOutput", false);
+            else
+                temp = arrayfun(@(x) x.spike(ismember(x.spike(:, 2), clus(:)), 1), trial, "UniformOutput", false);
+            end
         else
-            temp = arrayfun(@(x) x.spike(ismember(x.spike(:, 2), clus(:)), 1), trial, "UniformOutput", false);
+            if keepClus
+                return;
+            else
+                temp = arrayfun(@(x) x.spike(:, 1), trial, "UniformOutput", false);
+            end
         end
         trial = mu.addfield(trial, "spike", temp);
     else
