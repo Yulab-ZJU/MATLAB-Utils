@@ -5,16 +5,17 @@
         "inputs": [
             {"mutuallyExclusiveGroup": [
                 [
-                    {"name": "sortdata", "kind": "required", "type": ["numeric"], "description": "[N×2] (spikeTime,cluster) or [N×1] (spikeTime only)"},
-                    {"name": "trialAllOrtEvt", "kind": "required", "type": [["numeric", "vector"], ["struct"]], "description": "struct with .onset field, or [tEvt] vector"},
-                    {"name": "window", "kind": "required", "type": ["numeric", "numel=2"], "description": "[tPre tPost] around event onset"},
-                    {"name": "clus", "kind": "ordered", "type": ["numeric"], "description": "cluster IDs to select (e.g. [1 2 3])"},
-                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "default=true"}
-                ],
+                    {"name": "sortdata", "kind": "required", "type": [["numeric", "ncols=1"], ["numeric", "ncols=2"]], "description": "Continuous spike data. N×1 contains spike times only; N×2 contains [spikeTime, clusterID]. Spike times do not need to be sorted. Cluster IDs, when present, must be finite integer-valued numbers."}, 
+                    {"name": "trialOrEvent", "kind": "required", "type": [["numeric", "vector"], ["struct", "vector"]], "description": "Event onset information. Numeric input is a vector of event times. Struct input must contain a finite scalar .onset field for every element. Events do not need to be sorted, and output is restored to the original event order."}, 
+                    {"name": "window", "kind": "required", "type": ["numeric", "numel=2"], "description": "Relative event window [windowStart, windowEnd]. Spike selection uses the half-open interval [eventTime+windowStart, eventTime+windowEnd), including the left boundary and excluding the right boundary."}, 
+                    {"name": "clus", "kind": "ordered", "type": [ "numeric"], "description": "Cluster IDs to retain, for example [1 2 3]. Empty selects all clusters. Requires sortdata to contain a cluster column. Default: []." }, 
+                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "Whether to retain the cluster-ID column in OutputMode='data'. If false, each trial contains spike times only. Ignored by OutputMode='count' and does not remove cluster metadata from OutputMode='index'. Default: true."}, 
+                    {"name": "OutputMode", "kind": "namevalue", "type": ["choices = {'data','count','index'}"], "description": "'data' returns event-aligned spike arrays; 'count' returns one spike count per event without copying spike data; 'index' returns a compact struct containing startIndex, endIndexExclusive, count, eventTime, spikeTimes, clusters, sourceIndex, and window metadata. Default: 'data'."}
+                ], 
                 [
-                    {"name": "trial", "kind": "required", "type": [["struct"], ["cell"]], "description": "trial data"},
-                    {"name": "clus", "kind": "ordered", "type": ["numeric"], "description": "cluster IDs to select (e.g. [1 2 3])"},
-                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "default=false"}
+                    {"name": "trial", "kind": "required", "type": [["cell"], ["struct", "vector"]], "description": "Previously segmented trial spike data. Cell elements contain spike-time vectors or [spikeTime, clusterID] matrices. Struct input must contain a .spike field."}, 
+                    {"name": "clus", "kind": "ordered", "type": ["numeric"], "description": "Cluster IDs to retain, for example [1 2 3]. Empty selects all clusters. Cluster selection requires trial spike data to contain a second cluster-ID column. Default: []." }, 
+                    {"name": "keepClus", "kind": "ordered", "type": ["logical", "scalar"], "description": "Whether to retain the cluster-ID column after selection. If false, output contains spike times only. Default: false."}
                 ]
             ]}
         ]
