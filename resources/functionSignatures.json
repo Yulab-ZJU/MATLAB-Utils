@@ -3483,23 +3483,30 @@
                             "type": [
                                 "@(args) all(isgraphics(args), 'all')"
                             ],
-                            "purpose": "ordered root graphics handle(s). If omitted, uses groot."
+                            "purpose": "Ordered root graphics handle(s), including figure, tiledlayout, axes, or other graphics objects. If omitted, uses groot."
                         }
                     ]
                 ]
             },
             {
-                "name": "modeOrFile",
-                "kind": "ordered",
-                "type": [
+                "mutuallyExclusiveGroup": [
+                    [],
                     [
-                        "choices = {'pdf', 'factory', 'manual'}"
-                    ],
-                    [
-                        "file=*.m"
+                        {
+                            "name": "modeOrFile",
+                            "kind": "ordered",
+                            "type": [
+                                [
+                                    "choices = {'pdf', 'factory', 'manual'}"
+                                ],
+                                [
+                                    "file=.m"
+                                ]
+                            ],
+                            "purpose": "Optional ordered mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path whose function returns plotting parameters as a cell/name-value list. If omitted, subsequent arguments are interpreted as manual TargetProperty-Value pairs or option flags."
+                        }
                     ]
-                ],
-                "purpose": "ordered mode specifier: 'factory' | 'pdf' | 'manual' (case-insensitive), or a .m file path that returns parameters (cell/nv)."
+                ]
             },
             {
                 "name": "-default",
@@ -3507,7 +3514,7 @@
                 "type": [
                     "choices = {'-default'}"
                 ],
-                "purpose": "ordered flag. When present, forces setting Default* properties even when no matching objects exist."
+                "purpose": "Optional ordered flag. When present, sets corresponding Default properties on the supplied root when supported, otherwise attempts to set them on groot. Nested properties without MATLAB Default* equivalents are skipped."
             },
             {
                 "tuple": [
@@ -3517,7 +3524,7 @@
                         "type": [
                             "choices = {'-except'}"
                         ],
-                        "purpose": "ordered triplet option: '-except', Prop, Value. Excludes objects matched by findall(root,Prop,Value) (and their descendants) in non-default mode."
+                        "purpose": "Ordered triplet option: '-except', Prop, Value. In non-default mode, excludes objects matched by findall(root, Prop, Value), together with all their descendants."
                     },
                     {
                         "name": "exceptProp",
@@ -3530,12 +3537,12 @@
                                 "char"
                             ]
                         ],
-                        "purpose": "Property name for '-except' triplet."
+                        "purpose": "Graphics property name used by the '-except' triplet."
                     },
                     {
                         "name": "exceptValue",
                         "kind": "required",
-                        "purpose": "Property value for '-except' triplet."
+                        "purpose": "Graphics property value used by the '-except' triplet."
                     }
                 ],
                 "repeating": true
@@ -3553,18 +3560,18 @@
                                 "char"
                             ]
                         ],
-                        "purpose": "TargetProperty string (supports dot style 'Axes.Title.FontSize' and chain style 'AxesTitleFontSize'). Supports single '*' token in the target chain."
+                        "purpose": "Target-property path. Supports dot style such as 'Axes.Title.FontSize' and 'TiledLayout.Title.FontSize', chain style such as 'AxesTitleFontSize' and 'TiledLayoutTitleFontSize', and one '' wildcard token in the target chain."
                     },
                     {
                         "name": "Value",
                         "kind": "required",
-                        "purpose": "Value paired with TargetProperty."
+                        "purpose": "Property value paired with TargetProperty."
                     }
                 ],
                 "repeating": true
             }
         ],
-        "description": "Set plot mode for graphics objects with various options"
+        "description": "Set factory, PDF, file-defined, or manually specified plotting properties for existing graphics objects or MATLAB graphics defaults. Supports figures, tiledlayout containers, axes, nested title/label objects, legends, colorbars, plotted graphics, wildcard target paths, exclusions, and Default property assignment."
     },
     "mu.ctgen": {
         "inputs": [
