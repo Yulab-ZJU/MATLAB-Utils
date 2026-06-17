@@ -1,139 +1,37 @@
 function out = reslice(C, dim)
-%RESLICE Reslice equally sized arrays stored in a cell array.
+%RESLICE  Reslice a cell array of multi-dimensional arrays along a specified dimension.
 %
 % SYNTAX:
 %     out = mu.reslice(C, dim)
-%
+% 
 % INPUTS:
-%     C
-%         Cell array containing equally sized numeric or logical arrays.
-%         Cell-array shape is unrestricted; elements are processed in
-%         MATLAB linear-index order:
-%
-%             C{1}, C{2}, ..., C{nt}
-%
-%         Each element has size:
-%
-%             [k1, k2, ..., kn]
-%
-%     dim
-%         Positive integer scalar specifying the array dimension to reslice.
-%         dim must not exceed the effective number of dimensions of the
-%         arrays.
-%
+%     C    - nt x 1 cell array. Each cell contains an n-dimensional array of the same size.
+%     dim  - The dimension along which to reslice the data (an integer between 1 and n).
+% 
 % OUTPUTS:
-%     out
-%         kdim-by-1 cell array.
-%
-%         The i-th output cell contains the i-th slice from every input
-%         array, concatenated along dimension dim. Its size is:
-%
-%             [k1, ..., k(dim-1), nt, k(dim+1), ..., kn]
-%
-% EXAMPLE:
-%     C = {
-%         rand(3, 4)
-%         rand(3, 4)
-%         rand(3, 4)
-%     };
-%
-%     out = mu.reslice(C, 2);
-%
-%     % numel(out) = 4
-%     % size(out{1}) = [3, 3]
-%     % Dimension 2 now represents trials.
-%
-% NOTES:
-%     This implementation uses cat, permute, and num2cell. It is concise
-%     and generally fast, but may require several full-size temporary
-%     arrays for large datasets.
+%     out  -  ki x 1 cell array, where ki is the size of the `dim`-th dimension.
+%             Each output cell contains data of size:
+%             [k1, ..., k_{dim-1}, nt, k_{dim+1}, ..., kn],
+%             i.e., the `nt` data slices are combined along a new dimension,
+%             and the result is sliced along the original `dim`-th dimension.
 
-%% Validate inputs
-
-if ~iscell(C)
-    error("mu:reslice:InvalidInput", ...
-        "C must be a cell array.");
-end
-
-if isempty(C)
-    error("mu:reslice:EmptyInput", ...
-        "C must contain at least one array.");
-end
-
-validateattributes(dim, "numeric", ...
-    {"scalar", "real", "finite", "positive", "integer"}, ...
-    mfilename, "dim");
-
-C = C(:);
-nTrial = numel(C);
-
-isValidArray = cellfun(@(x) isnumeric(x) || islogical(x), C);
-
-if ~all(isValidArray)
-    badIndex = find(~isValidArray, 1);
-
-    error("mu:reslice:InvalidCellContent", ...
-        "C{%d} is not a numeric or logical array.", badIndex);
-end
-
-%% Determine and validate array sizes
-
+sz = size(C{1});
 nd = ndims(C{1});
 
-if dim > nd
-    error("mu:reslice:InvalidDimension", ...
-        "dim=%d exceeds the effective number of dimensions (%d).", ...
-        dim, nd);
+if dim < 1 || dim > nd
+    error('Invalid dimension dim = %d', dim);
 end
 
-sizeMat = ones(nTrial, nd);
+% cat cell data
+D = cat(nd + 1, C{:});  % size = [sz, nt]
 
-for k = 1:nTrial
-    thisSize = size(C{k});
-    sizeMat(k, 1:numel(thisSize)) = thisSize;
-end
+% swap dimension k and dimension nd+1
+perm = 1:nd + 1;
+perm([dim, nd + 1]) = perm([nd + 1, dim]);
+D = permute(D, perm);
 
-referenceSize = sizeMat(1, :);
-
-mismatchIndex = find( ...
-    any(sizeMat ~= referenceSize, 2), ...
-    1);
-
-if ~isempty(mismatchIndex)
-    error("mu:reslice:SizeMismatch", ...
-        "C{%d} has size [%s], whereas C{1} has size [%s].", ...
-        mismatchIndex, ...
-        num2str(sizeMat(mismatchIndex, :)), ...
-        num2str(referenceSize));
-end
-
-%% Concatenate input arrays along a new trial dimension
-
-trialDim = nd + 1;
-
-% Before concatenation:
-%     C{k}: [k1, ..., kdim, ..., kn]
-%
-% After concatenation:
-%     D:    [k1, ..., kdim, ..., kn, nTrial]
-D = cat(trialDim, C{:});
-
-%% Exchange the selected dimension with the trial dimension
-
-permOrder = 1:trialDim;
-permOrder([dim, trialDim]) = permOrder([trialDim, dim]);
-
-% After permutation:
-%     D: [k1, ..., nTrial, ..., kn, kdim]
-D = permute(D, permOrder);
-
-%% Split the original selected dimension into output cells
-
-% Dimensions 1:nd are retained inside each cell.
-% The remaining dimension, trialDim, becomes the cell-array dimension.
 out = num2cell(D, 1:nd);
+out = reshape(out, [sz(dim), 1]);
 
-% Return a predictable column cell array.
-out = reshape(out, referenceSize(dim), 1);
-
+return;
 end

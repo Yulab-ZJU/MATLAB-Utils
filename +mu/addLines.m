@@ -12,7 +12,7 @@ function addLines(varargin)
 %                   [Y] : default = []
 %                   and other namevalue pairs (case-ignored) that is valid to function plot
 %   OPTIONAL:
-%     Targets     - Figure object array or axes object array
+%     Targets     - figure/tiledlayout/axes array
 %   NAME-VALUE:
 %     ConstantLine    - If set true (default), use xline/yline to create
 %                       vertical/horizontal lines when [X] or [Y] is left empty.
