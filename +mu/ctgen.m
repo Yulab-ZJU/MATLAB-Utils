@@ -117,6 +117,7 @@ else % IRREG
             ICIseq{index}(cIndex) = temp;
         end
 
+        ICIseq{index} = ICIseq{index}(1:dsearchn(cumsum(ICIseq{index}), durs(index)));
     end
 
     % return actual duration for each segment
