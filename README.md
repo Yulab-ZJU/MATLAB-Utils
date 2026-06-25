@@ -1,335 +1,367 @@
-# Initializing MATLAB Utils
+# MATLAB-Utils
 
-To initialize toolbox, run `/initMATLABUtils.m`, which adds necessary paths.
+Integrated MATLAB utilities for data processing, visualization, statistics, electrophysiology workflows, and UI helpers.
 
-To stay up-to-date with the latest version, please use Git for version management.:
+This repository is organized around the MATLAB package `+mu`, standalone preprocessing and toolbox APIs, callback handlers, and UI apps. Functions marked as external-toolbox wrappers may require FieldTrip, EEGLAB, Psychtoolbox, Kilosort, psignifit, or other third-party dependencies.
 
-```shell
-git clone git@github.com:Yulab-ZJU:MATLAB-Utils.git
+## Installation and initialization
+
+Clone the repository and run the initializer from MATLAB:
+
+```matlab
+git clone git@github.com:Yulab-ZJU/MATLAB-Utils.git
+cd MATLAB-Utils
+initMATLABUtils
 ```
 
-# Functions
-
-'\*' marks the most widely-used functions.
-
-### 1. plot
-
-​	`mu.addBars` Adds transparent vertical bars to axes (usually serving as significant areas).
-
-​	\*`mu.addLines` Adds lines to all axes in figures.
-
-​	`mu.addTicks` Adds special ticks and tick labels to specified axis.
-
-​	`mu.addTitle` Adds a title to a figure.
-
-​	`mu.adddWaveError` Adds shaded areas to a curve (usually error bars).
-
-​	\*`mu.autoplotsize` Automatically determines the [row, col] numbers of the subplots based on the total number of subplots in a figure.
-
-​	\*`mu.boxplot` Creates custom grouped boxplots with advanced styling options.
-
-​	`mu.colorbar` Creates a colorbar outside the `tightPosition("IncludeLabels", true)`
-
-​	`mu.copyaxes` Copy the content of one axes to the other (two axes are usually of different sizes).
-
-​	`mu.genColormap` Generates a colormap using white as middle.
-
-​	`mu.genColors` Generates gradient colors with pre-set color pool.
-
-​	`mu.genGradientColors` Generates gradient colors by increasing saturation.
-
-​	`mu.genPolygon` Draws a polygon in the axes and returns its endpoint coordinates and borderlines.
-
-​	\*`mu.histogram` Plots grouped histograms (without overlapping).
-
-​	`mu.mixColors` Mixes two colors with specified ratios to generate a new color.
-
-​	\*`mu.rasterplot` Plots raster data (usually spike-by-trial).
-
-​	\*`mu.scaleAxes` Synchronizes the axis range with advanced settings and UI control.
-
-​	\*`mu.setAxes` Sets the values of axes parameters with name-value pairs. "default" mode will set the axes to be ORIGIN-style.
-
-​	`mu.setLegendOff` Hides legends of targets.
-
-​	\*`mu.subplot` Creates subplot with advanced settings.
-
-​	`mu.syncXY` Synchronizes x-y range.
-
-##### \*Multi-channel data plotting
-
-​	`mu_plotWaveArray` Plots multi-channel and multi-group data of electrode array in one figure.
-
-​	`mu_plotWaveEEG` Plots multi-channel and multi-group EEG data with actual electrode positions.
-
-​	`mu_topoplotArray` Plots topographic distribution of specified values on an electrode array.
-
-​	`mu_topoplotEEG` Plots topographic distribution of specified values on the scalp.
-
-​	`mu_plotTFR` Plots multi-channel time-frequency responses.
-
-​	`mu_addScaleplate` Adds a scale plate to a figure with multiple subplots at a specified position.
-
-------
-
-### 2. data structure
-
-#### 2.1 struct
-
-​	\*`mu.addfield` Adds a new field to [s] or alter the value of an existed field.
-
-​	\*`mu.getor` Returns the structure field or a default if either don't exist.
-
-​	\*`mu.getorfull` Complete [s] with [default]. [default] is specified as a struct containing some fields of [s] with default values.
-
-​	`mu.getVarsFromWorkspace` Finds variables in workspace using regular expression.
-
-​	\*`mu.parsestruct` Parses fields of struct [S] and assigns the fields as variables to workspace.
-
-​	`mu.structcat` Concatenate input struct arrays, left empty for fields with conflict.
-
-​	`mu.validatestruct` Validates a struct array by validating each field.
-
-#### 2.2 cell
-
-​	`mu.cell2mat` Advanced `cell2mat`. Elements of the cell can be cell/string/numeric.
-
-​	`mu.reslice` Re-slices a cell array of multi-dimensional arrays along a specified dimension.
-
-​	`mu.parcellfun` Similar to `cellfun` but works in parallel mode.
-
-#### 2.3 matrix
-
-​	`mu.findpeaktrough` Finds indices (in logical) of peak and trough along specified dimension of 2-D data.
-
-​	`mu.findvectorloc` Finds location of vector [pat] in vector [X]. [direction] specifies [locs] of the first or the last index of [pat].
-
-​	`mu.insertrows` Inserts [val] in [X] at specified rows.
-
-​	`mu.lcm` Returns least common multiple of a real array [A].
-
-​	`mu.mapminmax` Maps data to [-ymax, ymax] with zero point unshifted.
-
-​	`mu.max` Returns maximum value of time series data [X] and the corresponding time [t].
-
-​	`mu.min` Returns minimum value of time series data [X] and the corresponding time [t].
-
-​	`mu.perms` Returns a N^k-by-k matrix containing all possible permutations of k-element.
-
-​	`mu.replacevalMat` Equals to `X(X == oldVal) = newVal`.
-
-​	`mu.shiftmatrix` Shifts a 2-D matrix by [Nlr, Nud] and pad with specified method.
-
-​	`mu.slicemat` Returns sliced `A(:,...,idx,...,:)` at specified dimension.
-
-#### 2.4 string/char
-
-​	\*`mu.getabspath` Gets absolute path from relative path of a folder or file.
-
-​	\*`mu.getlastpath` Gets the last `end-N+1:end` folder path of path [P].
-
-​	\*`mu.getrootpath` Gets N-backward root path of path [P].
-
-​	`mu.isTextScalar` Judges whether the input is a text scalar (string or char).
-
-#### 2.5 function_handle
-
-​	`mu.obtainArgoutN` Returns the [fcn] outputs of specified ordinal numbers.
-
-​	`mu.path2func` Gets function handle from the full path of an M file.
-
-#### 2.6 array (any type)
-
-​	`mu.pararrayfun` Similar to `arrayfun` but works in parallel mode.
-
-​	`mu.parrowfun` Similar to `mu.rowfun` but works in parallel mode.
-
-​	`mu.parslicefun` Similar to `mu.slicefun` but works in parallel mode.
-
-​	`mu.replaceval` Replaces scalar [x] with [newVal] if [x] is in [conditions] or satisfies conditions(x).
-
-​	\*`mu.rowfun` Applies [fcn] along the first dimension of 2-D matrix or vector [A] (based on cellfun).
-
-​	`mu.slicefun` Applies [fcn] along the dimension [k] of [A] (based on cellfun).
-
-------
-
-### 3. data processing
-
-#### 3.1 filter
-
-​	`mu.filter` General zero-phase multi-channel filter for trial or matrix data. (Require *FieldTrip* toolbox)
-
-#### 3.2 frequency domain
-
-​	`mu.fft` Computes the single-sided amplitude and phase spectrum of input data X using the Fast Fourier Transform (FFT).
-
-​	\*`mu.cwt` Computes cwt results of multi-channel and multi-trial data using parallel computation on GPU.
-
-#### 3.3 trial data (for FieldTrip)
-
-​	`mu.calchMean` Computes the weighted-average [chMean] (nCh\*xx\*xx\*...\*nTime) and NAN-padded [trialsData].
-
-​	`mu.calchErr` Computes the standard error of the mean for [trialsData].
-
-​	`mu.calchStd` Computes the standard deviation of the mean for [trialsData].
-
-​	`mu.calchFunc` Calculate a function over trial data with padding direction.
-
-​	`mu.checkdata` Validates trial data.
-
-​	`mu.cutdata` Cuts trial data within specified time window.
-
-​	`mu.resampledata` Resamples data with a new sample rate.
-
-​	`mu.shuffledata` Shuffle N-D matrix A along specific dimension, with each slice shuffled independently. It is useful when performing permutation test for correlation. For slice shuffled with the same order, use `shuffle` (in EEGLAB).
-
-##### Preprocessing
-
-​	\*`mu_selectWave` Extracts multi-channel time-series trial data.
-
-​	\*`mu_selectSpikes` Extracts spikes for events (trials).
-
-​	`mu_excludeTrials` Determines bad trials and bad channels using Normalized distribution criteria (exceed 5%-95%).
-
-​	`mu_interpolateBadChannels` Interpolates bad channels by inserting zeros and averaging across neighbors.
-
-​	`mu_prepareNeighboursArray` Generates neighbors for each electrode in an electrode array.
-
-​	`mu_export_Neuracle` Exports trial data recorded in Neuracle system and `EEG App (git@github.com:TOMORI233/EEGApp.git)`. Preprocessing procedures include re-referencing, filtering, epoching, ICA, and trial exclusion.
-
-​	`mu_export_NeuracleJoint` Exports trial data of several protocols at a time.
-
-#### 3.4 statistics
-
-[p, stats, effectSize, bf10] = mu.statfcn(...)
-
-​	`mu.anovan` , `mu.ttest`, `mu.ttest2`, `mu.signrank`, `mu.ranksum`
-
-| Effect size | Cohen’s d (*t*-test) | $\eta^2$ or partial $\eta^2$ (ANOVA) | Rank-Biserial Correlation (Mann–Whitney U、Wilcoxon test) |
-| ----------- | -------------------- | ------------------------------------ | --------------------------------------------------------- |
-| Small       | 0.2                  | 0.01                                 | 0.1                                                       |
-| Medium      | 0.5                  | 0.06                                 | 0.3                                                       |
-| Large       | 0.8                  | 0.14                                 | 0.5                                                       |
-
-​	`mu.prepareANOVA` Prepares group data for ANOVA.
-
-​	`mu.histcounts` Calculates hist counts for overlapped bins.
-
-​	`mu.fisherstat` Calculates joint p-value with Fisher's method.
-
-​	`mu.se`  Calculates standard error of [x] along [dim].
-
-#### 3.5 ICA
-
-​	`mu_ica` Performs independent component analysis (ICA) on trial data.
-
-​	`mu_ica_reconstructData` Reconstruct trial data by removing selected independent components.
-
-#### 3.6 Granger causality
-
-​	`mu_granger` Computes Granger causality (GC) of trial data using parametric/non-parametric methods.
-
-​	`mu_granger_wavelet` Computes GC of wavelet transformed data using non-parametric method.
-
-​	`mu_gMI`  Computes global Moran's I.
-
-​	`mu_gMI_rcWeightMat` Builds contiguity weights matrix for electrode map [nX,nY].
-
-#### 3.7 source analysis
-
-​	`mu_source` Performs source analysis on trial data.
-
-​	`mu_source_config` and `mu_source_prepareData` Prepare covariance matrix and electrode/anatomical data before source analysis.
-
-​	`mu_source_plot` Plots source analysis result in 2-D and 3-D view.
-
-#### 3.8 permutation test
-
-​	`mu_cbpt` Performs cluster-based permutation test on trial data.
-
-------
-
-### 4. stimulus generation
-
-​	`mu.ctgen` Generates click trains with specified inter-click interval sequences.
-
-​	`mu.tonegen` Generates pure tones or complex tones.
-
-​	`mu.genRiseFallEdge` Generates rise-fall edges for sound wave.
-
-------
-
-### 5. file
-
-​	`mu.exportFigure2PDF` Exports a figure to PDF file with specified [with, height] in mm.
-
-​	`mu.exportgraphics` Advanced `exportgraphics` allowing axes array as input (for overlapped axes).
-
-​	`mu.load` Skip loading if variables exist in workspace.
-
-​	`mu.print` Skip printing if file exists.
-
-​	`mu.save` Skip saving if file exists.
-
-​	`mu.syncRepositories` Updates all GIT repositories in the specified root path.
-
-------
-
-### 6. UI
-
-​	\*`ccc` Equals to `clear;close all;clc;`.
-
-​	`validateinput` Loops input until validation passes.
-
-
-
-​	`colorpicker` Picks color from screen.
-
-​	`addLinesApp` UI control for `mu.addLines`.
-
-​	`scaleAxesApp` UI control for `mu.scaleAxes`.
-
-​	`validateinputApp` UI control for `validateinput`.
-
-------
-
-### 7. callback handler function
-
-Used for 'ErrorHandler' input in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`, `mu.par***fun`.
-
-​	`errNAN`, `errEmpty` Returns []/NAN if error occurs.
-
-​	`onTargetDeleteFcn` This function is registered as the `deleteFcn` of an axes target `src.UserData.apps` is a cell array containing multiple apps.
-
-------
-
-### 8. toolbox API
-
-#### 8.1 512 system
-
-​	`readrhd` Reads Intan Technologies RHD data file generated by Intan USB interface.
-
-#### 8.2 FieldTrip
-
-​	`ft_promotepaths` Set FielTrip paths to top.
-
-​	`ft_removepaths` Remove FieldTrip paths but reserve `ft_defaults`.
-
-#### 8.3 kilosort
-
-​	`mu_kilosort3` Runs kilosort3.
-
-​	`mu_kilosort4` Runs kilosort4 (python version) via MATLAB.
+To update the local copy:
+
+```matlab
+updateMATLABUtils
+```
+
+`initMATLABUtils.m` adds the required repository paths to MATLAB. `updateMATLABUtils.m` updates the toolbox from Git.
+
+## Public function index
+
+### 1. Plotting and figure utilities in `+mu`
+
+| Function | Purpose |
+|---|---|
+| `mu.addBars` | Add transparent vertical or horizontal bars to axes, commonly used to mark significant time windows. |
+| `mu.addDataTips` | Attach custom data-tip rows to line, patch, scatter, or mixed graphics objects, with backward compatibility for older MATLAB data cursor behavior. |
+| `mu.addLines` | Add reference lines to all or selected axes in figures. |
+| `mu.addTicks` | Add custom tick positions and labels to a specified axis. |
+| `mu.addTitle` | Add a figure-level title. |
+| `mu.addWaveError` | Add shaded error regions around a curve, typically for SEM, SD, or confidence intervals. |
+| `mu.autoplotsize` | Automatically choose subplot row and column counts from the number of panels. |
+| `mu.boxplot` | Draw highly customizable grouped boxplots with control over error type, center line, raw data points, outliers, colors, and spacing. |
+| `mu.colorbar` | Create a colorbar outside a tight-positioned axes layout. |
+| `mu.copyaxes` | Copy plotted content from one axes to another, useful when source and target axes have different sizes. |
+| `mu.dashline` | Draw dashed curves by segmenting polylines in data-space arc length instead of relying on MATLAB line style. |
+| `mu.dotplot` | Draw dot or swarm plots with optional spread interval, center line, confidence interval, links between paired groups, and horizontal or vertical orientation. |
+| `mu.genColormap` | Generate a diverging colormap with white or a light color near the center. |
+| `mu.genColors` | Generate gradient or grouped colors from a predefined color pool. |
+| `mu.genGradientColors` | Generate related colors by changing saturation or brightness. |
+| `mu.genPolygon` | Draw a polygon on axes and return endpoint coordinates and border handles. |
+| `mu.groupFigures` | Group multiple figures into tabs of one figure. MATLAB R2025a or newer is recommended. |
+| `mu.histogram` | Plot grouped histograms without overlap. |
+| `mu.image` | Display image-like matrix data with helper defaults for axes and color handling. |
+| `mu.mixColors` | Mix two RGB colors using specified weights. |
+| `mu.moveaxes` | Move one or more axes by changing position coordinates. |
+| `mu.polarhistogram` | Draw polar histograms with custom styling options. |
+| `mu.rasterplot` | Plot raster data, typically spike times across trials. |
+| `mu.scaleAxes` | Synchronize and scale axes limits with advanced options and UI support. |
+| `mu.setAxes` | Set axes properties through name-value pairs. The `default` mode applies ORIGIN-style formatting. |
+| `mu.setLegendOff` | Hide legends for selected targets. |
+| `mu.setPlotMode` | Switch plot display mode or graphical state for selected plot objects. |
+| `mu.subplot` | Create subplots with advanced control of margins, spacing, and panel sizes. |
+| `mu.tiledlayout` | Create tiled layout with advanced control of margins, spacing, and panel sizes. |
+| `mu.syncXY` | Synchronize x and y axis ranges. |
+
+### 2. Data structure, array, and utility functions in `+mu`
+
+#### 2.1 Struct utilities
+
+| Function | Purpose |
+|---|---|
+| `mu.addfield` | Add a new field to a struct or update an existing field. |
+| `mu.getor` | Return a struct field value if present, otherwise return a default value. |
+| `mu.getorfull` | Fill missing fields in a struct using values from a default struct. |
+| `mu.getVarsFromWorkspace` | Find variables in a workspace using regular expressions. |
+| `mu.nv2struct` | Convert name-value pairs to a struct. |
+| `mu.nvdropempty` | Remove empty entries from name-value pairs or name-value structs. |
+| `mu.nvnorm` | Normalize name-value input, often for consistent lower-case or canonical option names. |
+| `mu.parsestruct` | Parse fields of a struct and assign them as variables in the caller workspace. |
+| `mu.struct2nv` | Convert a struct into name-value pairs. |
+| `mu.structcat` | Concatenate struct arrays while handling missing or conflicting fields. |
+
+#### 2.2 Cell utilities
+
+| Function | Purpose |
+|---|---|
+| `mu.cell2mat` | Extended `cell2mat` supporting cells containing numeric arrays, strings, chars, or nested cells. |
+| `mu.cellcat` | Concatenate the contents of a cell array along a specified dimension. |
+| `mu.parcellfun` | Parallel version of `cellfun`. |
+| `mu.reslice` | Re-slice a cell array of multidimensional arrays along a selected dimension. |
+
+#### 2.3 Matrix and numeric utilities
+
+| Function | Purpose |
+|---|---|
+| `mu.findpeaktrough` | Find logical indices of peaks and troughs along a selected dimension in 2-D data. |
+| `mu.findvectorloc` | Locate a vector pattern inside another vector and return first or last matching index. |
+| `mu.ifelse` | Inline conditional helper returning one of two values based on a condition. |
+| `mu.insertrows` | Insert rows with a specified value into an array. |
+| `mu.lcm` | Compute the least common multiple for real-valued numeric arrays using rational approximation. |
+| `mu.mapminmax` | Map data to a symmetric range while keeping zero unshifted. |
+| `mu.max` | Return maximum values of time-series data and corresponding time points. |
+| `mu.min` | Return minimum values of time-series data and corresponding time points. |
+| `mu.nchoosek` | Extended combination helper based on `nchoosek`. |
+| `mu.numstrcat` | Concatenate numeric values into formatted strings. |
+| `mu.perms` | Return all possible k-element permutations from N elements. |
+| `mu.replaceval` | Replace scalar values that match specified values or satisfy condition functions. |
+| `mu.replacevalMat` | Matrix-specific helper equivalent to `X(X == oldVal) = newVal`. |
+| `mu.shiftmatrix` | Shift a 2-D matrix left-right or up-down and pad missing values by a chosen method. |
+| `mu.shortest_k_subseq` | Find the shortest subsequence satisfying a k-related criterion. |
+| `mu.slicemat` | Return `A(:,...,idx,...,:)` along a specified dimension. |
+
+#### 2.4 String, path, and function-handle utilities
+
+| Function | Purpose |
+|---|---|
+| `mu.getabspath` | Convert a relative folder or file path to an absolute path. |
+| `mu.getlastpath` | Return the final `N` folders or file components from a path. |
+| `mu.getrootpath` | Return an N-level parent path from an input path. |
+| `mu.isTextScalar` | Test whether input is a scalar string or char. |
+| `mu.obtainArgoutN` | Return selected output arguments from a function call. |
+| `mu.path2func` | Convert a full `.m` file path into a function handle. |
+
+#### 2.5 Function application and parallel helpers
+
+| Function | Purpose |
+|---|---|
+| `mu.pararrayfun` | Parallel version of `arrayfun` with support for multiple inputs and error handlers. |
+| `mu.parrowfun` | Parallel version of `mu.rowfun`. |
+| `mu.parslicefun` | Parallel version of `mu.slicefun`. |
+| `mu.rowfun` | Apply a function along the first dimension of a vector or 2-D matrix. |
+| `mu.slicefun` | Apply a function along a selected dimension of an array. |
+
+#### 2.6 State and object helpers
+
+| Function or class | Purpose |
+|---|---|
+| `mu.OptionState` | Unified on/off state class. Converts logical, numeric, or strings such as `on`, `off`, `show`, `hide`, `yes`, and `no` into a standard state. |
+| `mu.dispstate` | Overwrite and update command-window status messages in place. |
+| `mu.getObjVal` | Retrieve values from objects, structs, tables, or containers using flexible field or property access. |
+
+### 3. Data processing functions in `+mu`
+
+#### 3.1 Filtering and time-frequency analysis
+
+| Function | Purpose |
+|---|---|
+| `mu.filter` | Zero-phase multi-channel filtering for matrix or trial data. FieldTrip may be required. |
+| `mu.fft` | Compute single-sided FFT amplitude and phase spectra. |
+| `mu.cwt` | Compute continuous wavelet transform for multi-channel and multi-trial data, with optional parallel or GPU acceleration. |
+
+#### 3.2 Trial-data utilities
+
+| Function | Purpose |
+|---|---|
+| `mu.calchMean` | Compute weighted-average channel data and return NaN-padded trial data. |
+| `mu.calchErr` | Compute standard error across trials. |
+| `mu.calchStd` | Compute standard deviation across trials. |
+| `mu.calchFunc` | Apply a function to trial data with configurable padding direction. |
+| `mu.checkdata` | Validate trial-data structure and consistency. |
+| `mu.cutdata` | Cut trial data within a specified time window. |
+| `mu.resampledata` | Resample trial or continuous data to a new sampling rate. |
+| `mu.shuffledata` | Shuffle an N-D matrix along a selected dimension, independently for each slice. Useful for permutation tests. |
+
+#### 3.3 Statistics
+
+| Function | Purpose |
+|---|---|
+| `mu.anovan` | Wrapper around ANOVA with unified output format and effect-size handling. |
+| `mu.ttest` | Wrapper around one-sample or paired t-test with unified output format. |
+| `mu.ttest2` | Wrapper around independent-samples t-test with unified output format. |
+| `mu.signrank` | Wrapper around Wilcoxon signed-rank test with unified output format. |
+| `mu.ranksum` | Wrapper around Mann-Whitney U or rank-sum test with unified output format. |
+| `mu.prepareANOVA` | Prepare data and grouping variables for ANOVA. |
+| `mu.histcounts` | Calculate histogram counts for overlapping bins. |
+| `mu.fisherstat` | Combine p-values using Fisher's method. |
+| `mu.fdr` | Apply false-discovery-rate correction to p-values. |
+| `mu.se` | Compute standard error along a selected dimension. |
+
+#### 3.4 Stimulus generation
+
+| Function | Purpose |
+|---|---|
+| `mu.ctgen` | Generate click trains using specified inter-click-interval sequences. |
+| `mu.tonegen` | Generate pure tones or complex tones. |
+| `mu.tbgen` | Generate tone burst trains. |
+| `mu.genRiseFallEdge` | Generate rise-fall ramps for sound waveforms. |
+
+#### 3.5 File and repository helpers
+
+| Function | Purpose |
+|---|---|
+| `mu.exportFigure2PDF` | Export a MATLAB figure to PDF with specified width and height in millimeters. |
+| `mu.exportgraphics` | Extended `exportgraphics` supporting axes arrays and overlapped axes. |
+| `mu.load` | Load variables while skipping loading if variables already exist in the workspace. |
+| `mu.print` | Print or export figures while skipping existing files. |
+| `mu.save` | Save variables while skipping existing files unless overwrite behavior is requested. |
+| `mu.syncRepositories` | Update all Git repositories under a specified root path. |
+
+### 4. Continuous electrophysiology and EEG processing
+
+#### 4.1 EEG electrode configuration
+
+| Function or resource | Purpose |
+|---|---|
+| `EEGPos_Neuracle32` | Provide or generate channel-position information for a 32-channel Neuracle EEG layout. |
+| `EEGPos_Neuracle64` | Provide or generate channel-position information for a 64-channel Neuracle EEG layout. |
+| `EEGPos_Neuroscan64` | Provide or generate channel-position information for a 64-channel Neuroscan EEG layout. |
+| `Neuracle_chan32.loc` | Electrode location file for Neuracle 32-channel layout. |
+| `Neuracle_chan64.loc` | Electrode location file for Neuracle 64-channel layout. |
+| `Neuroscan_chan64.loc` | Electrode location file for Neuroscan 64-channel layout. |
+| `Standard-10-5-Cap385.sfp` | Standard 10-5 electrode-position file copied from EEGLAB. |
+
+#### 4.2 Continuous-data plotting
+
+| Function | Purpose |
+|---|---|
+| `mu_plotTFR` | Plot multi-channel time-frequency responses. |
+| `mu_plotWaveArray` | Plot multi-channel and multi-group time series on an electrode-array layout. |
+| `mu_plotWaveEEG` | Plot multi-channel EEG waveforms using real electrode positions. |
+| `mu_scaleplate` | Add a scale plate to figures with multiple subplots. |
+| `mu_topoplotArray` | Plot topographic values on an electrode-array grid. |
+| `mu_topoplotEEG` | Plot scalp topographies using EEG channel positions. |
+
+#### 4.3 Generic preprocessing
+
+| Function | Purpose |
+|---|---|
+| `mu_selectWave` | Extract multi-channel time-series trial data from continuous recordings. |
+| `mu_excludeTrials` | Detect bad trials and bad channels using normalized distribution criteria. |
+| `mu_interpolateBadChannels` | Interpolate bad channels by inserting zeros or averaging neighboring channels. |
+| `mu_prepareNeighboursArray` | Generate neighboring-channel definitions for electrode arrays. |
+
+#### 4.4 Neuracle EEG preprocessing
+
+| Function | Purpose |
+|---|---|
+| `mu_export_Neuracle` | Export trial data recorded by a Neuracle system and EEG App workflow. Includes rereferencing, filtering, epoching, ICA, and trial exclusion. |
+| `mu_export_NeuracleJoint` | Export trial data from multiple protocols together. |
+| `mu_preprocess_configEEG` | Build preprocessing configuration for EEG workflows. |
+| `mu_preprocess_generalProcessFcn` | General processing function used by EEG preprocessing pipelines. |
+| `mu_unwrapTrialEvents` | Convert or unwrap trial-event structures into a format suitable for preprocessing. |
+
+#### 4.5 Independent component analysis
+
+| Function | Purpose |
+|---|---|
+| `mu_ica` | Perform ICA on trial data. |
+| `mu_ica_reconstructData` | Reconstruct trial data after removing selected independent components. |
+
+#### 4.6 Granger causality and spatial statistics
+
+| Function | Purpose |
+|---|---|
+| `mu_granger` | Compute Granger causality for trial data using parametric or nonparametric methods. |
+| `mu_granger_wavelet` | Compute nonparametric Granger causality from wavelet-transformed data. |
+| `mu_granger_wavelet_pt` | Perform permutation testing for wavelet-based Granger causality contrasts. |
+| `mu_gMI` | Compute global Moran's I for spatial autocorrelation. |
+| `mu_gMI_rcWeightMat` | Build row-column contiguity weight matrices for electrode maps. |
+
+#### 4.7 Source analysis
+
+| Function | Purpose |
+|---|---|
+| `mu_source` | Perform source analysis on trial data. |
+| `mu_source_config` | Configure source-analysis settings, including electrode and anatomical inputs. |
+| `mu_source_prepareData` | Prepare covariance matrices and data structures for source analysis. |
+| `mu_source_plot` | Plot source-analysis results in 2-D or 3-D views. |
+
+#### 4.8 Continuous-data statistics
+
+| Function | Purpose |
+|---|---|
+| `mu_GFP` | Compute global field power for EEG or multichannel field-potential data. |
+| `mu_cbpt` | Perform cluster-based permutation testing on trial data. |
+
+### 5. Spike-data processing
+
+| Function | Purpose |
+|---|---|
+| `mu_selectSpikes` | Extract spike times or spike trains aligned to trial events. |
+| `mu_calFR` | Calculate firing rate from spike data. |
+| `mu_calLatency` | Estimate response latency from spike responses. |
+| `mu_calPSTH` | Calculate peri-stimulus time histograms. |
+| `mu_plotFRA` | Plot frequency-response-area results. |
+| `mu_plotRaster` | Plot spike rasters. |
+| `fraProcessFcn` | Process function for frequency-response-area spike analysis. |
+| `noiseProcessFcn` | Process function for noise or noise-response spike analysis. |
+| `tciProcessFcn` | Process function for temporal-context or temporal-contrast-index spike analysis. |
+
+### 6. UI and interactive helpers
+
+| Function or app | Purpose |
+|---|---|
+| `ccc` | Clear workspace, close figures, and clear command window. Equivalent to `clear; close all; clc;`. |
+| `resetCallerState` | Reset caller-side state used by interactive utilities. |
+| `validateinput` | Repeatedly prompt for input until validation succeeds. |
+| `colorpicker` | Pick a color from the screen. |
+| `addLinesApp.mlapp` | UI app for interactively controlling `mu.addLines`. |
+| `scaleAxesApp.mlapp` | UI app for interactively controlling `mu.scaleAxes`. |
+| `validateinputApp.mlapp` | UI app for validated interactive input. |
+| `checklist.mlapp` | Checklist-style UI app. |
+| `TreeItem` | Helper class used by the checklist UI. |
+| `stopwatch` | UI helper for stopwatch-style timing. |
+
+### 7. Callback handlers
+
+These functions are designed for `ErrorHandler` inputs in `arrayfun`, `cellfun`, `mu.rowfun`, `mu.slicefun`, and the parallel `mu.par*fun` helpers.
+
+| Function | Purpose |
+|---|---|
+| `errEmpty` | Return an empty array when an error occurs. |
+| `errNAN` | Return `NaN` when an error occurs. |
+| `onTargetDeleteFcn` | Delete callback for axes targets whose `UserData.apps` stores related UI app handles. |
+
+### 8. Toolbox API wrappers
+
+#### 8.1 FieldTrip
+
+| Function | Purpose |
+|---|---|
+| `ft_promotepaths` | Move FieldTrip paths to the top of the MATLAB search path. |
+| `ft_removepaths` | Remove FieldTrip paths while keeping `ft_defaults` available. |
+
+#### 8.2 Intan RHD
+
+| Function | Purpose |
+|---|---|
+| `readrhd` | Read Intan Technologies `.rhd` data files generated by the Intan USB interface. |
+
+#### 8.3 Kilosort
+
+| Function or folder | Purpose |
+|---|---|
+| `mu_kilosort3` | Run Kilosort 3 from MATLAB. |
+| `mu_kilosort4` | Run the Python version of Kilosort 4 via MATLAB. |
+| `chanMap` | Store channel-map files used by Kilosort workflows. |
+| `utils` | Helper utilities for Kilosort workflows. |
 
 #### 8.4 psignifit
 
-​	`pfit` Customized API for using `psignifit`.
+| Function | Purpose |
+|---|---|
+| `pfit` | Customized API for fitting psychometric functions with psignifit. |
+| `fitBehavior` | Fit behavioral psychometric data using psignifit-related routines. |
 
-​	`fitBehavior`
+#### 8.5 Psychtoolbox
 
-#### 8.5 PTB-3
+| Function | Purpose |
+|---|---|
+| `KbGet` | Keyboard input helper for Psychtoolbox experiments. |
+| `playAudio` | Audio playback helper for Psychtoolbox experiments. |
 
-​	`KbGet` Gets keyboard press within a time window.
+#### 8.6 Python integration
 
-​	`playAudio` Plays audio from a signal or file under PTB-3 control.
+| Function or folder | Purpose |
+|---|---|
+| `mu_pydebug_pycharm` | Configure or attach MATLAB-to-Python debugging for PyCharm workflows. |
+| `mu_pydebug_vscode` | Configure or attach MATLAB-to-Python debugging for VS Code workflows. |
+| /`functions`/ | Python helper functions called from MATLAB. |
+
+## Notes for contributors
+
+1. Public functions should include a one-line H1 help comment immediately after the function declaration.
+2. New functions should be added to the appropriate section of this README.
+3. Internal helpers should be placed in `private` folders and normally do not need to be listed here unless users call them directly.
+4. For functions requiring external toolboxes, document the dependency in the function help and in this README.
+
+## License
+
+This project is released under the MIT License. See `LICENSE` for details.

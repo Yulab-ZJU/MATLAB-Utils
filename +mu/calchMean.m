@@ -3,7 +3,7 @@ function [chMean, trialsData] = calchMean(trialsData, padDir)
 narginchk(1, 2);
 
 if nargin < 2
-    padDir = "last";
+    padDir = "tail";
 end
 
 [chMean, trialsData] = mu.calchFunc(@mean, trialsData, padDir);

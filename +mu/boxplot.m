@@ -178,8 +178,8 @@ positions = mIp.Results.Positions;
 groupLabels = mIp.Results.GroupLabels;
 groupSpace = mIp.Results.GroupSpace;
 groupLines = mIp.Results.GroupLines;
-categoryLabels = cellstr(mIp.Results.CategoryLabels);
-groupLegends = cellstr(mIp.Results.GroupLegends);
+categoryLabels = mIp.Results.CategoryLabels;
+groupLegends = mIp.Results.GroupLegends;
 categorySpace = mIp.Results.CategorySpace;
 colors = mIp.Results.Colors;
 boxEdgeType = mIp.Results.BoxEdgeType;
@@ -365,11 +365,28 @@ end
 CenterLineColor = getNameValue(centerLineParameters, "Color");
 centerLineParameters = removeNameValue(centerLineParameters, "Type");
 
+% Category labels
+if isempty(categoryLabels)
+    categoryLabels = repmat({''}, nCategory, 1);
+else
+    categoryLabels = cellstr(categoryLabels);
+    assert(numel(categoryLabels) == nCategory, "Missing category labels.");
+end
+
 % Group labels
 if isempty(groupLabels)
     groupLabels = repmat({''}, nGroup, 1);
 else
     groupLabels = cellstr(groupLabels);
+    assert(numel(groupLabels) == nGroup, "Missing group labels.");
+end
+
+% Group legends
+if isempty(groupLegends)
+    groupLegends = repmat({''}, nGroup, 1);
+else
+    groupLegends = cellstr(groupLegends);
+    assert(numel(groupLegends) == nGroup, "Missing group legends.");
 end
 
 % Boxplot

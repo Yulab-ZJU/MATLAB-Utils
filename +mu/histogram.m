@@ -96,7 +96,7 @@ end
 
 % Determine colors
 colors = num2cell(lines(nGroup), 2);
-if strcmpi(FaceColors, "none")
+if mu.isTextScalar(FaceColors) && strcmpi(FaceColors, "none")
     FaceColors = repmat({'none'}, nGroup, 1);
 else
     if isempty(FaceColors)
@@ -107,7 +107,7 @@ else
     assert(numel(FaceColors) == nGroup, 'The number of FaceColor should equal to the number of groups %d', nGroup);
 end
 
-if strcmpi(EdgeColors, "none") || isempty(EdgeColors)
+if mu.isTextScalar(EdgeColors) && strcmpi(EdgeColors, "none") || isempty(EdgeColors)
     EdgeColors = repmat({'none'}, nGroup, 1);
 else
     EdgeColors = cellfun(@validatecolor, EdgeColors, "UniformOutput", false);

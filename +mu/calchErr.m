@@ -3,7 +3,7 @@ function chErr = calchErr(trialsData, padDir)
 narginchk(1, 2);
 
 if nargin < 2
-    padDir = "last";
+    padDir = "tail";
 end
 
 chErr= mu.calchFunc(@mu.se, trialsData, padDir);

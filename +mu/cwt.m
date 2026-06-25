@@ -7,7 +7,7 @@ function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
 %     mu.cwt(trialsData, fs)
 %     mu.cwt(trialsData, fs, segNum)
 %     mu.cwt(..., "mode", "auto | CPU | GPU")
-%     mu.cwt(..., "outType", "raw | power | phase" | "freq")
+%     mu.cwt(..., "outType", "raw | amp | phase | freq")
 %     mu.cwt(..., "tPad", tPad)
 %
 % INPUTS:
@@ -25,7 +25,7 @@ function [cwtres, f, coi] = cwt(trialsData, fs, varargin)
 %     tPad     - The total duration of two-sided zero padding, in sec (default=[] for no padding)
 %     outType  - The output [cwtres] is a nTrial*nCh*nFreq*nTime matrix.
 %                "raw"  : [cwtres] is a complex double matrix. (default)
-%                "power": [cwtres] is returned as abs(cwtres).
+%                "amp"  : [cwtres] is returned as abs(cwtres).
 %                "phase": [cwtres] is returned as angle(cwtres).
 %                "freq" : return [f] only.
 %     wavelet  - "morse" | "amor" ("morlet", default) | "bump"
@@ -59,7 +59,7 @@ mIp.parse(trialsData, fs, varargin{:});
 
 segNum   = mIp.Results.segNum;
 workMode = validatestring(mIp.Results.mode, {'auto', 'CPU', 'GPU'});
-outType  = validatestring(mIp.Results.outType, {'raw', 'power', 'phase', 'freq'});
+outType  = validatestring(mIp.Results.outType, {'raw', 'amp', 'phase', 'freq'});
 tPad     = mIp.Results.tPad; % total duration of padding (sec)
 wname    = char(validatestring(mIp.Results.wavelet, {'amor', 'morse', 'bump'}));
 
@@ -115,8 +115,8 @@ end
 if segNum == 1
     disp("Work in non-parallel mode");
     disp("Using CPU...");
-    X = trialsData.';                                 % nTime x (nTotal)
-    cwtres = cwtMulti_np(X, fs, wname);               % nTotal x nFreq x nTime
+    X = trialsData.';                                 % nTime x nTotal
+    cwtres = cwtMulti_np(X, fs, wname);              % nTotal x nFreq x nTime
 else
     disp("Work in parallel mode");
 
@@ -151,23 +151,21 @@ else
 
     if strcmpi(workMode, "GPU")
         [segNumNew, msg] = local_adaptSegNum(segNum, nTotal, bytesPerSeg_in, bytesPerSeg_out, safetyFactor, "gpu");
-        if segNumNew ~= segNum
-            disp(msg);
-            segNum = segNumNew;
-        end
     else
         [segNumNew, msg] = local_adaptSegNum(segNum, nTotal, bytesPerSeg_in, bytesPerSeg_out, safetyFactor, "cpu");
-        if segNumNew ~= segNum
-            disp(msg);
-            segNum = segNumNew;
-        end
+    end
+    if segNumNew ~= segNum
+        disp(msg);
+        segNum = segNumNew;
+    else
+        disp(msg);
     end
 
     if segNum == 1
         % If memory forced segNum -> 1, behave like non-parallel CPU mode.
         disp("Memory check forced segNum=1; switching to non-parallel CPU path.");
-        X = trialsData.';                                 % nTime x (nTotal)
-        cwtres = cwtMulti_np(X, fs, wname);               % nTotal x nFreq x nTime
+        X = trialsData.';                                 % nTime x nTotal
+        cwtres = cwtMulti_np(X, fs, wname);              % nTotal x nFreq x nTime
     else
         % ---- (re)build blocks ----
         nBlocks = ceil(nTotal / segNum);
@@ -201,50 +199,34 @@ else
             end
         end
 
-        cwtFcnCPU = eval(['@cwtMulti_', wname]);
+        % ---- compute blockwise ----
+        cwtFcnCPU = @(Xb) cwtMulti_np(Xb, fs, wname);
 
         if strcmpi(workMode, "CPU")
-            % Use parfor only if a pool already exists (avoid surprise pool start)
-            try
-                usePar = license('test','Distrib_Computing_Toolbox') && ~isempty(gcp('nocreate'));
-            catch
-                usePar = false;
+            for b = 1:nBlocks
+                idx1 = starts(b); idx2 = ends(b);
+                Xb = trialsData(idx1:idx2, :).';      % nTime x segThis
+                Yb = cwtFcnCPU(Xb);                   % segThis x nFreq x nTime
+                cwtres(idx1:idx2, :, :) = Yb;
             end
-
-            if usePar
-                for b = 1:nBlocks
-                    idx1 = starts(b); idx2 = ends(b);
-                    Xb = trialsData(idx1:idx2, :).';      % nTime x segThis
-                    Yb = cwtFcnCPU(Xb, fs);               % segThis x nFreq x nTime
-                    cwtres(idx1:idx2, :, :) = Yb;
-                end
-            else
-                for b = 1:nBlocks
-                    idx1 = starts(b); idx2 = ends(b);
-                    Xb = trialsData(idx1:idx2, :).';      % nTime x segThis
-                    Yb = cwtFcnCPU(Xb, fs);               % segThis x nFreq x nTime
-                    cwtres(idx1:idx2, :, :) = Yb;
-                end
-            end
-
         else
-            % GPU: compute full blocks with mex; tail (if any) falls back to CPU
+            % GPU: compute full blocks with mex; tail (if any) falls back to non-parallel CPU
             cwtFcnGPU = eval(['@cwtMulti_', wname, num2str(nTime), 'x', num2str(segNum), '_mex']);
 
             for b = 1:nBlocks
                 idx1 = starts(b); idx2 = ends(b);
                 segThis = idx2 - idx1 + 1;
 
-                Xb = trialsData(idx1:idx2, :).';          % nTime x segThis
+                Xb = trialsData(idx1:idx2, :).';      % nTime x segThis
 
                 if segThis == segNum
                     % full block on GPU
                     Yb = cwtFcnGPU(Xb, fs);
                     cwtres(idx1:idx2, :, :) = gather(Yb);
                 else
-                    % tail block: CPU fallback (mex signature fixed to segNum)
-                    disp("Computing the tail block using CPU...");
-                    Yb = cwtFcnCPU(Xb, fs);
+                    % tail block: non-parallel CPU fallback
+                    disp("Computing the tail block using non-parallel CPU...");
+                    Yb = cwtFcnCPU(Xb);
                     cwtres(idx1:idx2, :, :) = Yb;
                 end
             end
@@ -259,14 +241,14 @@ cwtres = permute(cwtres, [2, 1, 3, 4]);
 % -------------------- unpad (optional) --------------------
 if nPad > 0
     cwtres = cwtres(:, :, :, nPad + 1 : nPad + nTime0);
-    coi    = coi(nPad + 1 : nPad + nTime0);
+    coi    = coi(nPad + 1 : nPad + 1 + nTime0 - 1);
 end
 
 % -------------------- output type --------------------
 switch outType
     case "raw"
         % do nothing
-    case "power"
+    case "amp"
         cwtres = abs(cwtres);
     case "phase"
         cwtres = angle(cwtres);
@@ -281,20 +263,20 @@ end
 function [segNumNew, msg] = local_adaptSegNum(segNum0, nTotal0, bytesPerSeg_in0, bytesPerSeg_out0, safety0, which)
     segNumNew = min(segNum0, nTotal0);
     avail = local_availableMemoryBytes(which);
-    
+
     % If unknown, be conservative but do not change segNum.
     if ~isfinite(avail) || avail <= 0
         msg = sprintf("Memory check: %s available memory unknown; keep segNum=%d.", upper(which), segNumNew);
         return;
     end
-    
+
     target = 0.70 * avail; % leave headroom
-    
+
     bytesPerSeg = safety0 * (bytesPerSeg_in0 + bytesPerSeg_out0);
-    
+
     maxSeg = floor(target / bytesPerSeg);
     maxSeg = max(1, min(maxSeg, nTotal0));
-    
+
     if maxSeg < segNumNew
         segNumNew = maxSeg;
         msg = sprintf("Memory check (%s): reducing segNum to %d to fit available memory.", upper(which), segNumNew);
@@ -305,7 +287,7 @@ end
 
 function avail = local_availableMemoryBytes(which)
     avail = NaN;
-    
+
     if strcmpi(which, "gpu")
         try
             g = gpuDevice();
@@ -316,7 +298,7 @@ function avail = local_availableMemoryBytes(which)
             return;
         end
     end
-    
+
     % CPU
     % Prefer MATLAB's memory() on Windows; otherwise use feature('memstats') if available.
     try
@@ -328,7 +310,7 @@ function avail = local_availableMemoryBytes(which)
     catch
         % fallthrough
     end
-    
+
     try
         ms = feature('memstats'); % may vary across versions/platforms
         if isstruct(ms)
@@ -336,8 +318,9 @@ function avail = local_availableMemoryBytes(which)
             fns = fieldnames(ms);
             cand = ["MemAvailableAllArrays","AvailableMemory","SystemFreeMemory","FreeMemory","MaxPossibleArrayBytes"];
             for k = 1:numel(cand)
-                if any(strcmpi(fns, cand(k)))
-                    avail = double(ms.(fns{strcmpi(fns, cand(k))}));
+                idx = strcmpi(fns, cand(k));
+                if any(idx)
+                    avail = double(ms.(fns{find(idx, 1, 'first')}));
                     return;
                 end
             end

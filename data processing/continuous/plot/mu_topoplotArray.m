@@ -76,7 +76,7 @@ imagesc(ax, "XData", X, "YData", Y, "CData", C);
 cRange = get(ax, "CLim");
 
 if strcmpi(ContourOpt, "on")
-    hold on;
+    hold(ax, "on");
 
     if isempty(ContourVal)
         % contour option may not work with linear array
@@ -120,8 +120,7 @@ if strcmpi(ContourOpt, "on")
 
 end
 
-set(ax, "XLimitMethod", "tight");
-set(ax, "YLimitMethod", "tight");
+axis(ax, "tight");
 set(ax, "Box", "on");
 set(ax, "BoxStyle", "full");
 set(ax, "XColor", [0, 0, 0]);

@@ -3,16 +3,16 @@ function addLines(varargin)
 %
 % SYNTAX:
 %     mu.addLines(LineStruct, 'ConstantLine', true/false, 'Layer', 'top'/'bottom', 'IgnoreInvisible', true/false)
-%     mu.addLines(Fig, Lines, ...)
+%     mu.addLines(Targets, LineStruct, ...)
 %
 % INPUTS:
 %   REQUIRED:
-%     Lines  - Struct array with fields:
-%              [X] : default = []
-%              [Y] : default = []
-%              and other namevalue pairs (case-ignored) that is valid to function plot
+%     LineStruct  - Struct array with fields:
+%                   [X] : default = []
+%                   [Y] : default = []
+%                   and other namevalue pairs (case-ignored) that is valid to function plot
 %   OPTIONAL:
-%     FigsOrAxes      - Figure object array or axes object array
+%     Targets     - figure/tiledlayout/axes array
 %   NAME-VALUE:
 %     ConstantLine    - If set true (default), use xline/yline to create
 %                       vertical/horizontal lines when [X] or [Y] is left empty.
@@ -34,19 +34,19 @@ function addLines(varargin)
 %   mu.addLines(gca);
 
 if nargin > 0 && all(isgraphics(varargin{1}))
-    FigsOrAxes = varargin{1};
+    Targets = varargin{1};
     varargin = varargin(2:end);
 else
-    FigsOrAxes = gcf;
+    Targets = gcf;
 end
 
 mIp = inputParser;
-mIp.addRequired("FigsOrAxes", @(x) all(isgraphics(x)));
+mIp.addRequired("Targets", @(x) all(isgraphics(x)));
 mIp.addOptional("Lines", [], @(x) isempty(x) || isstruct(x));
 mIp.addParameter("ConstantLine", mu.OptionState.On);
 mIp.addParameter("Layer", "top", @(x) ischar(x) || isstring(x));
 mIp.addParameter("IgnoreInvisible", mu.OptionState.On);
-mIp.parse(FigsOrAxes, varargin{:});
+mIp.parse(Targets, varargin{:});
 
 Lines = mIp.Results.Lines;
 ConstantLineOpt = mu.OptionState.create(mIp.Results.ConstantLine).toLogical;
@@ -58,15 +58,17 @@ if isempty(Lines)
     Lines.Y = [];
 end
 
-if strcmp(class(FigsOrAxes), "matlab.ui.Figure") || strcmp(class(FigsOrAxes), "matlab.graphics.Graphics")
-    allAxes = findobj(FigsOrAxes, "Type", "axes");
-else
-    allAxes = FigsOrAxes;
-end
+allAxes = findall(Targets(:), "Type", "axes");
+allAxes = allAxes(:);
 
 if IgnoreInvisible
     % exclude invisible axes
-    allAxes(cellfun(@(x) eq(x, matlab.lang.OnOffSwitchState.off), {allAxes.Visible}')) = [];
+    visibleMask = strcmpi(string({allAxes.Visible}), "on");
+    allAxes = allAxes(visibleMask);
+
+    if isempty(allAxes)
+        error("No visible axes found. Please set [IgnoreInvisible] to false.");
+    end
 end
 
 %% Plot lines

@@ -3,7 +3,7 @@ function chStd = calchStd(trialsData, padDir)
 narginchk(1, 2);
 
 if nargin < 2
-    padDir = "last";
+    padDir = "tail";
 end
 
 chStd= mu.calchFunc(@std, trialsData, padDir);

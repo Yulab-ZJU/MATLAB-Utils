@@ -77,7 +77,7 @@ end
 
 if strcmpi(format, 'default')
     if scaleFactor ~= 1
-        cb.TickLabels = compose('%g', cb.Ticks * scaleFactor);
+        cb.TickLabels = compose('%.2g', cb.Ticks * scaleFactor);
         cb.TickLabelsMode = "auto";
     end
 else
@@ -90,9 +90,9 @@ end
 
 if scaleFactor ~= 1
     if ~isempty(label)
-        label = [label, ' (\timesE^{', num2str(-log10(scaleFactor)), '})'];
+        label = [label, ' (×10^{', num2str(-log10(scaleFactor)), '})'];
     else
-        label = ['\timesE^{', num2str(-log10(scaleFactor)), '}'];
+        label = ['×10^{', num2str(-log10(scaleFactor)), '}'];
     end
 end
 

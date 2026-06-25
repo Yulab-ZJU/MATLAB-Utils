@@ -6,8 +6,8 @@ function varargout = mu_ica_topoplotArray(topo, topoSize)
 pltsz = mu.autoplotsize(size(topo, 2));
 
 Fig = figure("WindowState", "maximized");
-margins = [0.05, 0.05, 0.1, 0.1];
-paddings = [0.01, 0.03, 0.01, 0.01];
+paddings = [0.05, 0.05, 0.1, 0.1];
+margins  = [0.01, 0.03, 0.01, 0.01];
 for rIndex = 1:pltsz(1)
 
     for cIndex = 1:pltsz(2)
