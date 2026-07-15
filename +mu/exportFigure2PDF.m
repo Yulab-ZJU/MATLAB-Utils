@@ -74,16 +74,6 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm, opts)
 %       "Position"   - preserve the requested Position-box size and add
 %                      reserved margins around it
 %
-%   positionMargins:
-%       [left bottom right top] reserved margins used ONLY in Position mode.
-%       Default: [0.08 0.10 0.02 0.03]
-%
-%   positionMarginUnit:
-%       "relative"    - left/right relative to target width and
-%                       bottom/top relative to target height (default)
-%       "millimeters" - fixed millimeter margins
-%       "centimeters" - fixed centimeter margins
-%
 %   tol:
 %       relative fitting tolerance in TightInset mode (default 1e-3)
 %
@@ -93,14 +83,7 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm, opts)
 % EXAMPLES:
 %   % Relative margins:
 %   mu.exportFigure2PDF(gcf, "test.pdf", 100, 50, ...
-%       "adjustPositionType", "Position", ...
-%       "positionMargins", [0.08, 0.10, 0.02, 0.03]);
-%
-%   % Fixed millimeter margins:
-%   mu.exportFigure2PDF(gcf, "test.pdf", 100, 50, ...
-%       "adjustPositionType", "Position", ...
-%       "positionMargins", [8, 6, 2, 2], ...
-%       "positionMarginUnit", "millimeters");
+%       "adjustPositionType", "Position");
 
 % ---- Parameters ----
 arguments
@@ -113,12 +96,10 @@ arguments
     opts.adjustOpt = "on"
     opts.adjustPositionType {mustBeTextScalar} = "TightInset"
 
-    opts.positionMargins (1,4) double {mustBeNonnegative} = ...
-        [0.08, 0.10, 0.02, 0.03]
-    opts.positionMarginUnit {mustBeTextScalar} = "relative"
-
     opts.tol     (1,1) double {mustBeNonnegative} = 1e-3
     opts.maxIter (1,1) double {mustBePositive, mustBeInteger} = 100
+
+    opts.debug (1,1) logical = false
 end
 
 expandMode = validatestring(opts.expandMode, { ...
@@ -137,32 +118,37 @@ adjustPositionType = validatestring(opts.adjustPositionType, { ...
     'position'});
 adjustPositionType = lower(string(adjustPositionType));
 
-positionMarginUnit = validatestring(opts.positionMarginUnit, { ...
-    'relative', ...
-    'millimeters', ...
-    'millimeter', ...
-    'mm', ...
-    'centimeters', ...
-    'centimeter', ...
-    'cm'});
-positionMarginUnit = lower(string(positionMarginUnit));
+% ---- Resolve incompatible options ----
+if startsWith(expandMode, "keepratio") && adjustPositionType == "tightinset"
+    warning("exportFigure2PDF:AdjustPositionTypeChanged", ...
+        ['expandMode="%s" requires preserving Position geometry. ' ...
+         'adjustPositionType has been changed from "TightInset" to "Position".'], ...
+        expandMode);
+
+    adjustPositionType = "position";
+end
 
 tol = opts.tol;
 maxIter = opts.maxIter;
 
-% ---- Copy a new figure ----
+% Ensure source figure layout is fully updated
+drawnow;
+
+% Copy a new figure
 tempFig = copyobj(figHandle, 0);
 cleanupObj = onCleanup(@() local_closeIfValid(tempFig));
 
-% Keep the rendering behavior requested for the export copy.
+% Use a normal, explicitly sized window. A maximized figure can ignore
+% Position updates and make pixel/physical-unit conversions inconsistent.
 try
-    tempFig.WindowState = "maximized";
+    tempFig.WindowState = "normal";
 catch
 end
-tempFig.Visible = "off";
+if ~opts.debug
+    tempFig.Visible = "off";
+end
 
 drawnow;
-drawnow limitrate;
 
 % ---- Treat [w h] as the whole figure size ----
 if ~adjustOpt
@@ -173,7 +159,6 @@ if ~adjustOpt
     local_disableToolbars(tempFig);
 
     drawnow;
-    drawnow limitrate;
 
     exportgraphics(tempFig, filename, ...
         'ContentType', 'vector', ...
@@ -231,20 +216,17 @@ end
 whRatioBox = WBox / HBox;
 whRatioPDF = width_mm / height_mm;
 
-% Normalize root Position boxes relative to the selected reference box.
-rootPosNorm = rootPos_cm;
-
-rootPosNorm(:, 1) = ...
-    (rootPosNorm(:, 1) - bBox(1)) / WBox;
-
-rootPosNorm(:, 2) = ...
-    (rootPosNorm(:, 2) - bBox(2)) / HBox;
-
-rootPosNorm(:, 3) = rootPosNorm(:, 3) / WBox;
-rootPosNorm(:, 4) = rootPosNorm(:, 4) / HBox;
 
 % ---- Decide target Position-box size ----
-switch expandMode
+% expandMode controls only Position mode. TightInset mode fits the complete
+% visible boundary and therefore should not alter the requested aspect ratio.
+if adjustPositionType == "tightinset"
+    expandModeEffective = "fixed";
+else
+    expandModeEffective = expandMode;
+end
+
+switch expandModeEffective
     case 'fixed'
         W_mm = width_mm;
         H_mm = height_mm;
@@ -284,113 +266,136 @@ H_cm = H_mm / 10;
 % Position mode enlarges it after the Position box has been established.
 local_setFigureSize(tempFig, W_cm, H_cm);
 
-% Place top-level roots so their Position union has the requested size.
-targetRootPos_cm = [ ...
-    rootPosNorm(:, 1) * W_cm, ...
-    rootPosNorm(:, 2) * H_cm, ...
-    rootPosNorm(:, 3) * W_cm, ...
-    rootPosNorm(:, 4) * H_cm];
+% Place top-level roots relative to the original reference-box origin.
+% Keep-ratio modes use one scalar transformation; only "fixed" may use
+% different horizontal and vertical scale factors.
+switch expandMode
+    case 'fixed'
+        scaleX = W_cm / WBox;
+        scaleY = H_cm / HBox;
+
+    otherwise
+        scaleX = W_cm / WBox;
+        scaleY = H_cm / HBox;
+
+        % The two values should be identical in keep-ratio modes. Use a
+        % single scalar explicitly to prevent numerical/layout drift.
+        scaleUniform = min(scaleX, scaleY);
+        scaleX = scaleUniform;
+        scaleY = scaleUniform;
+end
+
+targetRootPos_cm = rootPos_cm;
+targetRootPos_cm(:, 1) = ...
+    (rootPos_cm(:, 1) - bBox(1)) * scaleX;
+targetRootPos_cm(:, 2) = ...
+    (rootPos_cm(:, 2) - bBox(2)) * scaleY;
+targetRootPos_cm(:, 3) = rootPos_cm(:, 3) * scaleX;
+targetRootPos_cm(:, 4) = rootPos_cm(:, 4) * scaleY;
 
 local_assignAbsoluteRootPositions( ...
     layoutRoots, targetRootPos_cm, ...
     tempFig, "centimeters");
 
 drawnow;
-drawnow limitrate;
 
 % ---- Adjustment according to selected position type ----
 switch adjustPositionType
     case "tightinset"
-        % Shrink/move top-level layout roots until the recursively measured
-        % TightInset-expanded content box fits within [W_cm, H_cm].
+        % -------------------------------------------------------------
+        % TightInset mode:
         %
-        % For tiledlayout, only the tiledlayout Position is changed. Axes
-        % inside it retain their relative tile positions.
+        % Keep an immutable reference geometry. Every iteration rebuilds
+        % the root positions from that reference instead of repeatedly
+        % transforming the previous iteration. The complete visible
+        % boundary is then anchored at [0, 0]. This prevents cumulative
+        % drift and keeps axes, legends, and colorbars together.
+        % -------------------------------------------------------------
 
+        drawnow;
+
+        % Anchor the initial complete-content boundary at the page origin.
+        [bBoxNow, ~, ~] = local_getContentBorderBox( ...
+            tempFig, layoutRoots, "centimeters");
+
+        local_shiftRoots( ...
+            layoutRoots, tempFig, ...
+            -bBoxNow(1), -bBoxNow(2), "centimeters");
+
+        drawnow;
+
+        % Immutable root geometry after initial anchoring.
+        baseRootPos_cm = local_getRootPositions( ...
+            layoutRoots, tempFig, "centimeters");
+
+        cumulativeScale = 1;
         n = 0;
 
         for iter = 1:maxIter
             n = iter;
 
-            [bBoxNow, WBoxNow, HBoxNow] = ...
-                local_getContentBorderBox( ...
-                    tempFig, layoutRoots, "centimeters");
-
-            excessX = (WBoxNow - W_cm) / W_cm;
-            excessY = (HBoxNow - H_cm) / H_cm;
-
-            leftOverflow   = max(0, -bBoxNow(1));
-            bottomOverflow = max(0, -bBoxNow(2));
-            rightOverflow  = max(0, bBoxNow(3) - W_cm);
-            topOverflow    = max(0, bBoxNow(4) - H_cm);
-
-            if excessX <= tol && ...
-               excessY <= tol && ...
-               leftOverflow / W_cm <= tol && ...
-               bottomOverflow / H_cm <= tol && ...
-               rightOverflow / W_cm <= tol && ...
-               topOverflow / H_cm <= tol
-                break;
-            end
-
-            scaleFactorX = 1;
-            scaleFactorY = 1;
-
-            if excessX > tol
-                scaleFactorX = W_cm / WBoxNow;
-            end
-
-            if excessY > tol
-                scaleFactorY = H_cm / HBoxNow;
-            end
-
-            % Avoid overshooting because text/TightInset dimensions do not
-            % scale perfectly linearly with layout Position.
-            scaleFactorX = min(1, max(0.05, scaleFactorX));
-            scaleFactorY = min(1, max(0.05, scaleFactorY));
-
-            rootPosNow = local_getRootPositions( ...
-                layoutRoots, tempFig, "centimeters");
-
-            % Scale roots about the lower-left corner of the current
-            % complete-content boundary.
-            rootPosNow(:, 1) = ...
-                bBoxNow(1) + ...
-                (rootPosNow(:, 1) - bBoxNow(1)) * scaleFactorX;
-
-            rootPosNow(:, 2) = ...
-                bBoxNow(2) + ...
-                (rootPosNow(:, 2) - bBoxNow(2)) * scaleFactorY;
-
-            rootPosNow(:, 3) = ...
-                rootPosNow(:, 3) * scaleFactorX;
-
-            rootPosNow(:, 4) = ...
-                rootPosNow(:, 4) * scaleFactorY;
+            % Reconstruct from the immutable geometry. Scaling both the
+            % origin and size preserves every root-to-root relationship.
+            rootPosNow = baseRootPos_cm * cumulativeScale;
 
             local_assignAbsoluteRootPositions( ...
                 layoutRoots, rootPosNow, ...
                 tempFig, "centimeters");
 
             drawnow;
-            drawnow limitrate;
 
-            % Shift roots so left and bottom decorations stay within page.
+            % TightInset and managed objects can change after drawnow.
+            % Re-anchor the complete visible boundary at [0, 0].
             [bBoxNow, ~, ~] = local_getContentBorderBox( ...
                 tempFig, layoutRoots, "centimeters");
 
-            shiftX = max(0, -bBoxNow(1));
-            shiftY = max(0, -bBoxNow(2));
+            local_shiftRoots( ...
+                layoutRoots, tempFig, ...
+                -bBoxNow(1), -bBoxNow(2), "centimeters");
 
-            if shiftX > 0 || shiftY > 0
-                local_shiftRoots( ...
-                    layoutRoots, tempFig, ...
-                    shiftX, shiftY, "centimeters");
+            drawnow;
 
-                drawnow;
-                drawnow limitrate;
+            [~, WBoxNow, HBoxNow] = ...
+                local_getContentBorderBox( ...
+                    tempFig, layoutRoots, "centimeters");
+
+            widthExcess = (WBoxNow - W_cm) / W_cm;
+            heightExcess = (HBoxNow - H_cm) / H_cm;
+
+            if widthExcess <= tol && heightExcess <= tol
+                break;
             end
+
+            % Uniformly shrink the entire layout. Text extents and
+            % TightInset are not perfectly linear, so remeasure next round.
+            fitScale = min([ ...
+                1, ...
+                W_cm / WBoxNow, ...
+                H_cm / HBoxNow]);
+
+            if ~isfinite(fitScale) || fitScale <= 0
+                error('exportFigure2PDF:InvalidFitScale', ...
+                    'Invalid TightInset fitting scale: %.6g.', ...
+                    fitScale);
+            end
+
+            % Stop if graphics quantization leaves no meaningful progress.
+            if 1 - fitScale <= 10 * eps
+                break;
+            end
+
+            cumulativeScale = cumulativeScale * fitScale;
         end
+
+        % A final draw can slightly change text extents. Anchor once more.
+        [bBoxFinal, ~, ~] = local_getContentBorderBox( ...
+            tempFig, layoutRoots, "centimeters");
+
+        local_shiftRoots( ...
+            layoutRoots, tempFig, ...
+            -bBoxFinal(1), -bBoxFinal(2), "centimeters");
+
+        drawnow;
 
         [bBoxFinal, WBoxFinal, HBoxFinal] = ...
             local_getContentBorderBox( ...
@@ -398,11 +403,22 @@ switch adjustPositionType
 
         finalPaperW_cm = W_cm;
         finalPaperH_cm = H_cm;
-
         reservedMargins_cm = [0, 0, 0, 0];
+
+        if WBoxFinal > W_cm * (1 + tol) || ...
+                HBoxFinal > H_cm * (1 + tol)
+            warning('exportFigure2PDF:TightInsetNotConverged', ...
+                ['TightInset fitting did not fully converge after %d ' ...
+                 'iterations. Final content size is %.4g x %.4g cm; ' ...
+                 'target is %.4g x %.4g cm.'], ...
+                n, WBoxFinal, HBoxFinal, W_cm, H_cm);
+        end
 
     case "position"
         % -------------------------------------------------------------
+        % expandMode is applied only in Position mode. The Position box is
+        % treated as the geometry-preserving object; margins are enlarged
+        % adaptively to contain labels, legends, and colorbars.
         % Position mode:
         %
         % 1. The top-level Position union has already been scaled to
@@ -420,10 +436,12 @@ switch adjustPositionType
 
         n = 1;
 
-        reservedMargins_cm = local_convertPositionMargins( ...
-            opts.positionMargins, ...
-            positionMarginUnit, ...
-            W_cm, H_cm);
+        % Automatically estimate margins required by visible contents.
+        % The Position box keeps its geometry; labels, titles, legends and
+        % colorbars expand the page. exportgraphics will remove unused outer
+        % whitespace during export, so a small safety factor is harmless.
+        reservedMargins_cm = local_estimatePositionMargins( ...
+            tempFig, layoutRoots, targetRootPos_cm);
 
         marginLeft   = reservedMargins_cm(1);
         marginBottom = reservedMargins_cm(2);
@@ -458,7 +476,29 @@ switch adjustPositionType
             tempFig, "centimeters");
 
         drawnow;
-        drawnow limitrate;
+
+        % Managed graphics objects, especially colorbars, may alter the
+        % associated axes during drawnow. Restore the requested root
+        % geometry once after the layout manager has updated.
+        local_assignAbsoluteRootPositions( ...
+            layoutRoots, targetRootPos_cm, ...
+            tempFig, "centimeters");
+
+        drawnow;
+
+        % Re-anchor the final Position union at [marginLeft, marginBottom]
+        % without changing its physical width, height, or aspect ratio.
+        rootPosCheck_cm = local_getRootPositions( ...
+            layoutRoots, tempFig, "centimeters");
+        [positionBoxNow, ~, ~] = local_getBoxUnion(rootPosCheck_cm);
+
+        local_shiftRoots( ...
+            layoutRoots, tempFig, ...
+            marginLeft - positionBoxNow(1), ...
+            marginBottom - positionBoxNow(2), ...
+            "centimeters");
+
+        drawnow;
 
         [bBoxFinal, WBoxFinal, HBoxFinal] = ...
             local_getContentBorderBox( ...
@@ -469,25 +509,15 @@ end
 local_disableToolbars(tempFig);
 
 drawnow;
-drawnow limitrate;
 
 % ---- Final clipping safety check ----
 [bBoxCheck, ~, ~] = local_getContentBorderBox( ...
     tempFig, layoutRoots, "centimeters");
 
-overflow = [ ...
-    max(0, -bBoxCheck(1)), ...
-    max(0, -bBoxCheck(2)), ...
-    max(0,  bBoxCheck(3) - finalPaperW_cm), ...
-    max(0,  bBoxCheck(4) - finalPaperH_cm)];
-
-if any(overflow > tol * max(finalPaperW_cm, finalPaperH_cm))
-    warning("exportFigure2PDF:PossibleClipping", ...
-        "Some visible content may remain outside the enlarged page. \nOverflow [L B R T] = [%.4g %.4g %.4g %.4g] cm. \nIncrease positionMargins when using Position mode.", ...
-        overflow(1), ...
-        overflow(2), ...
-        overflow(3), ...
-        overflow(4));
+if any(bBoxCheck < -opts.tol)
+    warning("exportFigure2PDF:UnexpectedOverflow", ...
+        "Visible content extends outside the estimated page region: [%g %g %g %g] cm.", ...
+        bBoxCheck);
 end
 
 % Ensure the paper settings retain the final expanded dimensions.
@@ -548,32 +578,27 @@ end
 
 %% Helper functions
 
-function margins_cm = local_convertPositionMargins( ...
-    margins, marginUnit, targetW_cm, targetH_cm)
-% Convert [left bottom right top] margins to centimeters.
+
+function margins_cm = local_estimatePositionMargins( ...
+    figHandle, layoutRoots, positionBox)
+% Estimate [left bottom right top] margins required by visible contents.
 %
-% In relative mode:
-%   left/right are relative to target Position-box width;
-%   bottom/top are relative to target Position-box height.
+% The position box is treated as the protected plotting region. All visible
+% objects outside this region are converted into additional paper margins.
 
-switch lower(string(marginUnit))
-    case "relative"
-        margins_cm = [ ...
-            margins(1) * targetW_cm, ...
-            margins(2) * targetH_cm, ...
-            margins(3) * targetW_cm, ...
-            margins(4) * targetH_cm];
+    [posBox, ~, ~] = local_getBoxUnion(positionBox);
 
-    case {"millimeters", "millimeter", "mm"}
-        margins_cm = margins / 10;
+    [contentBox, ~, ~] = local_getContentBorderBox( ...
+        figHandle, layoutRoots, "centimeters");
 
-    case {"centimeters", "centimeter", "cm"}
-        margins_cm = margins;
+    margins_cm = [ ...
+        max(0, posBox(1) - contentBox(1)), ...
+        max(0, posBox(2) - contentBox(2)), ...
+        max(0, contentBox(3) - posBox(3)), ...
+        max(0, contentBox(4) - posBox(4))];
 
-    otherwise
-        error("exportFigure2PDF:InvalidMarginUnit", ...
-            "Invalid positionMarginUnit: %s.", marginUnit);
-end
+    % Account for renderer/font extent differences.
+    margins_cm = margins_cm * 1.2;
 end
 
 function layoutRoots = local_getLayoutRoots(figHandle)
@@ -613,23 +638,26 @@ end
 function local_setFigureSize(figHandle, width_cm, height_cm)
 % Set rendered figure size and PDF paper size.
 
+try
+    figHandle.WindowState = "normal";
+catch
+end
+
 oldUnits = figHandle.Units;
 figHandle.Units = "centimeters";
 
-figPos = figHandle.Position;
-figHandle.Position = [ ...
-    figPos(1), ...
-    figPos(2), ...
-    width_cm, ...
-    height_cm];
+% Use a deterministic on-screen origin. A maximized or partly off-screen
+% figure can make getpixelposition and physical-unit conversion unstable.
+figHandle.Position = [1, 1, width_cm, height_cm];
 
 figHandle.Units = oldUnits;
 
 figHandle.PaperUnits = "centimeters";
 figHandle.PaperPositionMode = "manual";
-figHandle.PaperPosition = [ ...
-    0, 0, width_cm, height_cm];
+figHandle.PaperPosition = [0, 0, width_cm, height_cm];
 figHandle.PaperSize = [width_cm, height_cm];
+
+drawnow;
 end
 
 function posAll = local_getRootPositions( ...

@@ -420,10 +420,14 @@ divY = margins(3) + unitDivHeight * (row - (rIndex + rSpan - 1));
 axesWidth  = (1 - paddings(1) - paddings(2)) * divWidth  * nX;
 axesHeight = (1 - paddings(3) - paddings(4)) * divHeight * nY;
 
-oldUnits = HostFig.Units;
-HostFig.Units = "pixels";
-figPos = HostFig.Position;
-HostFig.Units = oldUnits;
+if strcmp(HostFig.WindowState, "maximized")
+    figPos = get(0, "ScreenSize");
+else
+    oldUnits = HostFig.Units;
+    HostFig.Units = "pixels";
+    figPos = HostFig.Position;
+    HostFig.Units = oldUnits;
+end
 adjIdx = figPos(4) / figPos(3);
 
 borderMin = min([axesWidth / adjIdx, axesHeight]);
