@@ -174,7 +174,8 @@ fprintf('[mu_pydebug_pycharm] Exec: %s\n', cmd);
 [status, cmdout] = system(cmd);
 
 if status ~= 0
-    warning('mu_pydebug_pycharm:NonZeroExit','Python script execution failed: %d', status);
+    warning('mu_pydebug_pycharm:NonZeroExit', 'Python script execution failed: %d', status);
+    fprintf('[Error message]: \n%s\n', cmdout);
 end
 
 return;

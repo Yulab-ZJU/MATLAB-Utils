@@ -48,11 +48,12 @@ function [status, cmdout] = mu_pydebug_vscode(pyscriptPATH, pyexePATH, varargin)
 %      }
 %      ----------------------------------------------------
 %   2. Run MATLAB code:
-%      mu_pydebug_vscode('~\yourscript.py', ...
+%      mu_pydebug_vscode('functions\md2word.py', ...
 %                        'C:\Users\YOU\.conda\envs\kilosort\python.exe', ...
-%                        "input.md", "output.docx", ...
 %                        'Port', 5678, ...
-%                        'param1', val1, 'param2', val2)
+%                        'WaitForClient', true, ...
+%                        'md_path', "input.md", ...     % 'param1', value
+%                        'output', "output.docx", ...)  % 'param2', value
 %   3. Set break points in your python script in VS Code
 %   4. Run Python script in VS Code in debug mode with launch.json
 
@@ -194,7 +195,8 @@ fprintf('[mu_pydebug_vscode] Exec: %s\n', fullCmd);
 [status, cmdout] = system(fullCmd);
 
 if status ~= 0
-    warning('mu_pydebug_vscode:NonZeroExit','Python script execution failed: %d', status);
+    warning('mu_pydebug_vscode:NonZeroExit', 'Python script execution failed: %d', status);
+    fprintf('[Error message]: \n%s\n', cmdout);
 end
 
 return;
