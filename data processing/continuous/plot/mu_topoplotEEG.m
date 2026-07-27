@@ -73,7 +73,8 @@ topoplot(data, EEGPos.locs, params{:});
 
 % set background white
 set(findobj(ax, "Type", "Patch"), "FaceColor", "w");
-set(ax.Parent, "Color", "w");
+Fig = ancestor(ax, "figure");
+set(Fig, "Color", "w");
 
 % reset fontsize
 set(0, "DefaultAxesFontSize", fontSize);

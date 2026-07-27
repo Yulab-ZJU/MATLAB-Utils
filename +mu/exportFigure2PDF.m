@@ -4,14 +4,14 @@ function exportFigure2PDF(figHandle, filename, width_mm, height_mm, opts)
 %
 % Two adjustment modes are supported:
 %
-%   adjustPositionType = "TightInset"  (default, legacy behavior)
+%   adjustPositionType = "TightInset"
 %       AFTER removing surrounding blank margins, the union boundary of all
 %       layout contents expanded by TightInset has final size
 %       [width_mm, height_mm] in mm. This keeps the exported PDF content box
 %       fixed, but axes plot-box lengths can vary when tick labels/xlabel/
 %       ylabel/title are different.
 %
-%   adjustPositionType = "Position"
+%   adjustPositionType = "Position"  (default, legacy behavior)
 %       The union boundary of all top-level layout Position boxes is scaled
 %       to [width_mm, height_mm].
 %
@@ -92,9 +92,9 @@ arguments
     width_mm        (1,1) double {mustBePositive}
     height_mm       (1,1) double {mustBePositive}
 
-    opts.expandMode {mustBeTextScalar} = "fixed"
-    opts.adjustOpt = "on"
-    opts.adjustPositionType {mustBeTextScalar} = "TightInset"
+    opts.expandMode         {mustBeMember(opts.expandMode, {'fixed', 'keepratio-width', 'keepratio-height', 'keepratio-min', 'keepratio-max'})} = "fixed"
+    opts.adjustOpt          {mustBeMember(opts.adjustOpt, {'on', 'off'})} = "on"
+    opts.adjustPositionType {mustBeMember(opts.adjustPositionType, {'TightInset', 'Position'})} = "Position"
 
     opts.tol     (1,1) double {mustBeNonnegative} = 1e-3
     opts.maxIter (1,1) double {mustBePositive, mustBeInteger} = 100
@@ -441,7 +441,7 @@ switch adjustPositionType
         % colorbars expand the page. exportgraphics will remove unused outer
         % whitespace during export, so a small safety factor is harmless.
         reservedMargins_cm = local_estimatePositionMargins( ...
-            tempFig, layoutRoots, targetRootPos_cm);
+            tempFig, layoutRoots);
 
         marginLeft   = reservedMargins_cm(1);
         marginBottom = reservedMargins_cm(2);
@@ -517,7 +517,7 @@ drawnow;
 if any(bBoxCheck < -opts.tol)
     warning("exportFigure2PDF:UnexpectedOverflow", ...
         "Visible content extends outside the estimated page region: [%g %g %g %g] cm.", ...
-        bBoxCheck);
+        bBoxCheck(1), bBoxCheck(2), bBoxCheck(3), bBoxCheck(4));
 end
 
 % Ensure the paper settings retain the final expanded dimensions.
@@ -573,32 +573,121 @@ fprintf('PDF file exported to: %s\n', ...
 
 fprintf('================== Done ===================\n');
 
+if opts.debug
+    uiwait(tempFig);
+end
+
 return;
 end
 
 %% Helper functions
-
-
 function margins_cm = local_estimatePositionMargins( ...
-    figHandle, layoutRoots, positionBox)
+    figHandle, layoutRoots)
 % Estimate [left bottom right top] margins required by visible contents.
 %
-% The position box is treated as the protected plotting region. All visible
-% objects outside this region are converted into additional paper margins.
+% Margin estimation is performed on a temporary padded canvas. This is
+% important because labels and tick labels may otherwise lie outside the
+% original figure boundary before their Extent or TightInset is measured.
+%
+% The original figure size and root positions are restored automatically.
 
-    [posBox, ~, ~] = local_getBoxUnion(positionBox);
+% Preserve the current physical root geometry.
+originalRootPos_cm = local_getRootPositions( ...
+    layoutRoots, figHandle, "centimeters");
 
-    [contentBox, ~, ~] = local_getContentBorderBox( ...
-        figHandle, layoutRoots, "centimeters");
+[originalPosBox, WBox, HBox] = ...
+    local_getBoxUnion(originalRootPos_cm);
 
-    margins_cm = [ ...
-        max(0, posBox(1) - contentBox(1)), ...
-        max(0, posBox(2) - contentBox(2)), ...
-        max(0, contentBox(3) - posBox(3)), ...
-        max(0, contentBox(4) - posBox(4))];
+% Preserve the current figure size.
+oldFigUnits = figHandle.Units;
+figHandle.Units = "centimeters";
+originalFigPosition_cm = double(figHandle.Position);
+figHandle.Units = oldFigUnits;
 
-    % Account for renderer/font extent differences.
-    margins_cm = margins_cm * 1.2;
+cleanupObj = onCleanup(@() ...
+    local_restorePositionMarginProbe( ...
+        figHandle, ...
+        layoutRoots, ...
+        originalFigPosition_cm, ...
+        originalRootPos_cm));
+
+% Give labels, ticks, legends, and colorbars enough temporary room to
+% remain inside the renderer-visible figure boundary.
+%
+% Three centimeters is normally sufficient for axis labels. The
+% dimension-dependent term also supports unusually large fonts.
+probeLeft_cm = max(3, 0.15 * WBox);
+probeRight_cm = probeLeft_cm;
+
+probeBottom_cm = max(3, 0.15 * HBox);
+probeTop_cm = probeBottom_cm;
+
+probeFigureW_cm = ...
+    WBox + probeLeft_cm + probeRight_cm;
+
+probeFigureH_cm = ...
+    HBox + probeBottom_cm + probeTop_cm;
+
+local_setFigureSize( ...
+    figHandle, probeFigureW_cm, probeFigureH_cm);
+
+% Shift the Position union into the padded canvas while preserving all
+% root sizes and root-to-root relationships.
+probeRootPos_cm = originalRootPos_cm;
+
+probeRootPos_cm(:, 1) = ...
+    probeRootPos_cm(:, 1) + ...
+    probeLeft_cm - originalPosBox(1);
+
+probeRootPos_cm(:, 2) = ...
+    probeRootPos_cm(:, 2) + ...
+    probeBottom_cm - originalPosBox(2);
+
+local_assignAbsoluteRootPositions( ...
+    layoutRoots, probeRootPos_cm, ...
+    figHandle, "centimeters");
+
+drawnow;
+
+% tiledlayout, legends, and colorbars may modify managed positions
+% during drawnow. Restore the requested root geometry once more.
+local_assignAbsoluteRootPositions( ...
+    layoutRoots, probeRootPos_cm, ...
+    figHandle, "centimeters");
+
+drawnow;
+
+% Use the actual post-layout Position geometry rather than the
+% theoretical requested geometry. This also accounts for pixel
+% quantization.
+actualRootPos_cm = local_getRootPositions( ...
+    layoutRoots, figHandle, "centimeters");
+
+[posBox, ~, ~] = local_getBoxUnion(actualRootPos_cm);
+
+[contentBox, ~, ~] = local_getContentBorderBox( ...
+    figHandle, layoutRoots, "centimeters");
+
+marginsRaw_cm = [ ...
+    max(0, posBox(1) - contentBox(1)), ...
+    max(0, posBox(2) - contentBox(2)), ...
+    max(0, contentBox(3) - posBox(3)), ...
+    max(0, contentBox(4) - posBox(4))];
+
+% Account for small font-renderer and exportgraphics differences.
+safetyFactor = 1.2;
+safetyPadding_cm = 0.05;
+
+margins_cm = marginsRaw_cm * safetyFactor;
+
+hasOverflow = marginsRaw_cm > 0;
+margins_cm(hasOverflow) = ...
+    margins_cm(hasOverflow) + safetyPadding_cm;
+
+% Avoid tiny negative or denormalized values.
+margins_cm = max(margins_cm, 0);
+
+clear cleanupObj;
 end
 
 function layoutRoots = local_getLayoutRoots(figHandle)
@@ -1192,5 +1281,55 @@ end
 function local_closeIfValid(figHandle)
 if ~isempty(figHandle) && isvalid(figHandle)
     close(figHandle);
+end
+end
+
+function local_restorePositionMarginProbe( ...
+figHandle, layoutRoots, ...
+originalFigPosition_cm, originalRootPos_cm)
+% Restore figure geometry after temporary Position-margin probing.
+
+if isempty(figHandle) || ~isvalid(figHandle)
+    return;
+end
+
+try
+    figHandle.WindowState = "normal";
+catch
+end
+
+try
+    oldUnits = figHandle.Units;
+    figHandle.Units = "centimeters";
+    figHandle.Position = originalFigPosition_cm;
+    figHandle.Units = oldUnits;
+
+    figHandle.PaperUnits = "centimeters";
+    figHandle.PaperPositionMode = "manual";
+    figHandle.PaperPosition = [ ...
+        0, ...
+        0, ...
+        originalFigPosition_cm(3), ...
+        originalFigPosition_cm(4)];
+
+    figHandle.PaperSize = ...
+        originalFigPosition_cm(3:4);
+
+    drawnow;
+
+    local_assignAbsoluteRootPositions( ...
+        layoutRoots, originalRootPos_cm, ...
+        figHandle, "centimeters");
+
+    drawnow;
+
+    % Restore once more after managed-layout recalculation.
+    local_assignAbsoluteRootPositions( ...
+        layoutRoots, originalRootPos_cm, ...
+        figHandle, "centimeters");
+
+    drawnow;
+catch
+    % Do not mask an earlier error during cleanup.
 end
 end
