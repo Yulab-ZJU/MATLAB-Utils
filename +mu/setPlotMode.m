@@ -813,6 +813,68 @@ try
 catch
 end
 
+% Shared tiledlayout title and axis labels are property-owned Text objects.
+% Include them whenever the requested target token is Text. This also makes
+% wildcard settings such as "*.FontSize" and "*.FontName" affect them.
+if strcmpi(token, "Text")
+    LayoutTextObjects = findTiledLayoutTextObjects_(rootH);
+
+    if ~isempty(LayoutTextObjects)
+        found = [found; LayoutTextObjects(:)];
+    end
+end
+
+if ~isempty(found)
+    found = unique(found, "stable");
+end
+end
+
+function found = findTiledLayoutTextObjects_(rootH)
+found = gobjects(0);
+Layouts = gobjects(0);
+
+if tokenMatchesObject_(rootH, "TiledLayout")
+    Layouts(end + 1, 1) = rootH;
+end
+
+LayoutDescendants = findObjectsByToken_(rootH, "TiledLayout");
+
+if ~isempty(LayoutDescendants)
+    Layouts = [Layouts; LayoutDescendants(:)];
+end
+
+if isempty(Layouts)
+    return;
+end
+
+Layouts = unique(Layouts, "stable");
+TextProperties = {'Title', 'XLabel', 'YLabel'};
+
+for LayoutIndex = 1:numel(Layouts)
+    LayoutObject = Layouts(LayoutIndex);
+
+    for PropertyIndex = 1:numel(TextProperties)
+        PropertyName = TextProperties{PropertyIndex};
+
+        if ~isChildPropHandle_(LayoutObject, PropertyName)
+            continue;
+        end
+
+        TextObject = getChildPropHandle_(LayoutObject, PropertyName);
+
+        if isempty(TextObject)
+            continue;
+        end
+
+        % TiledChartLayout.Title/XLabel/YLabel are layout Text objects.
+        % Their class/type representation differs across MATLAB releases,
+        % so do not filter them using the ordinary graphics Type token.
+        if ~isempty(TextObject)
+            found = [found; TextObject(:)]; %#ok<AGROW>
+        end
+    end
+end
+
 if ~isempty(found)
     found = unique(found, "stable");
 end

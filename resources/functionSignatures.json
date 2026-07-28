@@ -3192,6 +3192,26 @@
                             ],
                             "purpose": "Create a flow tiledlayout."
                         }
+                    ],
+                    [
+                        {
+                            "name": "horizontal",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'horizontal'}"
+                            ],
+                            "purpose": "Create a horizontal tiledlayout."
+                        }
+                    ],
+                    [
+                        {
+                            "name": "vertical",
+                            "kind": "required",
+                            "type": [
+                                "choices = {'vertical'}"
+                            ],
+                            "purpose": "Create a vertical tiledlayout."
+                        }
                     ]
                 ]
             },
