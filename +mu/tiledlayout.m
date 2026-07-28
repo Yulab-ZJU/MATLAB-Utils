@@ -4,10 +4,10 @@ function varargout = tiledlayout(varargin)
 % This function is a lightweight wrapper of MATLAB built-in tiledlayout.
 % It adds mu-style box-model controls for TiledChartLayout position:
 %
-%   margins  : outer space around the layout target box, relative to parent
-%   paddings : inner space inside the margin box, relative to the margin box
-%   nSize    : size of tiledlayout target box relative to drawable box
-%   alignment: location of tiledlayout target box inside drawable box
+%   margins   : outer space around the layout target box, relative to parent
+%   paddings  : inner space inside the margin box, relative to the margin box
+%   nSize     : size of tiledlayout target box relative to drawable box
+%   alignment : location of tiledlayout target box inside drawable box
 %
 % H5/CSS-like box model:
 %
@@ -22,10 +22,6 @@ function varargout = tiledlayout(varargin)
 %
 %   PositionType = "outerposition"  % default
 %
-% This means the visible tiledlayout region, including titles, tick labels,
-% and other decorations managed by MATLAB, is constrained inside the green
-% target box in the demo.
-%
 % You can switch to legacy inner-position behavior:
 %
 %   PositionType = "innerposition"
@@ -34,9 +30,16 @@ function varargout = tiledlayout(varargin)
 %   t = mu.tiledlayout(row, col)
 %   t = mu.tiledlayout(Parent, row, col)
 %   t = mu.tiledlayout("flow")
-%   t = mu.tiledlayout(Parent, "flow")
+%   t = mu.tiledlayout("horizontal")
+%   t = mu.tiledlayout("vertical")
+%   t = mu.tiledlayout(Parent, arrangement)
 %   t = mu.tiledlayout(___, Name, Value)
 %   [t, opts] = mu.tiledlayout(___)
+%
+% arrangement:
+%   "flow"       - automatically arrange tiles in rows and columns
+%   "horizontal" - arrange tiles in a single horizontal row
+%   "vertical"   - arrange tiles in a single vertical column
 %
 % NOTES:
 %   - MATLAB native "Padding" is different from mu-style "paddings".
@@ -44,239 +47,251 @@ function varargout = tiledlayout(varargin)
 %     forwarded to tiledlayout.
 %   - When Parent is another tiledlayout, Position/OuterPosition cannot be
 %     controlled by this function. Use Tile and TileSpan instead.
+%   - "horizontal" and "vertical" require a MATLAB release that supports
+%     these native tiledlayout arrangements.
+
+arguments (Repeating)
+    varargin
+end
 
 %% Basic input check
 
 if isempty(varargin)
-    error('mu.tiledlayout requires row/col or "flow" input.');
+    error(['mu.tiledlayout requires row/col or an arrangement input: ', ...
+        '"flow", "horizontal", or "vertical".']);
 end
 
 %% Extract optional parent
 
-[Parent, args] = local_extractParent(varargin);
+[Parent, Args] = ExtractParent(varargin);
 
-if isempty(args)
-    error('mu.tiledlayout requires row/col or "flow" input after Parent.');
+if isempty(Args)
+    error(['mu.tiledlayout requires row/col or an arrangement input ', ...
+        'after Parent: "flow", "horizontal", or "vertical".']);
 end
 
 %% Parse layout specification
 
-[layoutSpec, args] = local_parseLayoutSpec(args);
+[LayoutSpec, Args] = ParseLayoutSpec(Args);
 
 %% Parse mu-style options and keep native tiledlayout options
 
-[muOpts, tileArgs] = local_parseMuOptions(args);
+[MuOpts, TileArgs] = ParseMuOptions(Args);
 
 %% Add compact native defaults if not explicitly provided
 
-tileArgs = local_addDefaultNativeOptions(tileArgs);
+TileArgs = AddDefaultNativeOptions(TileArgs);
 
 %% Resolve margins and paddings
 
-margins  = muOpts.margins;
-paddings = muOpts.paddings;
+Margins = MuOpts.margins;
+Paddings = MuOpts.paddings;
 
-if ~isempty(muOpts.margin_left)  , margins(1) = muOpts.margin_left;   end
-if ~isempty(muOpts.margin_right) , margins(2) = muOpts.margin_right;  end
-if ~isempty(muOpts.margin_bottom), margins(3) = muOpts.margin_bottom; end
-if ~isempty(muOpts.margin_top)   , margins(4) = muOpts.margin_top;    end
+if ~isempty(MuOpts.margin_left)
+    Margins(1) = MuOpts.margin_left;
+end
+if ~isempty(MuOpts.margin_right)
+    Margins(2) = MuOpts.margin_right;
+end
+if ~isempty(MuOpts.margin_bottom)
+    Margins(3) = MuOpts.margin_bottom;
+end
+if ~isempty(MuOpts.margin_top)
+    Margins(4) = MuOpts.margin_top;
+end
 
-if ~isempty(muOpts.padding_left)  , paddings(1) = muOpts.padding_left;   end
-if ~isempty(muOpts.padding_right) , paddings(2) = muOpts.padding_right;  end
-if ~isempty(muOpts.padding_bottom), paddings(3) = muOpts.padding_bottom; end
-if ~isempty(muOpts.padding_top)   , paddings(4) = muOpts.padding_top;    end
+if ~isempty(MuOpts.padding_left)
+    Paddings(1) = MuOpts.padding_left;
+end
+if ~isempty(MuOpts.padding_right)
+    Paddings(2) = MuOpts.padding_right;
+end
+if ~isempty(MuOpts.padding_bottom)
+    Paddings(3) = MuOpts.padding_bottom;
+end
+if ~isempty(MuOpts.padding_top)
+    Paddings(4) = MuOpts.padding_top;
+end
 
-local_validateBoxVector(margins,  "margins");
-local_validateBoxVector(paddings, "paddings");
+ValidateBoxVector(Margins, "margins");
+ValidateBoxVector(Paddings, "paddings");
 
 %% Parse nSize
 
-nSize = muOpts.nSize;
-validateattributes(nSize, "numeric", {'vector', 'real', 'positive'});
+NSize = MuOpts.nSize;
+validateattributes(NSize, 'numeric', {'vector', 'real', 'positive'});
 
-if isscalar(nSize)
-    nX = nSize;
-    nY = nSize;
-elseif numel(nSize) == 2
-    nX = nSize(1);
-    nY = nSize(2);
+if isscalar(NSize)
+    NX = NSize;
+    NY = NSize;
+elseif numel(NSize) == 2
+    NX = NSize(1);
+    NY = NSize(2);
 else
     error("nSize should be a scalar or a 2-element vector.");
 end
 
 %% Parse alignment
 
-[alignment_horizontal, alignment_vertical, alignmentRaw] = ...
-    local_parseAlignment(muOpts.alignment, ...
-                         muOpts.alignment_horizontal, ...
-                         muOpts.alignment_vertical);
+[AlignmentHorizontal, AlignmentVertical, AlignmentRaw] = ...
+    ParseAlignment(MuOpts.alignment, ...
+                   MuOpts.alignment_horizontal, ...
+                   MuOpts.alignment_vertical);
 
 %% Create tiledlayout
-% Keep direct tiledlayout(...) call. In +mu/tiledlayout.m this resolves to
-% MATLAB's native tiledlayout in the current MATLAB name-resolution context.
+% Keep the direct tiledlayout(...) call. In +mu/tiledlayout.m this resolves
+% to MATLAB's native tiledlayout in the current name-resolution context.
 
-switch layoutSpec.mode
+switch LayoutSpec.mode
     case "fixed"
-        t = tiledlayout(Parent, ...
-            layoutSpec.row, layoutSpec.col, tileArgs{:});
+        T = tiledlayout(Parent, ...
+            LayoutSpec.row, LayoutSpec.col, TileArgs{:});
 
-    case "flow"
-        t = tiledlayout(Parent, ...
-            "flow", tileArgs{:});
+    case {"flow", "horizontal", "vertical"}
+        T = tiledlayout(Parent, LayoutSpec.mode, TileArgs{:});
 
     otherwise
-        error("Invalid layout mode.");
+        error("Invalid layout mode: %s.", LayoutSpec.mode);
 end
 
-t.Tag = "mu.tiledlayout";
+T.Tag = "mu.tiledlayout";
 
 %% Set tiledlayout target position using margins/paddings/nSize/alignment
 
-isNestedTiledLayout = local_isTiledLayout(Parent);
+IsNestedTiledLayout = IsTiledLayout(Parent);
 
-if isNestedTiledLayout
+if IsNestedTiledLayout
     % MATLAB controls nested tiledlayout position through Layout.Tile and
     % Layout.TileSpan. Position and OuterPosition should not be used here.
-    if ~isempty(muOpts.Tile)
-        t.Layout.Tile = muOpts.Tile;
+    if ~isempty(MuOpts.Tile)
+        T.Layout.Tile = MuOpts.Tile;
     end
 
-    if ~isempty(muOpts.TileSpan)
-        t.Layout.TileSpan = muOpts.TileSpan;
+    if ~isempty(MuOpts.TileSpan)
+        T.Layout.TileSpan = MuOpts.TileSpan;
     end
 
     warning("mu:tiledlayout:PositionIgnoredForNestedTiledLayout", ...
-        "Parent is a tiledlayout. Position/alignment options are ignored. Use Tile and TileSpan instead.");
+        "Parent is a tiledlayout. Position/alignment options are ignored. " + ...
+        "Use Tile and TileSpan instead.");
 
-    positionInfo = local_emptyPositionInfo();
+    PositionInfo = EmptyPositionInfo();
 
 else
-    positionInfo = local_computeLayoutPosition( ...
-        margins, paddings, nX, nY, ...
-        alignment_horizontal, alignment_vertical);
+    PositionInfo = ComputeLayoutPosition( ...
+        Margins, Paddings, NX, NY, ...
+        AlignmentHorizontal, AlignmentVertical);
 
     try
-        t.Units = "normalized";
+        T.Units = "normalized";
     catch
         % Some MATLAB versions may not expose Units for tiledlayout.
     end
 
-    positionType = lower(string(muOpts.PositionType));
+    PositionType = lower(string(MuOpts.PositionType));
 
-    switch positionType
+    switch PositionType
         case "outerposition"
-            % Recommended behavior:
-            % The mu-computed target box corresponds to tiledlayout.OuterPosition.
-            % MATLAB then shrinks the inner region as needed to accommodate
-            % title, tick labels, labels, etc.
             try
-                t.PositionConstraint = "outerposition";
+                T.PositionConstraint = "outerposition";
             catch
             end
 
             try
-                t.OuterPosition = positionInfo.position;
+                T.OuterPosition = PositionInfo.position;
             catch
-                % Fallback for MATLAB versions where OuterPosition cannot
-                % be set. This falls back to inner-position behavior.
                 warning("mu:tiledlayout:OuterPositionFallback", ...
-                    "Could not set tiledlayout.OuterPosition. Falling back to tiledlayout.Position.");
-                t.Position = positionInfo.position;
-                positionType = "innerposition";
+                    "Could not set tiledlayout.OuterPosition. " + ...
+                    "Falling back to tiledlayout.Position.");
+                T.Position = PositionInfo.position;
+                PositionType = "innerposition";
             end
 
         case {"innerposition", "position"}
-            % Legacy behavior:
-            % The mu-computed target box corresponds to tiledlayout.Position
-            % or InnerPosition. Decorations may extend beyond the green box.
             try
-                t.PositionConstraint = "innerposition";
+                T.PositionConstraint = "innerposition";
             catch
             end
 
-            t.Position = positionInfo.position;
-            positionType = "innerposition";
+            T.Position = PositionInfo.position;
+            PositionType = "innerposition";
 
         otherwise
-            error("Invalid PositionType: %s.", positionType);
+            error("Invalid PositionType: %s.", PositionType);
     end
 
     % User-provided PositionConstraint has final priority.
-    % Use carefully: it may override the PositionType behavior above.
-    if ~isempty(muOpts.PositionConstraint)
-        t.PositionConstraint = muOpts.PositionConstraint;
+    if ~isempty(MuOpts.PositionConstraint)
+        T.PositionConstraint = MuOpts.PositionConstraint;
     end
 
-    muOpts.PositionType = positionType;
+    MuOpts.PositionType = PositionType;
 end
 
 %% Optional debug annotation
 
-if local_toLogical(muOpts.LayoutBox) && ~isNestedTiledLayout
-    local_drawLayoutBox(ancestor(Parent, "figure"), positionInfo, muOpts);
+if ToLogical(MuOpts.LayoutBox) && ~IsNestedTiledLayout
+    DrawLayoutBox(ancestor(Parent, "figure"), PositionInfo, MuOpts);
 end
 
 %% Store useful layout info
 
-opts = struct();
+Opts = struct();
 
-opts.parent = Parent;
-opts.hostFigure = ancestor(Parent, "figure");
+Opts.parent = Parent;
+Opts.hostFigure = ancestor(Parent, "figure");
 
-opts.layoutMode = layoutSpec.mode;
+Opts.layoutMode = LayoutSpec.mode;
 
-if layoutSpec.mode == "fixed"
-    opts.row = layoutSpec.row;
-    opts.col = layoutSpec.col;
-    opts.gridSize = [layoutSpec.row, layoutSpec.col];
+if LayoutSpec.mode == "fixed"
+    Opts.row = LayoutSpec.row;
+    Opts.col = LayoutSpec.col;
+    Opts.gridSize = [LayoutSpec.row, LayoutSpec.col];
 else
-    opts.row = [];
-    opts.col = [];
-    opts.gridSize = [];
+    Opts.row = [];
+    Opts.col = [];
+    Opts.gridSize = [];
 end
 
-opts.margins = margins;
-opts.paddings = paddings;
+Opts.margins = Margins;
+Opts.paddings = Paddings;
 
-opts.marginsRatio = margins;
-opts.paddingsRatio = paddings;
+Opts.marginsRatio = Margins;
+Opts.paddingsRatio = Paddings;
 
-opts.nSize = [nX, nY];
+Opts.nSize = [NX, NY];
 
-opts.alignment = alignmentRaw;
-opts.alignment_horizontal = alignment_horizontal;
-opts.alignment_vertical = alignment_vertical;
+Opts.alignment = AlignmentRaw;
+Opts.alignment_horizontal = AlignmentHorizontal;
+Opts.alignment_vertical = AlignmentVertical;
 
-opts.PositionType = string(muOpts.PositionType);
-opts.PositionConstraint = muOpts.PositionConstraint;
+Opts.PositionType = string(MuOpts.PositionType);
+Opts.PositionConstraint = MuOpts.PositionConstraint;
 
-opts.marginBoxPosition = positionInfo.marginBox;
-opts.drawablePosition = positionInfo.drawableBox;
+Opts.marginBoxPosition = PositionInfo.marginBox;
+Opts.drawablePosition = PositionInfo.drawableBox;
 
-% The target box computed by mu.tiledlayout.
-% If PositionType = "outerposition", this targets t.OuterPosition.
-% If PositionType = "innerposition", this targets t.Position/InnerPosition.
-opts.layoutTargetPosition = positionInfo.position;
+Opts.layoutTargetPosition = PositionInfo.position;
 
 % Backward-compatible alias.
-opts.layoutPosition = positionInfo.position;
+Opts.layoutPosition = PositionInfo.position;
 
-opts.tileArgs = tileArgs;
-opts.tiledLayout = t;
-opts.isNestedTiledLayout = isNestedTiledLayout;
+Opts.tileArgs = TileArgs;
+Opts.tiledLayout = T;
+Opts.isNestedTiledLayout = IsNestedTiledLayout;
 
 % Actual MATLAB-managed positions after setting.
-opts.actualPosition      = local_tryGetPosition(t, "Position");
-opts.actualOuterPosition = local_tryGetPosition(t, "OuterPosition");
-opts.actualInnerPosition = local_tryGetPosition(t, "InnerPosition");
+Opts.actualPosition = TryGetPosition(T, "Position");
+Opts.actualOuterPosition = TryGetPosition(T, "OuterPosition");
+Opts.actualInnerPosition = TryGetPosition(T, "InnerPosition");
 
 try
-    ud = t.UserData;
-    if ~isstruct(ud)
-        ud = struct();
+    UserData = T.UserData;
+    if ~isstruct(UserData)
+        UserData = struct();
     end
-    ud.mu.tiledlayout = opts;
-    t.UserData = ud;
+    UserData.mu.tiledlayout = Opts;
+    T.UserData = UserData;
 catch
     % UserData assignment is useful but not essential.
 end
@@ -284,296 +299,296 @@ end
 %% Outputs
 
 if nargout >= 1
-    varargout{1} = t;
+    varargout{1} = T;
 end
 
 if nargout == 2
-    varargout{2} = opts;
+    varargout{2} = Opts;
 end
 
-return;
 end
 
 %% Local functions
 
-function [Parent, args] = local_extractParent(args)
-%LOCAL_EXTRACTPARENT Extract optional first-position parent.
+function [Parent, Args] = ExtractParent(Args)
+%EXTRACTPARENT Extract optional first-position parent.
 %
 % Numeric figure handles are intentionally not accepted here, because
 % mu.tiledlayout(2, 3) should always mean row=2, col=3.
 
-if ~isempty(args) && local_isExplicitParent(args{1})
-    Parent = args{1};
-    args = args(2:end);
+if ~isempty(Args) && IsExplicitParent(Args{1})
+    Parent = Args{1};
+    Args = Args(2:end);
 else
     Parent = gcf;
 end
 
-return;
 end
 
-function tf = local_isExplicitParent(x)
-%LOCAL_ISEXPLICITPARENT True for supported object-style parent containers.
+function TF = IsExplicitParent(X)
+%ISEXPLICITPARENT True for supported object-style parent containers.
 
-tf = isscalar(x) && ...
-    (isa(x, "matlab.ui.Figure") || ...
-     isa(x, "matlab.ui.container.Panel") || ...
-     isa(x, "matlab.ui.container.Tab") || ...
-     local_isTiledLayout(x));
+TF = isscalar(X) && ...
+    (isa(X, "matlab.ui.Figure") || ...
+     isa(X, "matlab.ui.container.Panel") || ...
+     isa(X, "matlab.ui.container.Tab") || ...
+     IsTiledLayout(X));
 
-return;
 end
 
-function tf = local_isTiledLayout(x)
-%LOCAL_ISTILEDLAYOUT True for MATLAB tiledlayout parent.
+function TF = IsTiledLayout(X)
+%ISTILEDLAYOUT True for MATLAB tiledlayout parent.
 
-tf = isscalar(x) && isa(x, "matlab.graphics.layout.TiledChartLayout");
+TF = isscalar(X) && ...
+    isa(X, "matlab.graphics.layout.TiledChartLayout");
 
-return;
 end
 
-function [layoutSpec, args] = local_parseLayoutSpec(args)
-%LOCAL_PARSELAYOUTSPEC Parse fixed or flow tiledlayout input.
+function [LayoutSpec, Args] = ParseLayoutSpec(Args)
+%PARSELAYOUTSPEC Parse fixed or adaptive tiledlayout input.
 
-if isempty(args)
+if isempty(Args)
     error("Missing tiledlayout layout specification.");
 end
 
-firstArg = args{1};
+FirstArg = Args{1};
 
-if local_isTextScalar(firstArg) && strcmpi(string(firstArg), "flow")
-    layoutSpec = struct();
-    layoutSpec.mode = "flow";
-    layoutSpec.row = [];
-    layoutSpec.col = [];
+if IsTextScalar(FirstArg)
+    Arrangement = lower(string(FirstArg));
+    ValidArrangements = ["flow", "horizontal", "vertical"];
 
-    args = args(2:end);
-    return;
+    if any(Arrangement == ValidArrangements)
+        LayoutSpec = struct();
+        LayoutSpec.mode = Arrangement;
+        LayoutSpec.row = [];
+        LayoutSpec.col = [];
+
+        Args = Args(2:end);
+        return;
+    end
+
+    error('Invalid tiledlayout arrangement "%s". Valid arrangements are ', ...
+        '"flow", "horizontal", and "vertical".', Arrangement);
 end
 
-if numel(args) < 2
-    error("Fixed tiledlayout mode requires row and col inputs.");
+if numel(Args) < 2
+    error(['Fixed tiledlayout mode requires row and col inputs, or use ', ...
+        '"flow", "horizontal", or "vertical".']);
 end
 
-row = args{1};
-col = args{2};
+Row = Args{1};
+Col = Args{2};
 
-validateattributes(row, "numeric", {'scalar', 'positive', 'integer'});
-validateattributes(col, "numeric", {'scalar', 'positive', 'integer'});
+validateattributes(Row, 'numeric', {'scalar', 'positive', 'integer'});
+validateattributes(Col, 'numeric', {'scalar', 'positive', 'integer'});
 
-layoutSpec = struct();
-layoutSpec.mode = "fixed";
-layoutSpec.row = row;
-layoutSpec.col = col;
+LayoutSpec = struct();
+LayoutSpec.mode = "fixed";
+LayoutSpec.row = Row;
+LayoutSpec.col = Col;
 
-args = args(3:end);
+Args = Args(3:end);
 
-return;
 end
 
-function [muOpts, tileArgs] = local_parseMuOptions(args)
-%LOCAL_PARSEMUOPTIONS Parse mu-specific options and keep native options.
+function [MuOpts, TileArgs] = ParseMuOptions(Args)
+%PARSEMUOPTIONS Parse mu-specific options and keep native options.
 %
 % Unknown name-value pairs are passed to MATLAB tiledlayout unchanged.
 
-if mod(numel(args), 2) ~= 0
+if mod(numel(Args), 2) ~= 0
     error("Name-value inputs should appear in pairs.");
 end
 
-muOpts = struct();
+MuOpts = struct();
 
 % mu-style layout options
-muOpts.margins  = [0, 0, 0, 0];
-muOpts.paddings = [0, 0, 0, 0];
-muOpts.nSize    = [1, 1];
+MuOpts.margins = [0, 0, 0, 0];
+MuOpts.paddings = [0, 0, 0, 0];
+MuOpts.nSize = [1, 1];
 
-muOpts.alignment = "center";
-muOpts.alignment_horizontal = [];
-muOpts.alignment_vertical   = [];
+MuOpts.alignment = "center";
+MuOpts.alignment_horizontal = [];
+MuOpts.alignment_vertical = [];
 
-muOpts.margin_left   = [];
-muOpts.margin_right  = [];
-muOpts.margin_bottom = [];
-muOpts.margin_top    = [];
+MuOpts.margin_left = [];
+MuOpts.margin_right = [];
+MuOpts.margin_bottom = [];
+MuOpts.margin_top = [];
 
-muOpts.padding_left   = [];
-muOpts.padding_right  = [];
-muOpts.padding_bottom = [];
-muOpts.padding_top    = [];
+MuOpts.padding_left = [];
+MuOpts.padding_right = [];
+MuOpts.padding_bottom = [];
+MuOpts.padding_top = [];
 
 % Nested tiledlayout options
-muOpts.Tile = [];
-muOpts.TileSpan = [];
+MuOpts.Tile = [];
+MuOpts.TileSpan = [];
 
 % Debug options
-muOpts.LayoutBox = "off";
+MuOpts.LayoutBox = "off";
 
 % Position behavior
-muOpts.PositionType = "outerposition";
-muOpts.PositionConstraint = [];
+MuOpts.PositionType = "outerposition";
+MuOpts.PositionConstraint = [];
 
-tileArgs = {};
+TileArgs = {};
 
-k = 1;
-while k <= numel(args)
-    name  = args{k};
-    value = args{k + 1};
+K = 1;
+while K <= numel(Args)
+    Name = Args{K};
+    Value = Args{K + 1};
 
-    if ~local_isTextScalar(name)
+    if ~IsTextScalar(Name)
         error("Name-value option names should be text scalars.");
     end
 
-    nameStr = lower(string(name));
+    NameStr = lower(string(Name));
 
-    switch nameStr
+    switch NameStr
         case "margins"
-            validateattributes(value, "numeric", {'vector', 'real', 'numel', 4});
-            muOpts.margins = double(value);
+            validateattributes(Value, 'numeric', ...
+                {'vector', 'real', 'numel', 4});
+            MuOpts.margins = double(Value);
 
         case "paddings"
-            validateattributes(value, "numeric", {'vector', 'real', 'numel', 4});
-            muOpts.paddings = double(value);
+            validateattributes(Value, 'numeric', ...
+                {'vector', 'real', 'numel', 4});
+            MuOpts.paddings = double(Value);
 
         case "nsize"
-            validateattributes(value, "numeric", {'vector', 'real', 'positive'});
-            muOpts.nSize = double(value);
+            validateattributes(Value, 'numeric', ...
+                {'vector', 'real', 'positive'});
+            MuOpts.nSize = double(Value);
 
         case "alignment"
-            muOpts.alignment = value;
+            MuOpts.alignment = Value;
 
         case "alignment_horizontal"
-            muOpts.alignment_horizontal = value;
+            MuOpts.alignment_horizontal = Value;
 
         case "alignment_vertical"
-            muOpts.alignment_vertical = value;
+            MuOpts.alignment_vertical = Value;
 
         case "margin_left"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.margin_left = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.margin_left = double(Value);
 
         case "margin_right"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.margin_right = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.margin_right = double(Value);
 
         case "margin_bottom"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.margin_bottom = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.margin_bottom = double(Value);
 
         case "margin_top"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.margin_top = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.margin_top = double(Value);
 
         case "padding_left"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.padding_left = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.padding_left = double(Value);
 
         case "padding_right"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.padding_right = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.padding_right = double(Value);
 
         case "padding_bottom"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.padding_bottom = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.padding_bottom = double(Value);
 
         case "padding_top"
-            validateattributes(value, "numeric", {'scalar', 'real'});
-            muOpts.padding_top = double(value);
+            validateattributes(Value, 'numeric', {'scalar', 'real'});
+            MuOpts.padding_top = double(Value);
 
         case "tile"
-            validateattributes(value, "numeric", {'scalar', 'positive', 'integer'});
-            muOpts.Tile = value;
+            validateattributes(Value, 'numeric', ...
+                {'scalar', 'positive', 'integer'});
+            MuOpts.Tile = Value;
 
         case "tilespan"
-            validateattributes(value, "numeric", {'vector', 'positive', 'integer', 'numel', 2});
-            muOpts.TileSpan = value;
+            validateattributes(Value, 'numeric', ...
+                {'vector', 'positive', 'integer', 'numel', 2});
+            MuOpts.TileSpan = Value;
 
         case {"layoutbox", "layout_box", "box"}
-            muOpts.LayoutBox = value;
+            MuOpts.LayoutBox = Value;
 
         case {"positiontype", "position_type"}
-            muOpts.PositionType = validatestring(value, ...
+            MuOpts.PositionType = validatestring(Value, ...
                 {'outerposition', 'innerposition', 'position'});
 
-            if strcmpi(muOpts.PositionType, "position")
-                muOpts.PositionType = "innerposition";
+            if strcmpi(MuOpts.PositionType, "position")
+                MuOpts.PositionType = "innerposition";
             end
 
         case "positionconstraint"
-            muOpts.PositionConstraint = validatestring(value, ...
+            MuOpts.PositionConstraint = validatestring(Value, ...
                 {'outerposition', 'innerposition'});
 
         otherwise
-            % Keep native MATLAB tiledlayout options, for example:
-            %   "TileSpacing", "compact"
-            %   "Padding", "compact"
-            %   "TileIndexing", "rowmajor"
-            % Do not convert these values to string, because some native
-            % options can be numeric/logical/object values.
-            tileArgs = [tileArgs, args(k:k+1)]; %#ok<AGROW>
+            % Keep native MATLAB tiledlayout options unchanged.
+            TileArgs = [TileArgs, Args(K:K + 1)]; %#ok<AGROW>
     end
 
-    k = k + 2;
+    K = K + 2;
 end
 
-return;
 end
 
-function tileArgs = local_addDefaultNativeOptions(tileArgs)
-%LOCAL_ADDDEFAULTNATIVEOPTIONS Add compact defaults unless user supplied them.
-%
-% Keep tileArgs as a cell array and preserve value types.
+function TileArgs = AddDefaultNativeOptions(TileArgs)
+%ADDDEFAULTNATIVEOPTIONS Add compact defaults unless supplied by the user.
 
-if ~local_hasName(tileArgs, "TileSpacing")
-    tileArgs = [{"TileSpacing", "compact"}, tileArgs];
+if ~HasName(TileArgs, "TileSpacing")
+    TileArgs = [{"TileSpacing", "compact"}, TileArgs];
 end
 
-if ~local_hasName(tileArgs, "Padding")
-    tileArgs = [{"Padding", "compact"}, tileArgs];
+if ~HasName(TileArgs, "Padding")
+    TileArgs = [{"Padding", "compact"}, TileArgs];
 end
 
-return;
 end
 
-function tf = local_hasName(args, targetName)
-%LOCAL_HASNAME True if name-value cell array contains a property name.
+function TF = HasName(Args, TargetName)
+%HASNAME True if name-value cell array contains a property name.
 
-tf = false;
+TF = false;
 
-if isempty(args)
+if isempty(Args)
     return;
 end
 
-names = args(1:2:end);
+Names = Args(1:2:end);
 
-for k = 1:numel(names)
-    if local_isTextScalar(names{k}) && strcmpi(string(names{k}), targetName)
-        tf = true;
+for K = 1:numel(Names)
+    if IsTextScalar(Names{K}) && strcmpi(string(Names{K}), TargetName)
+        TF = true;
         return;
     end
 end
 
-return;
 end
 
-function local_validateBoxVector(x, name)
-%LOCAL_VALIDATEBOXVECTOR Validate [left, right, bottom, top].
+function ValidateBoxVector(X, Name)
+%VALIDATEBOXVECTOR Validate [left, right, bottom, top].
 
-validateattributes(x, "numeric", {'vector', 'real', 'numel', 4, 'nonnegative'});
+validateattributes(X, 'numeric', ...
+    {'vector', 'real', 'numel', 4, 'nonnegative'});
 
-assert(x(1) + x(2) < 1, ...
-    "%s: left + right should be smaller than 1.", name);
+assert(X(1) + X(2) < 1, ...
+    "%s: left + right should be smaller than 1.", Name);
 
-assert(x(3) + x(4) < 1, ...
-    "%s: bottom + top should be smaller than 1.", name);
+assert(X(3) + X(4) < 1, ...
+    "%s: bottom + top should be smaller than 1.", Name);
 
-return;
 end
 
-function [alignment_horizontal, alignment_vertical, alignmentRaw] = ...
-    local_parseAlignment(alignment, alignment_horizontal, alignment_vertical)
-%LOCAL_PARSEALIGNMENT Parse mu-style alignment options.
+function [AlignmentHorizontal, AlignmentVertical, AlignmentRaw] = ...
+    ParseAlignment(Alignment, AlignmentHorizontal, AlignmentVertical)
+%PARSEALIGNMENT Parse mu-style alignment options.
 
-validAlignment = { ...
+ValidAlignment = { ...
     'left-bottom', ...
     'left-center', ...
     'left-top', ...
@@ -584,101 +599,105 @@ validAlignment = { ...
     'right-center', ...
     'right-top'};
 
-alignmentRaw = alignment;
+AlignmentRaw = Alignment;
 
-if isnumeric(alignment)
-    validateattributes(alignment, "numeric", {'vector', 'numel', 2, 'real'});
+if isnumeric(Alignment)
+    validateattributes(Alignment, 'numeric', ...
+        {'vector', 'numel', 2, 'real'});
 else
-    alignment = validatestring(alignment, validAlignment);
+    Alignment = validatestring(Alignment, ValidAlignment);
 end
 
-if isnumeric(alignment_horizontal)
-    if isempty(alignment_horizontal)
-        if isnumeric(alignment)
-            alignment_horizontal = alignment(1);
+if isnumeric(AlignmentHorizontal)
+    if isempty(AlignmentHorizontal)
+        if isnumeric(Alignment)
+            AlignmentHorizontal = Alignment(1);
         else
-            temp = split(string(alignment), "-");
-            if isscalar(temp)
-                alignment_horizontal = "center";
+            Temp = split(string(Alignment), "-");
+            if isscalar(Temp)
+                AlignmentHorizontal = "center";
             else
-                alignment_horizontal = temp(1);
+                AlignmentHorizontal = Temp(1);
             end
         end
     else
-        validateattributes(alignment_horizontal, "numeric", {'scalar', 'real'});
+        validateattributes(AlignmentHorizontal, 'numeric', ...
+            {'scalar', 'real'});
     end
 else
-    alignment_horizontal = validatestring(alignment_horizontal, ...
+    AlignmentHorizontal = validatestring(AlignmentHorizontal, ...
         {'left', 'center', 'right'});
 end
 
-if isnumeric(alignment_vertical)
-    if isempty(alignment_vertical)
-        if isnumeric(alignment)
-            alignment_vertical = alignment(2);
+if isnumeric(AlignmentVertical)
+    if isempty(AlignmentVertical)
+        if isnumeric(Alignment)
+            AlignmentVertical = Alignment(2);
         else
-            temp = split(string(alignment), "-");
-            if isscalar(temp)
-                alignment_vertical = "center";
+            Temp = split(string(Alignment), "-");
+            if isscalar(Temp)
+                AlignmentVertical = "center";
             else
-                alignment_vertical = temp(2);
+                AlignmentVertical = Temp(2);
             end
         end
     else
-        validateattributes(alignment_vertical, "numeric", {'scalar', 'real'});
+        validateattributes(AlignmentVertical, 'numeric', ...
+            {'scalar', 'real'});
     end
 else
-    alignment_vertical = validatestring(alignment_vertical, ...
+    AlignmentVertical = validatestring(AlignmentVertical, ...
         {'bottom', 'center', 'top'});
 end
 
-return;
 end
 
-function info = local_computeLayoutPosition( ...
-    margins, paddings, nX, nY, alignment_horizontal, alignment_vertical)
-%LOCAL_COMPUTELAYOUTPOSITION Compute target tiledlayout box.
+function Info = ComputeLayoutPosition( ...
+    Margins, Paddings, NX, NY, AlignmentHorizontal, AlignmentVertical)
+%COMPUTELAYOUTPOSITION Compute target tiledlayout box.
 %
 % Coordinate system is normalized parent coordinates.
 
-marginBox = [ ...
-    margins(1), ...
-    margins(3), ...
-    1 - margins(1) - margins(2), ...
-    1 - margins(3) - margins(4)];
+MarginBox = [ ...
+    Margins(1), ...
+    Margins(3), ...
+    1 - Margins(1) - Margins(2), ...
+    1 - Margins(3) - Margins(4)];
 
-drawableBox = [ ...
-    marginBox(1) + paddings(1) * marginBox(3), ...
-    marginBox(2) + paddings(3) * marginBox(4), ...
-    (1 - paddings(1) - paddings(2)) * marginBox(3), ...
-    (1 - paddings(3) - paddings(4)) * marginBox(4)];
+DrawableBox = [ ...
+    MarginBox(1) + Paddings(1) * MarginBox(3), ...
+    MarginBox(2) + Paddings(3) * MarginBox(4), ...
+    (1 - Paddings(1) - Paddings(2)) * MarginBox(3), ...
+    (1 - Paddings(3) - Paddings(4)) * MarginBox(4)];
 
-layoutW = drawableBox(3) * nX;
-layoutH = drawableBox(4) * nY;
+LayoutW = DrawableBox(3) * NX;
+LayoutH = DrawableBox(4) * NY;
 
-assert(layoutW <= drawableBox(3) + eps, ...
+assert(LayoutW <= DrawableBox(3) + eps, ...
     "nSize(1) makes tiledlayout wider than drawable box.");
-assert(layoutH <= drawableBox(4) + eps, ...
+
+assert(LayoutH <= DrawableBox(4) + eps, ...
     "nSize(2) makes tiledlayout taller than drawable box.");
 
-x = local_align1D( ...
-    drawableBox(1), drawableBox(3), layoutW, alignment_horizontal, "horizontal");
+X = Align1D( ...
+    DrawableBox(1), DrawableBox(3), LayoutW, ...
+    AlignmentHorizontal, "horizontal");
 
-y = local_align1D( ...
-    drawableBox(2), drawableBox(4), layoutH, alignment_vertical, "vertical");
+Y = Align1D( ...
+    DrawableBox(2), DrawableBox(4), LayoutH, ...
+    AlignmentVertical, "vertical");
 
-position = [x, y, layoutW, layoutH];
+Position = [X, Y, LayoutW, LayoutH];
 
-info = struct();
-info.marginBox = marginBox;
-info.drawableBox = drawableBox;
-info.position = position;
+Info = struct();
+Info.marginBox = MarginBox;
+Info.drawableBox = DrawableBox;
+Info.position = Position;
 
-return;
 end
 
-function start = local_align1D(boxStart, boxSize, itemSize, alignment, direction)
-%LOCAL_ALIGN1D Align one dimension inside a box.
+function Start = Align1D(BoxStart, BoxSize, ItemSize, Alignment, Direction)
+%ALIGN1D Align one dimension inside a box.
 %
 % Numeric positive alignment:
 %   0   -> left/bottom
@@ -690,40 +709,40 @@ function start = local_align1D(boxStart, boxSize, itemSize, alignment, direction
 %   -0.5 -> center
 %   0    -> right/top
 
-if isnumeric(alignment)
-    if alignment >= 0
-        ratio = alignment;
+if isnumeric(Alignment)
+    if Alignment >= 0
+        Ratio = Alignment;
     else
-        ratio = 1 + alignment;
+        Ratio = 1 + Alignment;
     end
 
-    start = boxStart + (boxSize - itemSize) * ratio;
+    Start = BoxStart + (BoxSize - ItemSize) * Ratio;
     return;
 end
 
-alignment = string(alignment);
+Alignment = string(Alignment);
 
-switch direction
+switch Direction
     case "horizontal"
-        switch alignment
+        switch Alignment
             case "left"
-                ratio = 0;
+                Ratio = 0;
             case "center"
-                ratio = 0.5;
+                Ratio = 0.5;
             case "right"
-                ratio = 1;
+                Ratio = 1;
             otherwise
                 error("Invalid horizontal alignment.");
         end
 
     case "vertical"
-        switch alignment
+        switch Alignment
             case "bottom"
-                ratio = 0;
+                Ratio = 0;
             case "center"
-                ratio = 0.5;
+                Ratio = 0.5;
             case "top"
-                ratio = 1;
+                Ratio = 1;
             otherwise
                 error("Invalid vertical alignment.");
         end
@@ -732,138 +751,135 @@ switch direction
         error("Invalid direction.");
 end
 
-start = boxStart + (boxSize - itemSize) * ratio;
+Start = BoxStart + (BoxSize - ItemSize) * Ratio;
 
-return;
 end
 
-function info = local_emptyPositionInfo()
-%LOCAL_EMPTYPOSITIONINFO Empty position info for nested tiledlayout mode.
+function Info = EmptyPositionInfo()
+%EMPTYPOSITIONINFO Empty position info for nested tiledlayout mode.
 
-info = struct();
-info.marginBox = [];
-info.drawableBox = [];
-info.position = [];
+Info = struct();
+Info.marginBox = [];
+Info.drawableBox = [];
+Info.position = [];
 
-return;
 end
 
-function pos = local_tryGetPosition(t, propName)
-%LOCAL_TRYGETPOSITION Safely get a tiledlayout position-like property.
+function Position = TryGetPosition(T, PropertyName)
+%TRYGETPOSITION Safely get a tiledlayout position-like property.
 
 try
-    pos = t.(propName);
+    Position = T.(PropertyName);
 catch
-    pos = [];
+    Position = [];
 end
 
-return;
 end
 
-function local_drawLayoutBox(fig, positionInfo, muOpts)
-%LOCAL_DRAWLAYOUTBOX Draw debug boxes using annotation.
+function DrawLayoutBox(FigureHandle, PositionInfo, MuOpts)
+%DRAWLAYOUTBOX Draw debug boxes using annotation.
 
-if isempty(fig) || ~isvalid(fig)
+if isempty(FigureHandle) || ~isvalid(FigureHandle)
     return;
 end
 
-marginBox   = positionInfo.marginBox;
-drawableBox = positionInfo.drawableBox;
-layoutPos   = positionInfo.position;
+MarginBox = PositionInfo.marginBox;
+DrawableBox = PositionInfo.drawableBox;
+LayoutPosition = PositionInfo.position;
 
-if isempty(marginBox) || isempty(drawableBox) || isempty(layoutPos)
+if isempty(MarginBox) || isempty(DrawableBox) || isempty(LayoutPosition)
     return;
 end
 
-annotation(fig, "rectangle", marginBox, ...
+annotation(FigureHandle, "rectangle", MarginBox, ...
     "Color", [0.85, 0.20, 0.10], ...
     "LineStyle", "--", ...
     "LineWidth", 1.2);
 
-annotation(fig, "rectangle", drawableBox, ...
+annotation(FigureHandle, "rectangle", DrawableBox, ...
     "Color", [0.10, 0.35, 0.85], ...
     "LineStyle", ":", ...
     "LineWidth", 1.2);
 
-annotation(fig, "rectangle", layoutPos, ...
+annotation(FigureHandle, "rectangle", LayoutPosition, ...
     "Color", [0.10, 0.60, 0.25], ...
     "LineStyle", "-", ...
     "LineWidth", 1.5);
 
-switch lower(string(muOpts.PositionType))
+switch lower(string(MuOpts.PositionType))
     case "outerposition"
-        label = "tiledlayout.OuterPosition";
+        Label = "tiledlayout.OuterPosition";
     otherwise
-        label = "tiledlayout.Position / InnerPosition";
+        Label = "tiledlayout.Position / InnerPosition";
 end
 
-annotation(fig, "textbox", ...
-    [layoutPos(1), min(layoutPos(2) + layoutPos(4) + 0.005, 0.95), 0.35, 0.04], ...
-    "String", label, ...
+annotation(FigureHandle, "textbox", ...
+    [LayoutPosition(1), ...
+     min(LayoutPosition(2) + LayoutPosition(4) + 0.005, 0.95), ...
+     0.35, 0.04], ...
+    "String", Label, ...
     "Color", [0.10, 0.60, 0.25], ...
     "EdgeColor", "none", ...
     "BackgroundColor", "w", ...
     "FontWeight", "bold");
 
-if isfield(muOpts, "alignment")
-    annotation(fig, "textbox", [0.02, 0.02, 0.52, 0.03], ...
-        "String", sprintf("Alignment = %s controls %s inside drawable box", ...
-        string(muOpts.alignment), label), ...
+if isfield(MuOpts, "alignment")
+    annotation(FigureHandle, "textbox", [0.02, 0.02, 0.52, 0.03], ...
+        "String", sprintf( ...
+            "Alignment = %s controls %s inside drawable box", ...
+            string(MuOpts.alignment), Label), ...
         "Color", [0.10, 0.60, 0.25], ...
         "EdgeColor", [0.10, 0.60, 0.25], ...
         "BackgroundColor", "w", ...
         "HorizontalAlignment", "center");
 end
 
-return;
 end
 
-function tf = local_isTextScalar(x)
-%LOCAL_ISTEXTSCALAR True for char row vector or scalar string.
+function TF = IsTextScalar(X)
+%ISTEXTSCALAR True for char row vector or scalar string.
 
-tf = (ischar(x) && (isrow(x) || isempty(x))) || ...
-     (isstring(x) && isscalar(x));
+TF = (ischar(X) && (isrow(X) || isempty(X))) || ...
+     (isstring(X) && isscalar(X));
 
-return;
 end
 
-function tf = local_toLogical(x)
-%LOCAL_TOLOGICAL Convert common on/off style inputs to logical.
+function TF = ToLogical(X)
+%TOLOGICAL Convert common on/off style inputs to logical.
 
-if islogical(x)
-    validateattributes(x, "logical", {'scalar'});
-    tf = x;
+if islogical(X)
+    validateattributes(X, 'logical', {'scalar'});
+    TF = X;
     return;
 end
 
-if isnumeric(x)
-    validateattributes(x, "numeric", {'scalar'});
-    tf = logical(x);
+if isnumeric(X)
+    validateattributes(X, 'numeric', {'scalar'});
+    TF = logical(X);
     return;
 end
 
-if local_isTextScalar(x)
-    x = lower(string(x));
+if IsTextScalar(X)
+    X = lower(string(X));
 
-    switch x
+    switch X
         case {"on", "show", "true", "yes", "1"}
-            tf = true;
+            TF = true;
 
         case {"off", "hide", "false", "no", "0"}
-            tf = false;
+            TF = false;
 
         otherwise
-            error("Invalid logical option: %s.", x);
+            error("Invalid logical option: %s.", X);
     end
 
     return;
 end
 
 try
-    tf = x.toLogical;
+    TF = X.toLogical;
 catch
     error("Cannot convert input to logical.");
 end
 
-return;
 end
