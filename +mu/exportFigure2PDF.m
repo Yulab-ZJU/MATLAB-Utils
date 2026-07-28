@@ -616,10 +616,10 @@ cleanupObj = onCleanup(@() ...
 %
 % Three centimeters is normally sufficient for axis labels. The
 % dimension-dependent term also supports unusually large fonts.
-probeLeft_cm = max(3, 0.15 * WBox);
+probeLeft_cm = max(3, 0.3 * WBox);
 probeRight_cm = probeLeft_cm;
 
-probeBottom_cm = max(3, 0.15 * HBox);
+probeBottom_cm = max(3, 0.3 * HBox);
 probeTop_cm = probeBottom_cm;
 
 probeFigureW_cm = ...
