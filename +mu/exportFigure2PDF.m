@@ -644,7 +644,7 @@ FigHandle.PaperSize = [WidthCm, HeightCm];
 
 drawnow;
 
-if ~verLessThan('matlab', '25.1')
+if ~isMATLABReleaseOlderThan('R2025a')
     % R2025a and newer: explicit output dimensions plus Padding="figure"
     % preserve the full figure canvas and exact PDF page dimensions.
     exportgraphics(FigHandle, FileName, ...
