@@ -63,38 +63,30 @@ function exportFigure2PDF(figHandle, outFile, widthMm, heightMm, opts)
 
 arguments
     figHandle (1,1) matlab.ui.Figure
-    outFile {mustBeTextScalar}
-    widthMm (1,1) double {mustBeFinite, mustBePositive}
-    heightMm (1,1) double {mustBeFinite, mustBePositive}
+    outFile   {mustBeTextScalar}
+    widthMm   (1,1) double {mustBeFinite, mustBePositive}
+    heightMm  (1,1) double {mustBeFinite, mustBePositive}
 
-    opts.expandMode {mustBeTextScalar} = 'fixed'
-    opts.adjustOpt {mustBeTextScalar} = 'on'
-    opts.adjustPositionType {mustBeTextScalar} = 'Position'
-    opts.canvasScale (1,1) double ...
-        {mustBeFinite, mustBeGreaterThanOrEqual(opts.canvasScale, 1.2)} = 2
-    opts.maxIter (1,1) double ...
-        {mustBeInteger, mustBePositive} = 12
-    opts.toleranceMm (1,1) double ...
-        {mustBeFinite, mustBePositive} = 0.01
+    opts.expandMode {mustBeMember(opts.expandMode, {'fixed', 'keepratio-width', 'keepratio-height', 'keepratio-min', 'keepratio-max'})} = 'fixed'
+    opts.adjustOpt  {mustBeMember(opts.adjustOpt, {'on', 'off'})} = 'on'
+    opts.adjustPositionType {mustBeMember(opts.adjustPositionType, {'Position', 'TightInset'})} = 'Position'
+    opts.canvasScale (1,1) double {mustBeFinite, mustBeGreaterThanOrEqual(opts.canvasScale, 1.2)} = 2
+    opts.maxIter (1,1) double {mustBeInteger, mustBePositive} = 12
+    opts.toleranceMm (1,1) double {mustBeFinite, mustBePositive} = 0.01
     opts.debug (1,1) logical = false
 end
 
 expandMode = lower(validatestring( ...
     opts.expandMode, ...
-    { ...
-        'fixed', ...
-        'keepratio-width', ...
-        'keepratio-height', ...
-        'keepratio-min', ...
-        'keepratio-max'}, ...
+    {'fixed', ...
+     'keepratio-width', ...
+     'keepratio-height', ...
+     'keepratio-min', ...
+     'keepratio-max'}, ...
     mfilename, ...
     'expandMode'));
 
-adjustOpt = lower(validatestring( ...
-    opts.adjustOpt, ...
-    {'on', 'off'}, ...
-    mfilename, ...
-    'adjustOpt'));
+adjustOpt = mu.OptionState.create(opts.adjustOpt).toLogical;
 
 adjustPositionType = lower(validatestring( ...
     opts.adjustPositionType, ...
@@ -134,9 +126,8 @@ else
     outFile = fullfile(folderPath, [fileName, extension]);
 end
 
+% Update figure before copy
 drawnow;
-drawnow;
-
 tempFig = copyobj(figHandle, groot);
 cleanupObj = onCleanup(@() delete(tempFig));
 
@@ -161,7 +152,6 @@ for axesIndex = 1:numel(axesHandles)
 end
 
 drawnow;
-drawnow;
 
 screenPpi = double(get(groot, 'ScreenPixelsPerInch'));
 
@@ -173,12 +163,11 @@ pxPerMm = screenPpi / 25.4;
 mmPerPx = 1 / pxPerMm;
 tolerancePx = opts.toleranceMm * pxPerMm;
 
-if strcmp(adjustOpt, 'off')
+if adjustOpt
     local_setFigureSizePx_( ...
         tempFig, ...
         [widthMm, heightMm] * pxPerMm);
 
-    drawnow;
     drawnow;
 
     try
@@ -290,10 +279,8 @@ for rootIndex = 1:numel(rootHandles)
 end
 
 drawnow;
-drawnow;
 
 converged = false;
-iteration = 0;
 finalBoundaryPx = initialBoundaryPx;
 finalElements = initialElements;
 
@@ -336,7 +323,6 @@ for iteration = 1:opts.maxIter
     end
 
     drawnow;
-    drawnow;
 
     [measuredBoundaryPx, measuredElements] = mu.getContentBox( ...
         tempFig, ...
@@ -367,7 +353,6 @@ for iteration = 1:opts.maxIter
                 tempFig);
         end
 
-        drawnow;
         drawnow;
     end
 
@@ -416,7 +401,6 @@ if any(contentShiftPx > tolerancePx)
     end
 
     drawnow;
-    drawnow;
 
     [finalBoundaryPx, finalElements] = mu.getContentBox( ...
         tempFig, ...
@@ -453,7 +437,6 @@ if any(requiredFigureSizePx > currentFigureSizePx)
             tempFig);
     end
 
-    drawnow;
     drawnow;
 
     [finalBoundaryPx, finalElements] = mu.getContentBox( ...
@@ -571,7 +554,7 @@ end
 
 originalUnits = objectHandle.Units;
 cleanupObj = onCleanup(@() ...
-    local_restoreUnits_(objectHandle, originalUnits)); %#ok<NASGU>
+    local_restoreUnits_(objectHandle, originalUnits));
 
 objectHandle.Units = 'pixels';
 parentHandle = local_parent_(objectHandle);
@@ -680,7 +663,7 @@ try
 catch
     originalUnits = figHandle.Units;
     cleanupObj = onCleanup(@() ...
-        local_restoreUnits_(figHandle, originalUnits)); %#ok<NASGU>
+        local_restoreUnits_(figHandle, originalUnits));
 
     figHandle.Units = 'pixels';
     figurePosition = reshape(double(figHandle.Position), 1, 4);
@@ -707,7 +690,7 @@ end
 
 originalUnits = figHandle.Units;
 cleanupObj = onCleanup(@() ...
-    local_restoreUnits_(figHandle, originalUnits)); %#ok<NASGU>
+    local_restoreUnits_(figHandle, originalUnits));
 
 figHandle.Units = 'pixels';
 figurePosition = reshape(double(figHandle.Position), 1, 4);

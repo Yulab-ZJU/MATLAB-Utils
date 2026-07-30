@@ -67,9 +67,10 @@ function [contentBox, elementBoxes] = getContentBox(figHandle, opts)
 %       Selected Position or TightInset measurement used for content sizing.
 
 arguments
-    figHandle (1,1) matlab.ui.Figure
-    opts.PositionType {mustBeTextScalar} = 'position'
-    opts.Annotation (1,1) logical = false
+    figHandle         (1,1) matlab.ui.Figure
+
+    opts.PositionType {mustBeMember(opts.PositionType, {'Position', 'TightInset'})} = 'Position'
+    opts.Annotation   (1,1) logical = false
 end
 
 positionType = lower(validatestring( ...
@@ -81,7 +82,6 @@ positionType = lower(validatestring( ...
 debugTag = 'mu.getContentBox.annotation';
 local_deleteAnnotations_(figHandle, debugTag);
 
-drawnow;
 drawnow;
 
 allObjects = findall(figHandle);
@@ -101,7 +101,7 @@ for layoutIndex = 1:numel(layoutHandles)
     layoutHandle = layoutHandles(layoutIndex);
 
     if ~local_hasTiledLayoutAncestor_(layoutHandle, figHandle)
-        rootLayoutHandles(end + 1, 1) = layoutHandle; %#ok<AGROW>
+        rootLayoutHandles(end + 1, 1) = layoutHandle; 
     end
 end
 
@@ -121,7 +121,7 @@ else
             continue;
         end
 
-        rootHandles(end + 1, 1) = objectHandle; %#ok<AGROW>
+        rootHandles(end + 1, 1) = objectHandle; 
     end
 end
 
@@ -173,7 +173,7 @@ for rootIndex = 1:numel(rootHandles)
 
     if ~selectedSuccess
         selectedBox = positionBox;
-        method = [method, ' fallback to Position'];
+        method = [method, ' fallback to Position']; %#ok<*AGROW>
     end
 
     if local_isTiledLayout_(rootHandle)
@@ -184,7 +184,7 @@ for rootIndex = 1:numel(rootHandles)
         axesHandle = rootHandle;
     end
 
-    items(end + 1) = struct( ... %#ok<AGROW>
+    items(end + 1) = struct( ...
         'handle', rootHandle, ...
         'type', typeName, ...
         'subtype', class(rootHandle), ...
@@ -467,7 +467,7 @@ end
 try
     originalUnits = axesHandle.Units;
     cleanupObj = onCleanup(@() ...
-        local_restoreUnits_(axesHandle, originalUnits)); %#ok<NASGU>
+        local_restoreUnits_(axesHandle, originalUnits)); 
 
     axesHandle.Units = 'pixels';
     positionPx = reshape(double(axesHandle.Position), 1, 4);
@@ -505,7 +505,7 @@ for objectIndex = 1:numel(descendants)
             local_getAxesTightBox_(objectHandle, figHandle);
 
         if axesSuccess
-            tightBoxes(end + 1, :) = axesTightBox; %#ok<AGROW>
+            tightBoxes(end + 1, :) = axesTightBox; 
         end
 
     elseif local_isDecoration_(objectHandle) && ...
@@ -515,7 +515,7 @@ for objectIndex = 1:numel(descendants)
                 objectHandle, figHandle);
 
         if decorationSuccess
-            tightBoxes(end + 1, :) = decorationBox; %#ok<AGROW>
+            tightBoxes(end + 1, :) = decorationBox; 
         end
     end
 end
@@ -877,7 +877,7 @@ try
 catch
     originalUnits = figHandle.Units;
     cleanupObj = onCleanup(@() ...
-        local_restoreUnits_(figHandle, originalUnits)); %#ok<NASGU>
+        local_restoreUnits_(figHandle, originalUnits)); 
 
     figHandle.Units = 'pixels';
     figurePosition = reshape(double(figHandle.Position), 1, 4);
