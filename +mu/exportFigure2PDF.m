@@ -1,1214 +1,1515 @@
-function exportFigure2PDF(FigHandle, FileName, WidthMm, HeightMm, Opts)
-%EXPORTFIGURE2PDF Export a MATLAB figure to a vector PDF with controlled size.
+function exportFigure2PDF(figHandle, fileName, widthMm, heightMm, opts)
+%EXPORTFIGURE2PDF Export a MATLAB figure to a vector PDF.
 %
-% This implementation supports two adjustment modes:
+% SYNTAX:
+%   mu.exportFigure2PDF(figHandle, fileName, widthMm, heightMm)
+%   mu.exportFigure2PDF(..., "adjustPositionType", "TightInset")
+%   mu.exportFigure2PDF(..., "adjustPositionType", "Position")
 %
-%   adjustPositionType = "TightInset"
-%       WidthMm and HeightMm specify the final PDF page size. The complete
-%       measured visible content is fitted into that page and centered.
+% ADJUSTMENT MODES:
+%   "TightInset"
+%       widthMm and heightMm specify the final measured visible-content
+%       size, not the initial figure canvas size. The copied figure canvas
+%       is iteratively resized while preserving the source normalized
+%       top-level layout geometry until:
 %
-%   adjustPositionType = "Position"
-%       WidthMm and HeightMm specify the union size of the top-level layout
-%       Position boxes. Margins required by labels, titles, legends,
-%       colorbars, and other decorations are added to the final PDF page.
+%           contentWidth  = widthMm
+%           contentHeight = heightMm
 %
-% Important implementation details:
-%   1. Since R2025a, exportgraphics is called with Width, Height, Units,
-%      Padding="figure", and PreserveAspectRatio="off". This prevents the
-%      default tight crop from silently changing the requested PDF size.
-%   2. Position mode checks overflow on all four sides and iteratively grows
-%      the corresponding page margins. The Position-box size is unchanged.
-%   3. TightInset mode keeps a small renderer-safety inset and centers the
-%      fitted content, preventing edge clipping of text and graphics whose
-%      rendered bounds slightly exceed MATLAB TightInset/Extent estimates.
+%       The surrounding blank region of the temporary figure is removed at
+%       print time. This avoids translating a tiledlayout Position, which
+%       may be ignored or recomputed by MATLAB's layout manager.
+%
+%   "Position"
+%       widthMm and heightMm specify the union size of the top-level layout
+%       Position boxes. Extra margins required by labels, titles, legends,
+%       and colorbars are added to the final PDF page.
+%
+% IMPORTANT:
+%   In TightInset mode, do not map the top-level tiledlayout Position using
+%   an axes-derived TightInset boundary. These are different geometries:
+%
+%       - tiledlayout.Position describes the layout container;
+%       - axes Position + TightInset describes rendered descendants.
+%
+%   Their relationship changes after figure resizing because layout padding,
+%   font sizes, legends, and labels contain fixed-pixel components.
+%
+%   Axes-owned title and label text is measured explicitly in addition to
+%   Axes.TightInset. This prevents tiledlayout title/xlabel/ylabel extents
+%   from being clipped by the final content-box crop.
 %
 % INPUTS:
-%   FigHandle : figure handle
-%   FileName  : output PDF path
-%   WidthMm   : target width in millimeters
-%   HeightMm  : target height in millimeters
+%   figHandle : figure handle
+%   fileName  : output PDF path
+%   widthMm   : target width in millimeters
+%   heightMm  : target height in millimeters
 %
 % NAME-VALUE OPTIONS:
 %   expandMode:
-%       "fixed"             - use WidthMm and HeightMm directly
-%       "keepratio-width"   - preserve ratio using WidthMm
-%       "keepratio-height"  - preserve ratio using HeightMm
-%       "keepratio-min"     - preserve ratio using the smaller constraint
+%       "fixed"             - use widthMm and heightMm directly
+%       "keepratio-width"   - preserve Position-box ratio using widthMm
+%       "keepratio-height"  - preserve Position-box ratio using heightMm
+%       "keepratio-min"     - preserve ratio within both constraints
 %       "keepratio-max"     - preserve ratio using the larger constraint
 %
 %   adjustOpt:
-%       "on"  - adjust layout boundary, default
-%       "off" - WidthMm and HeightMm are the complete figure/page size
+%       "on"  - adjust layout, default
+%       "off" - resize the complete figure only
 %
 %   adjustPositionType:
-%       "TightInset" - fit complete visible content into the requested page
-%       "Position"   - preserve requested Position-box size and add margins
+%       "TightInset" - fixed measured visible-content size
+%       "Position"   - fixed Position-box size plus measured margins
 %
 %   tol:
-%       relative fitting/containment tolerance, default 1e-3
+%       relative convergence tolerance, default 1e-3
 %
 %   maxIter:
-%       maximum fitting/containment iterations, default 100
+%       maximum iteration count, default 100
 %
 %   debug:
-%       true keeps the temporary figure visible after exporting
+%       keep the temporary figure visible and print iteration diagnostics
 %
 % EXAMPLE:
 %   mu.exportFigure2PDF(gcf, "test.pdf", 140, 80, ...
-%       "adjustPositionType", "Position");
+%       "adjustPositionType", "TightInset", ...
+%       "debug", true);
 
 arguments
-    FigHandle (1, 1) matlab.ui.Figure
-    FileName {mustBeTextScalar}
-    WidthMm (1, 1) double {mustBePositive}
-    HeightMm (1, 1) double {mustBePositive}
+    figHandle (1, 1) matlab.ui.Figure
+    fileName {mustBeTextScalar}
+    widthMm (1, 1) double {mustBePositive, mustBeFinite}
+    heightMm (1, 1) double {mustBePositive, mustBeFinite}
 
-    Opts.expandMode {mustBeMember(Opts.expandMode, { ...
-        'fixed', 'keepratio-width', 'keepratio-height', ...
-        'keepratio-min', 'keepratio-max'})} = "fixed"
+    opts.expandMode {mustBeMember(opts.expandMode, { ...
+        'fixed', ...
+        'keepratio-width', ...
+        'keepratio-height', ...
+        'keepratio-min', ...
+        'keepratio-max'})} = "fixed"
 
-    Opts.adjustOpt {mustBeMember(Opts.adjustOpt, { ...
+    opts.adjustOpt {mustBeMember(opts.adjustOpt, { ...
         'on', 'off', 'ON', 'OFF', 'On', 'Off'})} = "on"
 
-    Opts.adjustPositionType {mustBeMember(Opts.adjustPositionType, { ...
-        'TightInset', 'Position', 'tightinset', 'position'})} = "Position"
+    opts.adjustPositionType {mustBeMember(opts.adjustPositionType, { ...
+        'TightInset', 'Position', 'tightinset', 'position'})} = "TightInset"
 
-    Opts.tol (1, 1) double {mustBeNonnegative} = 1e-3
-    Opts.maxIter (1, 1) double {mustBePositive, mustBeInteger} = 100
-    Opts.debug (1, 1) logical = false
+    opts.tol (1, 1) double ...
+        {mustBeNonnegative, mustBeFinite} = 1e-3
+
+    opts.maxIter (1, 1) double ...
+        {mustBePositive, mustBeInteger, mustBeFinite} = 100
+
+    opts.debug (1, 1) logical = false
 end
 
-ExpandMode = validatestring(char(Opts.expandMode), { ...
+expandMode = validatestring(char(opts.expandMode), { ...
     'fixed', ...
     'keepratio-width', ...
     'keepratio-height', ...
     'keepratio-min', ...
     'keepratio-max'});
 
-AdjustOpt = strcmpi(char(Opts.adjustOpt), 'on');
-AdjustPositionType = lower(string(validatestring( ...
-    char(Opts.adjustPositionType), { ...
-    'TightInset', 'Position', 'tightinset', 'position'})));
+adjustOpt = strcmpi(char(opts.adjustOpt), 'on');
 
-Tol = Opts.tol;
-MaxIter = Opts.maxIter;
+adjustPositionType = lower(string(validatestring( ...
+    char(opts.adjustPositionType), { ...
+    'TightInset', ...
+    'Position', ...
+    'tightinset', ...
+    'position'})));
 
-if startsWith(ExpandMode, 'keepratio') && ...
-        AdjustPositionType == "tightinset"
-    warning('exportFigure2PDF:AdjustPositionTypeChanged', ...
-        ['expandMode="%s" requires preserving Position geometry. ' ...
-         'adjustPositionType has been changed from "TightInset" ' ...
-         'to "Position".'], ExpandMode);
-    AdjustPositionType = "position";
-end
+fileName = string(fileName);
+targetWidthCm = widthMm / 10;
+targetHeightCm = heightMm / 10;
 
-FileName = string(FileName);
-
-% Complete pending layout calculations before copying the source figure.
 drawnow;
 
-TempFig = copyobj(FigHandle, 0);
-CleanupObj = onCleanup(@() CloseIfValid(TempFig));
+tempFig = copyobj(figHandle, 0);
+cleanupObj = onCleanup(@() local_closeIfValid_(tempFig));
 
 try
-    TempFig.WindowState = "normal";
+    tempFig.WindowState = "normal";
 catch
 end
 
-if ~Opts.debug
-    TempFig.Visible = "off";
+try
+    tempFig.Renderer = "painters";
+catch
 end
 
+if opts.debug
+    tempFig.Visible = "on";
+else
+    tempFig.Visible = "off";
+end
+
+local_disableToolbars_(tempFig);
+drawnow;
 drawnow;
 
-if ~AdjustOpt
-    FinalPaperWidthCm = WidthMm / 10;
-    FinalPaperHeightCm = HeightMm / 10;
+layoutRoots = local_getLayoutRoots_(tempFig);
 
-    SetFigureSize(TempFig, FinalPaperWidthCm, FinalPaperHeightCm);
-    DisableToolbars(TempFig);
+if isempty(layoutRoots)
+    error('exportFigure2PDF:NoLayoutChildren', ...
+        ['No top-level layout object with writable Units and Position ' ...
+         'properties was found.']);
+end
+
+sourceFigureSizeCm = local_getFigureSizeCm_(tempFig);
+sourceRootPositionCm = local_getRootPositionsCm_( ...
+    layoutRoots, tempFig);
+
+if any(sourceFigureSizeCm <= 0) || ...
+        any(~isfinite(sourceFigureSizeCm))
+    error('exportFigure2PDF:InvalidSourceFigureSize', ...
+        'The copied source figure has an invalid physical size.');
+end
+
+sourceRootPositionNormalized = ...
+    sourceRootPositionCm ./ [ ...
+        sourceFigureSizeCm(1), ...
+        sourceFigureSizeCm(2), ...
+        sourceFigureSizeCm(1), ...
+        sourceFigureSizeCm(2)];
+
+if ~adjustOpt
+    local_setFigureSize_(tempFig, targetWidthCm, targetHeightCm);
+    local_assignRootPositionsCm_( ...
+        layoutRoots, ...
+        sourceRootPositionNormalized .* [ ...
+            targetWidthCm, targetHeightCm, ...
+            targetWidthCm, targetHeightCm], ...
+        tempFig);
+    drawnow;
     drawnow;
 
-    ExportExactPage( ...
-        TempFig, FileName, FinalPaperWidthCm, FinalPaperHeightCm);
+    finalPaperWidthCm = targetWidthCm;
+    finalPaperHeightCm = targetHeightCm;
+    iterationCount = 0;
+    reservedMarginsCm = [0, 0, 0, 0];
 
-    fprintf('============== PDF Exporting ==============\n');
-    fprintf('Adjustment: off\n');
-    fprintf('Final paper size: %.3g x %.3g cm\n', ...
-        FinalPaperWidthCm, FinalPaperHeightCm);
-    fprintf('PDF file exported to: %s\n', mu.getabspath(FileName));
-    fprintf('================== Done ===================\n');
-    return;
-end
+    [finalContentBoxCm, finalContentWidthCm, ...
+        finalContentHeightCm] = ...
+        local_getContentBoundaryCm_(tempFig, layoutRoots);
 
-LayoutRoots = GetLayoutRoots(TempFig);
-
-if isempty(LayoutRoots)
-    error('exportFigure2PDF:NoLayoutChildren', ...
-        ['No top-level layout objects with writable Units and Position ' ...
-         'properties were found in the figure.']);
-end
-
-RootPositionCm = GetRootPositions( ...
-    LayoutRoots, TempFig, "centimeters");
-
-switch AdjustPositionType
-    case "tightinset"
-        [ReferenceBox, ReferenceWidth, ReferenceHeight] = ...
-            GetContentBorderBox( ...
-                TempFig, LayoutRoots, "centimeters");
-
-    case "position"
-        [ReferenceBox, ReferenceWidth, ReferenceHeight] = ...
-            GetBoxUnion(RootPositionCm);
-
-    otherwise
-        error('exportFigure2PDF:InvalidPositionType', ...
-            'Invalid adjustPositionType: %s.', AdjustPositionType);
-end
-
-if ReferenceWidth <= 0 || ReferenceHeight <= 0 || ...
-        ~all(isfinite([ReferenceBox, ReferenceWidth, ReferenceHeight]))
-    error('exportFigure2PDF:InvalidLayoutBox', ...
-        'The measured layout boundary has invalid width or height.');
-end
-
-TargetRatio = WidthMm / HeightMm;
-ReferenceRatio = ReferenceWidth / ReferenceHeight;
-
-if AdjustPositionType == "tightinset"
-    EffectiveExpandMode = 'fixed';
 else
-    EffectiveExpandMode = ExpandMode;
+    switch adjustPositionType
+        case "tightinset"
+            if ~strcmp(expandMode, 'fixed')
+                warning('exportFigure2PDF:ExpandModeIgnored', ...
+                    ['expandMode="%s" is ignored in TightInset mode. ' ...
+                     'The measured content size remains %.4g x %.4g cm.'], ...
+                    expandMode, targetWidthCm, targetHeightCm);
+            end
+
+            [iterationCount, finalFigureSizeCm, ...
+                finalContentBoxCm, finalContentWidthCm, ...
+                finalContentHeightCm] = ...
+                local_fitTightInsetContent_( ...
+                    tempFig, ...
+                    layoutRoots, ...
+                    sourceRootPositionNormalized, ...
+                    targetWidthCm, ...
+                    targetHeightCm, ...
+                    opts.tol, ...
+                    opts.maxIter, ...
+                    opts.debug);
+
+            finalPaperWidthCm = targetWidthCm;
+            finalPaperHeightCm = targetHeightCm;
+            reservedMarginsCm = [0, 0, 0, 0];
+
+        case "position"
+            sourcePositionBoxCm = ...
+                local_getBoxUnion_(sourceRootPositionCm);
+
+            sourcePositionWidthCm = ...
+                sourcePositionBoxCm(3) - ...
+                sourcePositionBoxCm(1);
+
+            sourcePositionHeightCm = ...
+                sourcePositionBoxCm(4) - ...
+                sourcePositionBoxCm(2);
+
+            if sourcePositionWidthCm <= 0 || ...
+                    sourcePositionHeightCm <= 0
+                error('exportFigure2PDF:InvalidPositionBox', ...
+                    'The source Position union has invalid dimensions.');
+            end
+
+            sourcePositionRatio = ...
+                sourcePositionWidthCm / ...
+                sourcePositionHeightCm;
+
+            requestedRatio = widthMm / heightMm;
+
+            [positionWidthCm, positionHeightCm] = ...
+                local_resolvePositionSize_( ...
+                    targetWidthCm, ...
+                    targetHeightCm, ...
+                    requestedRatio, ...
+                    sourcePositionRatio, ...
+                    expandMode);
+
+            scaleX = positionWidthCm / sourcePositionWidthCm;
+            scaleY = positionHeightCm / sourcePositionHeightCm;
+
+            if ~strcmp(expandMode, 'fixed')
+                uniformScale = min(scaleX, scaleY);
+                scaleX = uniformScale;
+                scaleY = uniformScale;
+            end
+
+            baseRootPositionCm = sourceRootPositionCm;
+
+            baseRootPositionCm(:, 1) = ...
+                (sourceRootPositionCm(:, 1) - ...
+                 sourcePositionBoxCm(1)) * scaleX;
+
+            baseRootPositionCm(:, 2) = ...
+                (sourceRootPositionCm(:, 2) - ...
+                 sourcePositionBoxCm(2)) * scaleY;
+
+            baseRootPositionCm(:, 3) = ...
+                sourceRootPositionCm(:, 3) * scaleX;
+
+            baseRootPositionCm(:, 4) = ...
+                sourceRootPositionCm(:, 4) * scaleY;
+
+            safetyCm = max( ...
+                0.03, ...
+                2 * local_pixelToCentimeterScale_(tempFig));
+
+            [reservedMarginsCm, ...
+                finalPaperWidthCm, ...
+                finalPaperHeightCm, ...
+                finalContentBoxCm, ...
+                finalContentWidthCm, ...
+                finalContentHeightCm, ...
+                iterationCount] = ...
+                local_fitPositionPage_( ...
+                    tempFig, ...
+                    layoutRoots, ...
+                    baseRootPositionCm, ...
+                    positionWidthCm, ...
+                    positionHeightCm, ...
+                    safetyCm, ...
+                    opts.tol, ...
+                    opts.maxIter, ...
+                    opts.debug);
+    end
 end
 
-switch EffectiveExpandMode
+local_disableToolbars_(tempFig);
+drawnow;
+drawnow;
+
+[finalContentBoxCm, finalContentWidthCm, ...
+    finalContentHeightCm] = ...
+    local_getContentBoundaryCm_(tempFig, layoutRoots);
+
+isTightInsetAdjusted = ...
+    adjustOpt && adjustPositionType == "tightinset";
+
+if isTightInsetAdjusted
+    relativeDifference = [ ...
+        (finalContentWidthCm - targetWidthCm) / targetWidthCm, ...
+        (finalContentHeightCm - targetHeightCm) / targetHeightCm];
+
+    pixelSizeCm = local_pixelToCentimeterScale_(tempFig);
+    absoluteToleranceCm = [ ...
+        max(opts.tol * targetWidthCm, pixelSizeCm), ...
+        max(opts.tol * targetHeightCm, pixelSizeCm)];
+
+    absoluteDifferenceCm = abs([ ...
+        finalContentWidthCm - targetWidthCm, ...
+        finalContentHeightCm - targetHeightCm]);
+
+    if any(absoluteDifferenceCm > absoluteToleranceCm)
+        warning('exportFigure2PDF:TightInsetNotConverged', ...
+            ['TightInset fitting did not fully converge after %d ' ...
+             'iterations. Measured content size is %.6g x %.6g cm; ' ...
+             'target is %.6g x %.6g cm.'], ...
+            iterationCount, ...
+            finalContentWidthCm, ...
+            finalContentHeightCm, ...
+            targetWidthCm, ...
+            targetHeightCm);
+    end
+
+    % Crop the surrounding temporary-figure whitespace and apply only the
+    % small residual scale needed to map the measured content boundary
+    % exactly onto the requested PDF page.
+    local_exportCroppedContentPage_( ...
+        tempFig, ...
+        fileName, ...
+        finalContentBoxCm, ...
+        finalPaperWidthCm, ...
+        finalPaperHeightCm);
+else
+    overflowCm = [ ...
+        max(0, -finalContentBoxCm(1)), ...
+        max(0, -finalContentBoxCm(2)), ...
+        max(0, finalContentBoxCm(3) - finalPaperWidthCm), ...
+        max(0, finalContentBoxCm(4) - finalPaperHeightCm)];
+
+    absoluteToleranceCm = max( ...
+        opts.tol * max(finalPaperWidthCm, finalPaperHeightCm), ...
+        2 * local_pixelToCentimeterScale_(tempFig));
+
+    if any(overflowCm > absoluteToleranceCm)
+        warning('exportFigure2PDF:VisibleContentOverflow', ...
+            ['Visible content extends outside the final page. ' ...
+             'Overflow [L B R T] = [%g %g %g %g] cm.'], ...
+            overflowCm);
+    end
+
+    local_exportExactPage_( ...
+        tempFig, ...
+        fileName, ...
+        finalPaperWidthCm, ...
+        finalPaperHeightCm);
+end
+
+fprintf('============== PDF Exporting ==============\n');
+
+if ~adjustOpt
+    fprintf('Adjustment: off\n');
+elseif adjustPositionType == "tightinset"
+    fprintf('adjustPositionType: tightinset\n');
+    fprintf(['PDF exporting: Iter=%d, tol=%.3g, ' ...
+        'w_diff=%.3g, h_diff=%.3g\n'], ...
+        iterationCount, ...
+        opts.tol, ...
+        relativeDifference(1), ...
+        relativeDifference(2));
+
+    fprintf('Target content-box size: %.3g x %.3g cm\n', ...
+        targetWidthCm, targetHeightCm);
+
+    fprintf('Final temporary figure size: %.3g x %.3g cm\n', ...
+        finalFigureSizeCm(1), finalFigureSizeCm(2));
+
+    fprintf(['Measured content boundary in temporary figure ' ...
+        '[L B R T]: [%.3g %.3g %.3g %.3g] cm\n'], ...
+        finalContentBoxCm);
+
+    fprintf('Measured content size before final crop: %.3g x %.3g cm\n', ...
+        finalContentWidthCm, finalContentHeightCm);
+
+    fprintf(['Final PDF content boundary [L B R T]: ' ...
+        '[0 0 %.3g %.3g] cm\n'], ...
+        finalPaperWidthCm, finalPaperHeightCm);
+else
+    fprintf('adjustPositionType: position\n');
+
+    fprintf('Target Position-box size: %.3g x %.3g cm\n', ...
+        finalPaperWidthCm - ...
+            reservedMarginsCm(1) - reservedMarginsCm(3), ...
+        finalPaperHeightCm - ...
+            reservedMarginsCm(2) - reservedMarginsCm(4));
+
+    fprintf(['Reserved margins [L B R T]: ' ...
+        '[%.3g %.3g %.3g %.3g] cm\n'], ...
+        reservedMarginsCm);
+
+    fprintf(['Final content boundary [L B R T]: ' ...
+        '[%.3g %.3g %.3g %.3g] cm\n'], ...
+        finalContentBoxCm);
+end
+
+fprintf('Final paper size: %.3g x %.3g cm\n', ...
+    finalPaperWidthCm, finalPaperHeightCm);
+
+fprintf('PDF file exported to: %s\n', ...
+    mu.getabspath(fileName));
+
+fprintf('================== Done ===================\n');
+
+if opts.debug
+    uiwait(tempFig);
+end
+
+clear cleanupObj;
+end
+
+function [iterationCount, figureSizeCm, ...
+    contentBoxCm, contentWidthCm, contentHeightCm] = ...
+    local_fitTightInsetContent_( ...
+        figHandle, ...
+        layoutRoots, ...
+        rootPositionNormalized, ...
+        targetContentWidthCm, ...
+        targetContentHeightCm, ...
+        tolerance, ...
+        maxIter, ...
+        debugMode)
+% Resize the complete figure canvas until the visible-content union reaches
+% the requested physical size.
+%
+% The top-level layout roots keep their source normalized geometry. This is
+% the stable degree of freedom for tiledlayout: changing the figure canvas
+% makes the layout manager recompute tile padding and axes positions, while
+% direct translation of tiledlayout.Position may be ignored.
+
+figureSizeCm = [ ...
+    targetContentWidthCm, ...
+    targetContentHeightCm];
+
+damping = 0.8;
+minimumCorrection = 0.5;
+maximumCorrection = 2;
+
+pixelSizeCm = local_pixelToCentimeterScale_(figHandle);
+
+absoluteToleranceCm = [ ...
+    max(tolerance * targetContentWidthCm, pixelSizeCm), ...
+    max(tolerance * targetContentHeightCm, pixelSizeCm)];
+
+bestError = inf;
+bestFigureSizeCm = figureSizeCm;
+bestContentBoxCm = nan(1, 4);
+bestContentWidthCm = nan;
+bestContentHeightCm = nan;
+
+previousError = inf;
+nonImprovingCount = 0;
+iterationCount = 0;
+
+for iterationIndex = 1:maxIter
+    iterationCount = iterationIndex;
+
+    local_setFigureSize_( ...
+        figHandle, figureSizeCm(1), figureSizeCm(2));
+
+    rootPositionCm = ...
+        rootPositionNormalized .* [ ...
+            figureSizeCm(1), ...
+            figureSizeCm(2), ...
+            figureSizeCm(1), ...
+            figureSizeCm(2)];
+
+    local_assignRootPositionsCm_( ...
+        layoutRoots, rootPositionCm, figHandle);
+    drawnow;
+
+    % tiledlayout can complete a second managed-layout pass after drawnow.
+    local_assignRootPositionsCm_( ...
+        layoutRoots, rootPositionCm, figHandle);
+    drawnow;
+
+    [contentBoxCm, contentWidthCm, contentHeightCm] = ...
+        local_getContentBoundaryCm_(figHandle, layoutRoots);
+
+    contentDifferenceCm = [ ...
+        contentWidthCm - targetContentWidthCm, ...
+        contentHeightCm - targetContentHeightCm];
+
+    relativeDifference = [ ...
+        contentDifferenceCm(1) / targetContentWidthCm, ...
+        contentDifferenceCm(2) / targetContentHeightCm];
+
+    normalizedError = max(abs(relativeDifference));
+
+    if normalizedError < bestError
+        bestError = normalizedError;
+        bestFigureSizeCm = figureSizeCm;
+        bestContentBoxCm = contentBoxCm;
+        bestContentWidthCm = contentWidthCm;
+        bestContentHeightCm = contentHeightCm;
+    end
+
+    if debugMode
+        fprintf([ ...
+            '  iter=%d, figure=[%.8g %.8g] cm, ' ...
+            'content=[%.8g %.8g %.8g %.8g] cm, ' ...
+            'size=[%.8g %.8g] cm, ' ...
+            'diff=[%.8g %.8g] cm\n'], ...
+            iterationIndex, ...
+            figureSizeCm, ...
+            contentBoxCm, ...
+            contentWidthCm, contentHeightCm, ...
+            contentDifferenceCm);
+
+        pause(0.03);
+    end
+
+    if all(abs(contentDifferenceCm) <= absoluteToleranceCm)
+        break;
+    end
+
+    correction = [ ...
+        targetContentWidthCm / contentWidthCm, ...
+        targetContentHeightCm / contentHeightCm];
+
+    if any(~isfinite(correction)) || any(correction <= 0)
+        error('exportFigure2PDF:InvalidTightInsetCorrection', ...
+            'Invalid figure-size correction: [%g %g].', ...
+            correction);
+    end
+
+    correction = min( ...
+        max(correction, minimumCorrection), ...
+        maximumCorrection);
+
+    if normalizedError >= previousError * (1 - 1e-3)
+        nonImprovingCount = nonImprovingCount + 1;
+    else
+        nonImprovingCount = 0;
+    end
+
+    if nonImprovingCount >= 2
+        damping = max(0.35, 0.5 * damping);
+        nonImprovingCount = 0;
+    end
+
+    nextFigureSizeCm = ...
+        figureSizeCm .* correction .^ damping;
+
+    minimumFigureSizeCm = ...
+        4 * pixelSizeCm * [1, 1];
+
+    nextFigureSizeCm = max( ...
+        nextFigureSizeCm, minimumFigureSizeCm);
+
+    if max(abs(nextFigureSizeCm - figureSizeCm)) <= ...
+            0.1 * pixelSizeCm
+        break;
+    end
+
+    previousError = normalizedError;
+    figureSizeCm = nextFigureSizeCm;
+end
+
+% Restore the best measured canvas rather than an unsuccessful final trial.
+figureSizeCm = bestFigureSizeCm;
+
+local_setFigureSize_( ...
+    figHandle, figureSizeCm(1), figureSizeCm(2));
+
+rootPositionCm = ...
+    rootPositionNormalized .* [ ...
+        figureSizeCm(1), ...
+        figureSizeCm(2), ...
+        figureSizeCm(1), ...
+        figureSizeCm(2)];
+
+local_assignRootPositionsCm_( ...
+    layoutRoots, rootPositionCm, figHandle);
+drawnow;
+local_assignRootPositionsCm_( ...
+    layoutRoots, rootPositionCm, figHandle);
+drawnow;
+
+[contentBoxCm, contentWidthCm, contentHeightCm] = ...
+    local_getContentBoundaryCm_(figHandle, layoutRoots);
+
+if ~all(isfinite(contentBoxCm)) && ...
+        all(isfinite(bestContentBoxCm))
+    contentBoxCm = bestContentBoxCm;
+    contentWidthCm = bestContentWidthCm;
+    contentHeightCm = bestContentHeightCm;
+end
+end
+
+function [reservedMarginsCm, pageWidthCm, pageHeightCm, ...
+    contentBoxCm, contentWidthCm, contentHeightCm, ...
+    iterationCount] = ...
+    local_fitPositionPage_( ...
+        figHandle, ...
+        layoutRoots, ...
+        baseRootPositionCm, ...
+        positionWidthCm, ...
+        positionHeightCm, ...
+        safetyCm, ...
+        tolerance, ...
+        maxIter, ...
+        debugMode)
+% Preserve the Position-box size and grow page margins where required.
+
+probeLeftCm = max(3, 0.15 * positionWidthCm);
+probeRightCm = probeLeftCm;
+probeBottomCm = max(3, 0.15 * positionHeightCm);
+probeTopCm = probeBottomCm;
+
+probePageWidthCm = ...
+    positionWidthCm + probeLeftCm + probeRightCm;
+
+probePageHeightCm = ...
+    positionHeightCm + probeBottomCm + probeTopCm;
+
+local_setFigureSize_( ...
+    figHandle, probePageWidthCm, probePageHeightCm);
+
+probeRootPositionCm = baseRootPositionCm;
+probeRootPositionCm(:, 1) = ...
+    probeRootPositionCm(:, 1) + probeLeftCm;
+probeRootPositionCm(:, 2) = ...
+    probeRootPositionCm(:, 2) + probeBottomCm;
+
+local_assignRootPositionsCm_( ...
+    layoutRoots, probeRootPositionCm, figHandle);
+drawnow;
+local_assignRootPositionsCm_( ...
+    layoutRoots, probeRootPositionCm, figHandle);
+drawnow;
+
+actualProbeRootPositionCm = ...
+    local_getRootPositionsCm_(layoutRoots, figHandle);
+
+probePositionBoxCm = ...
+    local_getBoxUnion_(actualProbeRootPositionCm);
+
+[probeContentBoxCm, ~, ~] = ...
+    local_getContentBoundaryCm_(figHandle, layoutRoots);
+
+reservedMarginsCm = [ ...
+    max(0, probePositionBoxCm(1) - ...
+        probeContentBoxCm(1) + safetyCm), ...
+    max(0, probePositionBoxCm(2) - ...
+        probeContentBoxCm(2) + safetyCm), ...
+    max(0, probeContentBoxCm(3) - ...
+        probePositionBoxCm(3) + safetyCm), ...
+    max(0, probeContentBoxCm(4) - ...
+        probePositionBoxCm(4) + safetyCm)];
+
+iterationCount = 0;
+
+for iterationIndex = 1:maxIter
+    iterationCount = iterationIndex;
+
+    pageWidthCm = ...
+        positionWidthCm + ...
+        reservedMarginsCm(1) + ...
+        reservedMarginsCm(3);
+
+    pageHeightCm = ...
+        positionHeightCm + ...
+        reservedMarginsCm(2) + ...
+        reservedMarginsCm(4);
+
+    local_setFigureSize_(figHandle, pageWidthCm, pageHeightCm);
+
+    targetRootPositionCm = baseRootPositionCm;
+    targetRootPositionCm(:, 1) = ...
+        targetRootPositionCm(:, 1) + ...
+        reservedMarginsCm(1);
+    targetRootPositionCm(:, 2) = ...
+        targetRootPositionCm(:, 2) + ...
+        reservedMarginsCm(2);
+
+    local_assignRootPositionsCm_( ...
+        layoutRoots, targetRootPositionCm, figHandle);
+    drawnow;
+    local_assignRootPositionsCm_( ...
+        layoutRoots, targetRootPositionCm, figHandle);
+    drawnow;
+
+    actualRootPositionCm = ...
+        local_getRootPositionsCm_(layoutRoots, figHandle);
+
+    actualPositionBoxCm = ...
+        local_getBoxUnion_(actualRootPositionCm);
+
+    local_shiftRoots_( ...
+        layoutRoots, ...
+        figHandle, ...
+        reservedMarginsCm(1) - actualPositionBoxCm(1), ...
+        reservedMarginsCm(2) - actualPositionBoxCm(2));
+
+    drawnow;
+
+    [contentBoxCm, contentWidthCm, contentHeightCm] = ...
+        local_getContentBoundaryCm_(figHandle, layoutRoots);
+
+    overflowCm = [ ...
+        max(0, safetyCm - contentBoxCm(1)), ...
+        max(0, safetyCm - contentBoxCm(2)), ...
+        max(0, contentBoxCm(3) + safetyCm - pageWidthCm), ...
+        max(0, contentBoxCm(4) + safetyCm - pageHeightCm)];
+
+    absoluteToleranceCm = max( ...
+        tolerance * max(pageWidthCm, pageHeightCm), ...
+        local_pixelToCentimeterScale_(figHandle));
+
+    if debugMode
+        fprintf([ ...
+            '  position iter=%d, margins=' ...
+            '[%.8g %.8g %.8g %.8g] cm, ' ...
+            'content=[%.8g %.8g %.8g %.8g] cm, ' ...
+            'overflow=[%.8g %.8g %.8g %.8g] cm\n'], ...
+            iterationIndex, ...
+            reservedMarginsCm, ...
+            contentBoxCm, ...
+            overflowCm);
+
+        pause(0.03);
+    end
+
+    if all(overflowCm <= absoluteToleranceCm)
+        break;
+    end
+
+    reservedMarginsCm = ...
+        reservedMarginsCm + overflowCm;
+end
+
+pageWidthCm = ...
+    positionWidthCm + ...
+    reservedMarginsCm(1) + ...
+    reservedMarginsCm(3);
+
+pageHeightCm = ...
+    positionHeightCm + ...
+    reservedMarginsCm(2) + ...
+    reservedMarginsCm(4);
+
+local_setFigureSize_(figHandle, pageWidthCm, pageHeightCm);
+
+finalRootPositionCm = baseRootPositionCm;
+finalRootPositionCm(:, 1) = ...
+    finalRootPositionCm(:, 1) + reservedMarginsCm(1);
+finalRootPositionCm(:, 2) = ...
+    finalRootPositionCm(:, 2) + reservedMarginsCm(2);
+
+local_assignRootPositionsCm_( ...
+    layoutRoots, finalRootPositionCm, figHandle);
+drawnow;
+local_assignRootPositionsCm_( ...
+    layoutRoots, finalRootPositionCm, figHandle);
+drawnow;
+
+[contentBoxCm, contentWidthCm, contentHeightCm] = ...
+    local_getContentBoundaryCm_(figHandle, layoutRoots);
+end
+
+function [positionWidthCm, positionHeightCm] = ...
+    local_resolvePositionSize_( ...
+        requestedWidthCm, ...
+        requestedHeightCm, ...
+        requestedRatio, ...
+        sourceRatio, ...
+        expandMode)
+
+switch expandMode
     case 'fixed'
-        TargetWidthMm = WidthMm;
-        TargetHeightMm = HeightMm;
+        positionWidthCm = requestedWidthCm;
+        positionHeightCm = requestedHeightCm;
 
     case 'keepratio-width'
-        TargetWidthMm = WidthMm;
-        TargetHeightMm = WidthMm / ReferenceRatio;
+        positionWidthCm = requestedWidthCm;
+        positionHeightCm = requestedWidthCm / sourceRatio;
 
     case 'keepratio-height'
-        TargetWidthMm = HeightMm * ReferenceRatio;
-        TargetHeightMm = HeightMm;
+        positionWidthCm = requestedHeightCm * sourceRatio;
+        positionHeightCm = requestedHeightCm;
 
     case 'keepratio-min'
-        if TargetRatio > ReferenceRatio
-            TargetWidthMm = HeightMm * ReferenceRatio;
-            TargetHeightMm = HeightMm;
+        if requestedRatio > sourceRatio
+            positionWidthCm = ...
+                requestedHeightCm * sourceRatio;
+            positionHeightCm = requestedHeightCm;
         else
-            TargetWidthMm = WidthMm;
-            TargetHeightMm = WidthMm / ReferenceRatio;
+            positionWidthCm = requestedWidthCm;
+            positionHeightCm = requestedWidthCm / sourceRatio;
         end
 
     case 'keepratio-max'
-        if TargetRatio < ReferenceRatio
-            TargetWidthMm = HeightMm * ReferenceRatio;
-            TargetHeightMm = HeightMm;
+        if requestedRatio < sourceRatio
+            positionWidthCm = ...
+                requestedHeightCm * sourceRatio;
+            positionHeightCm = requestedHeightCm;
         else
-            TargetWidthMm = WidthMm;
-            TargetHeightMm = WidthMm / ReferenceRatio;
-        end
-end
-
-TargetWidthCm = TargetWidthMm / 10;
-TargetHeightCm = TargetHeightMm / 10;
-
-SetFigureSize(TempFig, TargetWidthCm, TargetHeightCm);
-
-ScaleX = TargetWidthCm / ReferenceWidth;
-ScaleY = TargetHeightCm / ReferenceHeight;
-
-if ~strcmp(ExpandMode, 'fixed')
-    UniformScale = min(ScaleX, ScaleY);
-    ScaleX = UniformScale;
-    ScaleY = UniformScale;
-end
-
-TargetRootPositionCm = RootPositionCm;
-TargetRootPositionCm(:, 1) = ...
-    (RootPositionCm(:, 1) - ReferenceBox(1)) * ScaleX;
-TargetRootPositionCm(:, 2) = ...
-    (RootPositionCm(:, 2) - ReferenceBox(2)) * ScaleY;
-TargetRootPositionCm(:, 3) = RootPositionCm(:, 3) * ScaleX;
-TargetRootPositionCm(:, 4) = RootPositionCm(:, 4) * ScaleY;
-
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, TargetRootPositionCm, TempFig, "centimeters");
-
-drawnow;
-
-% Two screen pixels, with an absolute lower bound, are sufficient to absorb
-% renderer rounding while remaining visually negligible.
-RendererSafetyCm = max(0.05, ...
-    2 * PixelToCentimeterScale(TempFig));
-
-switch AdjustPositionType
-    case "tightinset"
-        [IterationCount, FinalContentBox, FinalContentWidth, ...
-            FinalContentHeight] = FitTightInsetPage( ...
-                TempFig, LayoutRoots, ...
-                TargetWidthCm, TargetHeightCm, ...
-                RendererSafetyCm, Tol, MaxIter);
-
-        FinalPaperWidthCm = TargetWidthCm;
-        FinalPaperHeightCm = TargetHeightCm;
-        ReservedMarginsCm = [0, 0, 0, 0];
-
-        if FinalContentWidth > ...
-                FinalPaperWidthCm - 2 * RendererSafetyCm + Tol || ...
-                FinalContentHeight > ...
-                FinalPaperHeightCm - 2 * RendererSafetyCm + Tol
-            warning('exportFigure2PDF:TightInsetNotConverged', ...
-                ['TightInset fitting did not fully converge after %d ' ...
-                 'iterations. Final measured content size is ' ...
-                 '%.4g x %.4g cm; page size is %.4g x %.4g cm.'], ...
-                IterationCount, FinalContentWidth, FinalContentHeight, ...
-                FinalPaperWidthCm, FinalPaperHeightCm);
+            positionWidthCm = requestedWidthCm;
+            positionHeightCm = requestedWidthCm / sourceRatio;
         end
 
-    case "position"
-        BaseRootPositionCm = GetRootPositions( ...
-            LayoutRoots, TempFig, "centimeters");
-
-        ReservedMarginsCm = EstimatePositionMargins( ...
-            TempFig, LayoutRoots, RendererSafetyCm);
-
-        [ReservedMarginsCm, FinalPaperWidthCm, ...
-            FinalPaperHeightCm, FinalContentBox, ...
-            FinalContentWidth, FinalContentHeight, ...
-            IterationCount] = FitPositionPage( ...
-                TempFig, LayoutRoots, BaseRootPositionCm, ...
-                TargetWidthCm, TargetHeightCm, ...
-                ReservedMarginsCm, RendererSafetyCm, Tol, MaxIter);
-end
-
-DisableToolbars(TempFig);
-drawnow;
-
-% Recheck all four page sides after toolbar/layout updates.
-[FinalContentBox, FinalContentWidth, FinalContentHeight] = ...
-    GetContentBorderBox(TempFig, LayoutRoots, "centimeters");
-
-OverflowCm = [ ...
-    max(0, -FinalContentBox(1)), ...
-    max(0, -FinalContentBox(2)), ...
-    max(0, FinalContentBox(3) - FinalPaperWidthCm), ...
-    max(0, FinalContentBox(4) - FinalPaperHeightCm)];
-
-if any(OverflowCm > max(Tol, 1e-6))
-    warning('exportFigure2PDF:UnexpectedOverflow', ...
-        ['Visible content extends outside the final page. ' ...
-         'Overflow [L B R T] = [%g %g %g %g] cm.'], ...
-        OverflowCm(1), OverflowCm(2), ...
-        OverflowCm(3), OverflowCm(4));
-end
-
-TempFig.PaperUnits = "centimeters";
-TempFig.PaperPositionMode = "manual";
-TempFig.PaperPosition = [ ...
-    0, 0, FinalPaperWidthCm, FinalPaperHeightCm];
-TempFig.PaperSize = [FinalPaperWidthCm, FinalPaperHeightCm];
-
-drawnow;
-
-ExportExactPage( ...
-    TempFig, FileName, FinalPaperWidthCm, FinalPaperHeightCm);
-
-fprintf('============== PDF Exporting ==============\n');
-fprintf('adjustPositionType: %s\n', AdjustPositionType);
-
-if AdjustPositionType == "tightinset"
-    fprintf(['PDF exporting: Iter=%d, tol=%.3g, ' ...
-             'w_diff=%.3g, h_diff=%.3g\n'], ...
-        IterationCount, Tol, ...
-        (FinalContentWidth - FinalPaperWidthCm) / FinalPaperWidthCm, ...
-        (FinalContentHeight - FinalPaperHeightCm) / FinalPaperHeightCm);
-else
-    fprintf('Target Position-box size: %.3g x %.3g cm\n', ...
-        TargetWidthCm, TargetHeightCm);
-    fprintf(['Reserved margins [L B R T]: ' ...
-             '[%.3g %.3g %.3g %.3g] cm\n'], ...
-        ReservedMarginsCm(1), ReservedMarginsCm(2), ...
-        ReservedMarginsCm(3), ReservedMarginsCm(4));
-end
-
-fprintf(['Final content boundary [L B R T]: ' ...
-         '[%.3g %.3g %.3g %.3g] cm\n'], ...
-    FinalContentBox(1), FinalContentBox(2), ...
-    FinalContentBox(3), FinalContentBox(4));
-
-fprintf('Final paper size: %.3g x %.3g cm\n', ...
-    FinalPaperWidthCm, FinalPaperHeightCm);
-fprintf('PDF file exported to: %s\n', mu.getabspath(FileName));
-fprintf('================== Done ===================\n');
-
-if Opts.debug
-    TempFig.Visible = "on";
-    uiwait(TempFig);
-end
-
-clear CleanupObj;
-end
-
-%% Local functions
-function [IterationCount, ContentBox, ContentWidth, ContentHeight] = ...
-    FitTightInsetPage(FigHandle, LayoutRoots, PageWidthCm, PageHeightCm, ...
-    SafetyCm, Tol, MaxIter)
-% Fit measured visible content into a fixed page and center it.
-
-InnerWidthCm = max(PageWidthCm - 2 * SafetyCm, eps);
-InnerHeightCm = max(PageHeightCm - 2 * SafetyCm, eps);
-IterationCount = 0;
-
-for IterationIndex = 1:MaxIter
-    IterationCount = IterationIndex;
-    drawnow;
-
-    [ContentBox, ContentWidth, ContentHeight] = ...
-        GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-
-    WidthDifference = ...
-        (ContentWidth - InnerWidthCm) / InnerWidthCm;
-    HeightDifference = ...
-        (ContentHeight - InnerHeightCm) / InnerHeightCm;
-
-    if abs(WidthDifference) <= Tol && ...
-            abs(HeightDifference) <= Tol
-        break;
-    end
-
-    ScaleX = InnerWidthCm / ContentWidth;
-    ScaleY = InnerHeightCm / ContentHeight;
-
-    if ~all(isfinite([ScaleX, ScaleY])) || ...
-            any([ScaleX, ScaleY] <= 0)
-        error('exportFigure2PDF:InvalidFitScale', ...
-            'Invalid TightInset fitting scale: [%g %g].', ...
-            ScaleX, ScaleY);
-    end
-
-    % Damping suppresses oscillations caused by text/layout quantization.
-    ScaleX = 1 + 0.8 * (ScaleX - 1);
-    ScaleY = 1 + 0.8 * (ScaleY - 1);
-    ScaleX = min(max(ScaleX, 0.5), 2);
-    ScaleY = min(max(ScaleY, 0.5), 2);
-
-    RootPositionCm = GetRootPositions( ...
-        LayoutRoots, FigHandle, "centimeters");
-
-    RootPositionCm(:, 1) = ...
-        SafetyCm + ...
-        (RootPositionCm(:, 1) - ContentBox(1)) * ScaleX;
-    RootPositionCm(:, 2) = ...
-        SafetyCm + ...
-        (RootPositionCm(:, 2) - ContentBox(2)) * ScaleY;
-    RootPositionCm(:, 3) = RootPositionCm(:, 3) * ScaleX;
-    RootPositionCm(:, 4) = RootPositionCm(:, 4) * ScaleY;
-
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, RootPositionCm, FigHandle, "centimeters");
-end
-
-drawnow;
-[ContentBox, ContentWidth, ContentHeight] = ...
-    GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-
-% If renderer quantization leaves the content slightly too large, apply one
-% final shrink-only correction before centering.
-FinalScale = min([ ...
-    1, ...
-    InnerWidthCm / ContentWidth, ...
-    InnerHeightCm / ContentHeight]);
-
-if isfinite(FinalScale) && FinalScale > 0 && FinalScale < 1
-    RootPositionCm = GetRootPositions( ...
-        LayoutRoots, FigHandle, "centimeters");
-
-    RootPositionCm(:, 1) = ...
-        SafetyCm + ...
-        (RootPositionCm(:, 1) - ContentBox(1)) * FinalScale;
-    RootPositionCm(:, 2) = ...
-        SafetyCm + ...
-        (RootPositionCm(:, 2) - ContentBox(2)) * FinalScale;
-    RootPositionCm(:, 3:4) = ...
-        RootPositionCm(:, 3:4) * FinalScale;
-
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, RootPositionCm, FigHandle, "centimeters");
-    drawnow;
-
-    [ContentBox, ContentWidth, ContentHeight] = ...
-        GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-end
-
-TargetLeftCm = SafetyCm + ...
-    max(0, InnerWidthCm - ContentWidth) / 2;
-TargetBottomCm = SafetyCm + ...
-    max(0, InnerHeightCm - ContentHeight) / 2;
-
-ShiftRoots(LayoutRoots, FigHandle, ...
-    TargetLeftCm - ContentBox(1), ...
-    TargetBottomCm - ContentBox(2), ...
-    "centimeters");
-
-drawnow;
-
-[ContentBox, ContentWidth, ContentHeight] = ...
-    GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-end
-
-function [MarginsCm, PageWidthCm, PageHeightCm, ContentBox, ...
-    ContentWidth, ContentHeight, IterationCount] = FitPositionPage( ...
-    FigHandle, LayoutRoots, BaseRootPositionCm, ...
-    PositionWidthCm, PositionHeightCm, InitialMarginsCm, ...
-    SafetyCm, Tol, MaxIter)
-% Preserve the Position-box size while growing margins on any overflowing side.
-
-MarginsCm = max(InitialMarginsCm, 0);
-IterationCount = 0;
-ContentBox = [NaN, NaN, NaN, NaN];
-ContentWidth = NaN;
-ContentHeight = NaN;
-
-for IterationIndex = 1:MaxIter
-    IterationCount = IterationIndex;
-
-    PageWidthCm = ...
-        PositionWidthCm + MarginsCm(1) + MarginsCm(3);
-    PageHeightCm = ...
-        PositionHeightCm + MarginsCm(2) + MarginsCm(4);
-
-    SetFigureSize(FigHandle, PageWidthCm, PageHeightCm);
-
-    TargetRootPositionCm = BaseRootPositionCm;
-    TargetRootPositionCm(:, 1) = ...
-        TargetRootPositionCm(:, 1) + MarginsCm(1);
-    TargetRootPositionCm(:, 2) = ...
-        TargetRootPositionCm(:, 2) + MarginsCm(2);
-
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, TargetRootPositionCm, ...
-        FigHandle, "centimeters");
-    drawnow;
-
-    % Managed layouts can rewrite positions during drawnow.
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, TargetRootPositionCm, ...
-        FigHandle, "centimeters");
-    drawnow;
-
-    RootPositionCheckCm = GetRootPositions( ...
-        LayoutRoots, FigHandle, "centimeters");
-    [PositionBoxNow, ~, ~] = GetBoxUnion(RootPositionCheckCm);
-
-    ShiftRoots(LayoutRoots, FigHandle, ...
-        MarginsCm(1) - PositionBoxNow(1), ...
-        MarginsCm(2) - PositionBoxNow(2), ...
-        "centimeters");
-    drawnow;
-
-    [ContentBox, ContentWidth, ContentHeight] = ...
-        GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-
-    OverflowCm = [ ...
-        max(0, SafetyCm - ContentBox(1)), ...
-        max(0, SafetyCm - ContentBox(2)), ...
-        max(0, ContentBox(3) + SafetyCm - PageWidthCm), ...
-        max(0, ContentBox(4) + SafetyCm - PageHeightCm)];
-
-    if all(OverflowCm <= max(Tol, 1e-6))
-        break;
-    end
-
-    % Add only the missing space on the overflowing side. Left/bottom growth
-    % shifts the Position box right/up on the next iteration; right/top
-    % growth changes only the page boundary.
-    MarginsCm = MarginsCm + OverflowCm;
-end
-
-PageWidthCm = ...
-    PositionWidthCm + MarginsCm(1) + MarginsCm(3);
-PageHeightCm = ...
-    PositionHeightCm + MarginsCm(2) + MarginsCm(4);
-
-% Rebuild the final geometry from the immutable Position-box reference.
-SetFigureSize(FigHandle, PageWidthCm, PageHeightCm);
-FinalRootPositionCm = BaseRootPositionCm;
-FinalRootPositionCm(:, 1) = ...
-    FinalRootPositionCm(:, 1) + MarginsCm(1);
-FinalRootPositionCm(:, 2) = ...
-    FinalRootPositionCm(:, 2) + MarginsCm(2);
-
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, FinalRootPositionCm, FigHandle, "centimeters");
-drawnow;
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, FinalRootPositionCm, FigHandle, "centimeters");
-drawnow;
-
-FinalRootPositionCheckCm = GetRootPositions( ...
-    LayoutRoots, FigHandle, "centimeters");
-[FinalPositionBox, ~, ~] = GetBoxUnion(FinalRootPositionCheckCm);
-ShiftRoots(LayoutRoots, FigHandle, ...
-    MarginsCm(1) - FinalPositionBox(1), ...
-    MarginsCm(2) - FinalPositionBox(2), ...
-    "centimeters");
-drawnow;
-
-[ContentBox, ContentWidth, ContentHeight] = ...
-    GetContentBorderBox(FigHandle, LayoutRoots, "centimeters");
-end
-
-function MarginsCm = EstimatePositionMargins( ...
-    FigHandle, LayoutRoots, SafetyCm)
-% Estimate [left bottom right top] margins using a temporary padded canvas.
-
-OriginalRootPositionCm = GetRootPositions( ...
-    LayoutRoots, FigHandle, "centimeters");
-[OriginalPositionBox, PositionWidthCm, PositionHeightCm] = ...
-    GetBoxUnion(OriginalRootPositionCm);
-
-OldFigureUnits = FigHandle.Units;
-FigHandle.Units = "centimeters";
-OriginalFigurePositionCm = double(FigHandle.Position);
-FigHandle.Units = OldFigureUnits;
-
-CleanupObj = onCleanup(@() RestorePositionMarginProbe( ...
-    FigHandle, LayoutRoots, OriginalFigurePositionCm, ...
-    OriginalRootPositionCm));
-
-ProbeLeftCm = max(3, 0.15 * PositionWidthCm);
-ProbeRightCm = ProbeLeftCm;
-ProbeBottomCm = max(3, 0.15 * PositionHeightCm);
-ProbeTopCm = ProbeBottomCm;
-
-ProbeFigureWidthCm = ...
-    PositionWidthCm + ProbeLeftCm + ProbeRightCm;
-ProbeFigureHeightCm = ...
-    PositionHeightCm + ProbeBottomCm + ProbeTopCm;
-
-SetFigureSize( ...
-    FigHandle, ProbeFigureWidthCm, ProbeFigureHeightCm);
-
-ProbeRootPositionCm = OriginalRootPositionCm;
-ProbeRootPositionCm(:, 1) = ...
-    ProbeRootPositionCm(:, 1) + ...
-    ProbeLeftCm - OriginalPositionBox(1);
-ProbeRootPositionCm(:, 2) = ...
-    ProbeRootPositionCm(:, 2) + ...
-    ProbeBottomCm - OriginalPositionBox(2);
-
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, ProbeRootPositionCm, ...
-    FigHandle, "centimeters");
-drawnow;
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, ProbeRootPositionCm, ...
-    FigHandle, "centimeters");
-drawnow;
-
-ActualRootPositionCm = GetRootPositions( ...
-    LayoutRoots, FigHandle, "centimeters");
-[PositionBox, ~, ~] = GetBoxUnion(ActualRootPositionCm);
-[ContentBox, ~, ~] = GetContentBorderBox( ...
-    FigHandle, LayoutRoots, "centimeters");
-
-RawMarginsCm = [ ...
-    max(0, PositionBox(1) - ContentBox(1)), ...
-    max(0, PositionBox(2) - ContentBox(2)), ...
-    max(0, ContentBox(3) - PositionBox(3)), ...
-    max(0, ContentBox(4) - PositionBox(4))];
-
-% A modest safety factor handles font-renderer differences. The subsequent
-% four-side containment loop corrects any remaining underestimation.
-SafetyFactor = 1.1;
-MarginsCm = RawMarginsCm * SafetyFactor;
-MarginsCm(RawMarginsCm > 0) = ...
-    MarginsCm(RawMarginsCm > 0) + SafetyCm;
-MarginsCm = max(MarginsCm, 0);
-
-clear CleanupObj;
-end
-
-function ExportExactPage(FigHandle, FileName, WidthCm, HeightCm)
-% Export the complete figure canvas instead of exportgraphics' default crop.
-
-FigHandle.PaperUnits = "centimeters";
-FigHandle.PaperPositionMode = "manual";
-FigHandle.PaperPosition = [0, 0, WidthCm, HeightCm];
-FigHandle.PaperSize = [WidthCm, HeightCm];
-
-drawnow;
-
-if ~verLessThan('matlab', '25.1')
-    % R2025a and newer: explicit output dimensions plus Padding="figure"
-    % preserve the full figure canvas and exact PDF page dimensions.
-    exportgraphics(FigHandle, FileName, ...
-        'ContentType', 'vector', ...
-        'BackgroundColor', 'none', ...
-        'Colorspace', 'rgb', ...
-        'Resolution', 600, ...
-        'Units', 'centimeters', ...
-        'Width', WidthCm, ...
-        'Height', HeightCm, ...
-        'Padding', 'figure', ...
-        'PreserveAspectRatio', 'off');
-else
-    % Compatibility fallback for releases without Width/Height/Padding.
-    OldColor = FigHandle.Color;
-    OldInvertHardcopy = FigHandle.InvertHardcopy;
-    CleanupObj = onCleanup(@() RestorePrintProperties( ...
-        FigHandle, OldColor, OldInvertHardcopy));
-
-    FigHandle.Color = 'none';
-    FigHandle.InvertHardcopy = 'off';
-
-    try
-        print(FigHandle, char(FileName), ...
-            '-dpdf', '-vector', '-r600');
-    catch
-        print(FigHandle, char(FileName), ...
-            '-dpdf', '-painters', '-r600');
-    end
-
-    clear CleanupObj;
+    otherwise
+        error('exportFigure2PDF:InvalidExpandMode', ...
+            'Unsupported expandMode: %s.', expandMode);
 end
 end
 
-function LayoutRoots = GetLayoutRoots(FigHandle)
-% Return top-level writable objects that define the figure layout.
+function transformedRootPositionCm = ...
+    local_transformRootPositions_( ...
+        baseRootPositionCm, ...
+        anchorX, ...
+        anchorY, ...
+        scaleX, ...
+        scaleY, ...
+        shiftX, ...
+        shiftY)
 
-Children = FigHandle.Children;
-Keep = false(size(Children));
+transformedRootPositionCm = baseRootPositionCm;
 
-for ObjectIndex = 1:numel(Children)
-    ObjectHandle = Children(ObjectIndex);
-    Keep(ObjectIndex) = ...
-        isgraphics(ObjectHandle) && ...
-        isprop(ObjectHandle, 'Units') && ...
-        isprop(ObjectHandle, 'Position') && ...
-        IsWritableProperty(ObjectHandle, 'Units') && ...
-        IsWritableProperty(ObjectHandle, 'Position');
+transformedRootPositionCm(:, 1) = ...
+    anchorX + ...
+    (baseRootPositionCm(:, 1) - anchorX) * scaleX + ...
+    shiftX;
+
+transformedRootPositionCm(:, 2) = ...
+    anchorY + ...
+    (baseRootPositionCm(:, 2) - anchorY) * scaleY + ...
+    shiftY;
+
+transformedRootPositionCm(:, 3) = ...
+    baseRootPositionCm(:, 3) * scaleX;
+
+transformedRootPositionCm(:, 4) = ...
+    baseRootPositionCm(:, 4) * scaleY;
 end
 
-LayoutRoots = Children(Keep);
+function layoutRoots = local_getLayoutRoots_(figHandle)
+% Return writable top-level figure children that define layout geometry.
+
+children = figHandle.Children;
+keep = false(size(children));
+
+for childIndex = 1:numel(children)
+    childHandle = children(childIndex);
+
+    keep(childIndex) = ...
+        isgraphics(childHandle) && ...
+        local_isVisible_(childHandle) && ...
+        isprop(childHandle, 'Units') && ...
+        isprop(childHandle, 'Position') && ...
+        local_isWritableProperty_(childHandle, 'Units') && ...
+        local_isWritableProperty_(childHandle, 'Position');
 end
 
-function IsWritable = IsWritableProperty(ObjectHandle, PropertyName)
-try
-    OldValue = ObjectHandle.(PropertyName);
-    ObjectHandle.(PropertyName) = OldValue;
-    IsWritable = true;
-catch
-    IsWritable = false;
-end
+layoutRoots = children(keep);
 end
 
-function SetFigureSize(FigHandle, WidthCm, HeightCm)
-try
-    FigHandle.WindowState = "normal";
-catch
-end
+function objects = local_collectMeasurementObjects_(layoutRoots)
+% Collect objects whose rendered bounds contribute to the content boundary.
+%
+% Axes.TightInset is retained as a fallback for tick labels and ruler
+% decorations. Axes-owned Title/XLabel/YLabel/ZLabel/Subtitle objects are
+% also measured explicitly because TightInset can underestimate them for
+% axes managed by tiledlayout, especially after repeated figure resizing.
 
-OldUnits = FigHandle.Units;
-FigHandle.Units = "centimeters";
-FigHandle.Position = [1, 1, WidthCm, HeightCm];
-FigHandle.Units = OldUnits;
+objects = gobjects(0);
 
-FigHandle.PaperUnits = "centimeters";
-FigHandle.PaperPositionMode = "manual";
-FigHandle.PaperPosition = [0, 0, WidthCm, HeightCm];
-FigHandle.PaperSize = [WidthCm, HeightCm];
+for rootIndex = 1:numel(layoutRoots)
+    rootHandle = layoutRoots(rootIndex);
+    descendants = findall(rootHandle);
 
-drawnow;
-end
+    rootObjects = gobjects(0);
 
-function PositionAll = GetRootPositions( ...
-    LayoutRoots, FigHandle, Units)
-PositionAll = zeros(numel(LayoutRoots), 4);
+    for objectIndex = 1:numel(descendants)
+        objectHandle = descendants(objectIndex);
 
-for RootIndex = 1:numel(LayoutRoots)
-    PositionAll(RootIndex, :) = GetAbsolutePosition( ...
-        LayoutRoots(RootIndex), FigHandle, Units);
-end
-end
+        if ~isgraphics(objectHandle) || ...
+                ~local_isVisible_(objectHandle)
+            continue;
+        end
 
-function AssignAbsoluteRootPositions( ...
-    LayoutRoots, PositionAll, FigHandle, Units)
-for RootIndex = 1:numel(LayoutRoots)
-    SetAbsolutePosition( ...
-        LayoutRoots(RootIndex), PositionAll(RootIndex, :), ...
-        FigHandle, Units);
-end
-end
+        typeName = lower(string(local_getType_(objectHandle)));
 
-function ShiftRoots(LayoutRoots, FigHandle, DeltaX, DeltaY, Units)
-PositionAll = GetRootPositions(LayoutRoots, FigHandle, Units);
-PositionAll(:, 1) = PositionAll(:, 1) + DeltaX;
-PositionAll(:, 2) = PositionAll(:, 2) + DeltaY;
-AssignAbsoluteRootPositions( ...
-    LayoutRoots, PositionAll, FigHandle, Units);
-end
+        if local_isAxesLike_(objectHandle)
+            rootObjects(end + 1, 1) = ...
+                objectHandle; %#ok<AGROW>
 
-function [BorderBox, BoxWidth, BoxHeight] = GetContentBorderBox( ...
-    FigHandle, LayoutRoots, Units)
-% Recursively measure axes decorations, text, legends, and colorbars.
+            decorationText = ...
+                local_getAxesDecorationText_(objectHandle);
 
-MeasurementObjects = CollectMeasurementObjects(LayoutRoots);
-BoxAll = zeros(0, 4);
+            if ~isempty(decorationText)
+                rootObjects = [ ...
+                    rootObjects; ...
+                    decorationText(:)]; %#ok<AGROW>
+            end
 
-for ObjectIndex = 1:numel(MeasurementObjects)
-    ObjectHandle = MeasurementObjects(ObjectIndex);
-    TypeName = lower(string(GetObjectType(ObjectHandle)));
+            continue;
+        end
 
-    try
-        if TypeName == "text"
-            TextBox = GetTextExtentAbsolute( ...
-                ObjectHandle, FigHandle, Units);
+        if typeName == "legend" || ...
+                typeName == "colorbar"
+            rootObjects(end + 1, 1) = ...
+                objectHandle; %#ok<AGROW>
+            continue;
+        end
 
-            if all(isfinite(TextBox)) && ...
-                    TextBox(3) >= 0 && TextBox(4) >= 0
-                BoxAll(end + 1, :) = [ ...
-                    TextBox(1), TextBox(2), ...
-                    TextBox(1) + TextBox(3), ...
-                    TextBox(2) + TextBox(4)]; %#ok<AGROW>
+        if typeName == "text"
+            if local_hasNonemptyText_(objectHandle)
+                rootObjects(end + 1, 1) = ...
+                    objectHandle; %#ok<AGROW>
             end
             continue;
         end
 
-        Position = GetAbsolutePosition( ...
-            ObjectHandle, FigHandle, Units);
+        if isprop(objectHandle, 'Position') && ...
+                isprop(objectHandle, 'Units') && ...
+                ~local_hasAxesAncestor_(objectHandle)
+            if typeName == "textbox"
+                rootObjects(end + 1, 1) = ...
+                    objectHandle; %#ok<AGROW>
+            end
+        end
+    end
 
-        if ~all(isfinite(Position)) || ...
-                Position(3) < 0 || Position(4) < 0
-            continue;
+    if isempty(rootObjects)
+        rootObjects = rootHandle;
+    end
+
+    objects = [objects; rootObjects(:)]; %#ok<AGROW>
+end
+
+if ~isempty(objects)
+    objects = unique(objects, 'stable');
+end
+end
+
+function textHandles = local_getAxesDecorationText_(axesHandle)
+% Return nonempty axes-owned text objects that TightInset may underestimate.
+
+textHandles = gobjects(0);
+
+propertyNames = { ...
+    'Title', ...
+    'Subtitle', ...
+    'XLabel', ...
+    'YLabel', ...
+    'ZLabel'};
+
+for propertyIndex = 1:numel(propertyNames)
+    propertyName = propertyNames{propertyIndex};
+
+    if ~isprop(axesHandle, propertyName)
+        continue;
+    end
+
+    try
+        textHandle = axesHandle.(propertyName);
+
+        if isgraphics(textHandle) && ...
+                local_isVisible_(textHandle) && ...
+                local_hasNonemptyText_(textHandle)
+            textHandles(end + 1, 1) = ...
+                textHandle; %#ok<AGROW>
+        end
+    catch
+        % Ignore axes classes that expose an unsupported decoration property.
+    end
+end
+end
+
+function [contentBoxCm, contentWidthCm, contentHeightCm] = ...
+    local_getContentBoundaryCm_(figHandle, layoutRoots)
+
+objects = local_collectMeasurementObjects_(layoutRoots);
+boundaryAllCm = zeros(0, 4);
+
+for objectIndex = 1:numel(objects)
+    objectHandle = objects(objectIndex);
+    typeName = lower(string(local_getType_(objectHandle)));
+
+    try
+        if local_isAxesLike_(objectHandle)
+            positionCm = ...
+                local_getAbsolutePositionCm_( ...
+                    objectHandle, figHandle);
+
+            tightInsetCm = ...
+                local_getAxesTightInsetCm_( ...
+                    objectHandle, figHandle);
+
+            boundary = [ ...
+                positionCm(1) - tightInsetCm(1), ...
+                positionCm(2) - tightInsetCm(2), ...
+                positionCm(1) + positionCm(3) + ...
+                    tightInsetCm(3), ...
+                positionCm(2) + positionCm(4) + ...
+                    tightInsetCm(4)];
+
+        elseif typeName == "text"
+            extentCm = ...
+                local_getTextExtentAbsoluteCm_( ...
+                    objectHandle, figHandle);
+
+            boundary = [ ...
+                extentCm(1), ...
+                extentCm(2), ...
+                extentCm(1) + extentCm(3), ...
+                extentCm(2) + extentCm(4)];
+
+        else
+            positionCm = ...
+                local_getAbsolutePositionCm_( ...
+                    objectHandle, figHandle);
+
+            boundary = [ ...
+                positionCm(1), ...
+                positionCm(2), ...
+                positionCm(1) + positionCm(3), ...
+                positionCm(2) + positionCm(4)];
         end
 
-        Inset = zeros(1, 4);
-
-        if IsAxesLike(ObjectHandle)
-            Inset = GetAbsoluteTightInset(ObjectHandle, Units);
-        elseif TypeName == "colorbar"
-            Inset = GetColorbarLabelInsetAbsolute( ...
-                ObjectHandle, FigHandle, Units);
+        if all(isfinite(boundary)) && ...
+                boundary(3) >= boundary(1) && ...
+                boundary(4) >= boundary(2)
+            boundaryAllCm(end + 1, :) = ...
+                boundary; %#ok<AGROW>
         end
-
-        BoxAll(end + 1, :) = [ ...
-            Position(1) - Inset(1), ...
-            Position(2) - Inset(2), ...
-            Position(1) + Position(3) + Inset(3), ...
-            Position(2) + Position(4) + Inset(4)]; %#ok<AGROW>
     catch
         % Unsupported or transient graphics objects are ignored.
     end
 end
 
-if isempty(BoxAll)
-    RootPosition = GetRootPositions( ...
-        LayoutRoots, FigHandle, Units);
-    [BorderBox, BoxWidth, BoxHeight] = GetBoxUnion(RootPosition);
-    return;
-end
+if isempty(boundaryAllCm)
+    rootPositionCm = ...
+        local_getRootPositionsCm_(layoutRoots, figHandle);
 
-BorderBox = [ ...
-    min(BoxAll(:, 1)), ...
-    min(BoxAll(:, 2)), ...
-    max(BoxAll(:, 3)), ...
-    max(BoxAll(:, 4))];
-BoxWidth = BorderBox(3) - BorderBox(1);
-BoxHeight = BorderBox(4) - BorderBox(2);
-end
-
-function MeasurementObjects = CollectMeasurementObjects(LayoutRoots)
-MeasurementObjects = gobjects(0);
-
-for RootIndex = 1:numel(LayoutRoots)
-    RootHandle = LayoutRoots(RootIndex);
-    Descendants = findall(RootHandle);
-    RootObjects = gobjects(0);
-
-    for ObjectIndex = 1:numel(Descendants)
-        ObjectHandle = Descendants(ObjectIndex);
-
-        if ~isgraphics(ObjectHandle) || ~IsVisible(ObjectHandle)
-            continue;
-        end
-
-        TypeName = lower(string(GetObjectType(ObjectHandle)));
-        IsRelevant = ...
-            IsAxesLike(ObjectHandle) || ...
-            TypeName == "legend" || ...
-            TypeName == "colorbar" || ...
-            TypeName == "text";
-
-        if ~IsRelevant
-            continue;
-        end
-
-        if TypeName == "text"
-            try
-                TextString = string(ObjectHandle.String);
-                if isempty(TextString) || ...
-                        all(strlength(TextString) == 0)
-                    continue;
-                end
-            catch
-            end
-        end
-
-        RootObjects(end + 1, 1) = ObjectHandle; %#ok<AGROW>
-    end
-
-    if isempty(RootObjects)
-        RootObjects = RootHandle;
-    end
-
-    MeasurementObjects = [ ...
-        MeasurementObjects; RootObjects(:)]; %#ok<AGROW>
-end
-
-if ~isempty(MeasurementObjects)
-    MeasurementObjects = unique(MeasurementObjects, 'stable');
-end
-end
-
-function IsAxes = IsAxesLike(ObjectHandle)
-IsAxes = ...
-    isa(ObjectHandle, 'matlab.graphics.axis.Axes') || ...
-    isa(ObjectHandle, 'matlab.graphics.axis.PolarAxes') || ...
-    isa(ObjectHandle, 'matlab.graphics.axis.GeographicAxes');
-end
-
-function IsObjectVisible = IsVisible(ObjectHandle)
-IsObjectVisible = true;
-try
-    IsObjectVisible = strcmpi(string(ObjectHandle.Visible), "on");
-catch
-end
-end
-
-function TypeName = GetObjectType(ObjectHandle)
-try
-    TypeName = string(ObjectHandle.Type);
-catch
-    TypeName = string(class(ObjectHandle));
-end
-end
-
-function Position = GetAbsolutePosition(ObjectHandle, FigHandle, Units)
-try
-    PixelPosition = double(getpixelposition(ObjectHandle, true));
-catch
-    PixelPosition = GetAbsolutePixelPositionFallback( ...
-        ObjectHandle, FigHandle);
-end
-
-switch lower(string(Units))
-    case "pixels"
-        Position = PixelPosition;
-    case "centimeters"
-        Position = PixelPosition * PixelToCentimeterScale(FigHandle);
-    case "inches"
-        Position = PixelPosition / GetPixelsPerInch(FigHandle);
-    otherwise
-        error('exportFigure2PDF:UnsupportedUnits', ...
-            'Unsupported absolute unit: %s.', Units);
-end
-end
-
-function PixelPosition = GetAbsolutePixelPositionFallback( ...
-    ObjectHandle, FigHandle)
-OldUnits = ObjectHandle.Units;
-CleanupObj = onCleanup(@() set(ObjectHandle, 'Units', OldUnits));
-ObjectHandle.Units = "normalized";
-LocalPosition = double(ObjectHandle.Position);
-ParentHandle = ObjectHandle.Parent;
-
-if ParentHandle == FigHandle
-    FigurePixelPosition = double(getpixelposition(FigHandle));
-    PixelPosition = [ ...
-        LocalPosition(1) * FigurePixelPosition(3), ...
-        LocalPosition(2) * FigurePixelPosition(4), ...
-        LocalPosition(3) * FigurePixelPosition(3), ...
-        LocalPosition(4) * FigurePixelPosition(4)];
-    return;
-end
-
-ParentPixelPosition = double(getpixelposition(ParentHandle, true));
-PixelPosition = [ ...
-    ParentPixelPosition(1) + ...
-        LocalPosition(1) * ParentPixelPosition(3), ...
-    ParentPixelPosition(2) + ...
-        LocalPosition(2) * ParentPixelPosition(4), ...
-    LocalPosition(3) * ParentPixelPosition(3), ...
-    LocalPosition(4) * ParentPixelPosition(4)];
-
-clear CleanupObj;
-end
-
-function SetAbsolutePosition(ObjectHandle, Position, FigHandle, Units)
-switch lower(string(Units))
-    case "pixels"
-        PixelPosition = Position;
-    case "centimeters"
-        PixelPosition = Position / PixelToCentimeterScale(FigHandle);
-    case "inches"
-        PixelPosition = Position * GetPixelsPerInch(FigHandle);
-    otherwise
-        error('exportFigure2PDF:UnsupportedUnits', ...
-            'Unsupported absolute unit: %s.', Units);
-end
-
-ParentHandle = ObjectHandle.Parent;
-
-if ParentHandle == FigHandle
-    ParentPixelPosition = double(getpixelposition(FigHandle));
-    ParentWidth = ParentPixelPosition(3);
-    ParentHeight = ParentPixelPosition(4);
-    LocalPosition = [ ...
-        PixelPosition(1) / ParentWidth, ...
-        PixelPosition(2) / ParentHeight, ...
-        PixelPosition(3) / ParentWidth, ...
-        PixelPosition(4) / ParentHeight];
+    contentBoxCm = local_getBoxUnion_(rootPositionCm);
 else
-    ParentPixelPosition = double(getpixelposition(ParentHandle, true));
-    LocalPosition = [ ...
-        (PixelPosition(1) - ParentPixelPosition(1)) / ...
-            ParentPixelPosition(3), ...
-        (PixelPosition(2) - ParentPixelPosition(2)) / ...
-            ParentPixelPosition(4), ...
-        PixelPosition(3) / ParentPixelPosition(3), ...
-        PixelPosition(4) / ParentPixelPosition(4)];
+    contentBoxCm = [ ...
+        min(boundaryAllCm(:, 1)), ...
+        min(boundaryAllCm(:, 2)), ...
+        max(boundaryAllCm(:, 3)), ...
+        max(boundaryAllCm(:, 4))];
 end
 
-OldUnits = ObjectHandle.Units;
-CleanupObj = onCleanup(@() set(ObjectHandle, 'Units', OldUnits));
-ObjectHandle.Units = "normalized";
-ObjectHandle.Position = LocalPosition;
-clear CleanupObj;
+% Include a small renderer-safety fringe for vector stroke thickness and
+% screen-versus-painters text quantization. This fringe is part of the
+% requested content box, so it does not enlarge the final PDF page.
+measurementPaddingCm = max( ...
+    0.03, ...
+    1.5 * local_pixelToCentimeterScale_(figHandle));
+
+contentBoxCm = contentBoxCm + [ ...
+    -measurementPaddingCm, ...
+    -measurementPaddingCm, ...
+    measurementPaddingCm, ...
+    measurementPaddingCm];
+
+contentWidthCm = ...
+    contentBoxCm(3) - contentBoxCm(1);
+
+contentHeightCm = ...
+    contentBoxCm(4) - contentBoxCm(2);
 end
 
-function Inset = GetAbsoluteTightInset(AxesHandle, Units)
-OldUnits = AxesHandle.Units;
-CleanupObj = onCleanup(@() set(AxesHandle, 'Units', OldUnits));
-AxesHandle.Units = "pixels";
-InsetPixels = double(AxesHandle.TightInset);
-FigHandle = ancestor(AxesHandle, 'figure');
+function rootPositionCm = ...
+    local_getRootPositionsCm_(layoutRoots, figHandle)
 
-switch lower(string(Units))
-    case "pixels"
-        Inset = InsetPixels;
-    case "centimeters"
-        Inset = InsetPixels * PixelToCentimeterScale(FigHandle);
-    case "inches"
-        Inset = InsetPixels / GetPixelsPerInch(FigHandle);
-    otherwise
-        error('exportFigure2PDF:UnsupportedUnits', ...
-            'Unsupported absolute unit: %s.', Units);
+rootPositionCm = zeros(numel(layoutRoots), 4);
+
+for rootIndex = 1:numel(layoutRoots)
+    rootPositionCm(rootIndex, :) = ...
+        local_getAbsolutePositionCm_( ...
+            layoutRoots(rootIndex), figHandle);
+end
 end
 
-clear CleanupObj;
+function positionCm = ...
+    local_getAbsolutePositionCm_(objectHandle, figHandle)
+
+positionPx = double(getpixelposition(objectHandle, true));
+positionCm = ...
+    positionPx * local_pixelToCentimeterScale_(figHandle);
 end
 
-function Inset = GetColorbarLabelInsetAbsolute( ...
-    ColorbarHandle, FigHandle, Units)
-Inset = zeros(1, 4);
+function local_assignRootPositionsCm_( ...
+    layoutRoots, rootPositionCm, figHandle)
+% Assign top-level roots using normalized coordinates relative to the page.
+
+figureSizeCm = local_getFigureSizeCm_(figHandle);
+
+for rootIndex = 1:numel(layoutRoots)
+    rootHandle = layoutRoots(rootIndex);
+
+    normalizedPosition = ...
+        rootPositionCm(rootIndex, :) ./ [ ...
+            figureSizeCm(1), ...
+            figureSizeCm(2), ...
+            figureSizeCm(1), ...
+            figureSizeCm(2)];
+
+    oldUnits = rootHandle.Units;
+    cleanupObj = onCleanup(@() set( ...
+        rootHandle, 'Units', oldUnits));
+
+    rootHandle.Units = 'normalized';
+    rootHandle.Position = normalizedPosition;
+
+    clear cleanupObj;
+end
+end
+
+function local_shiftRoots_( ...
+    layoutRoots, figHandle, shiftX, shiftY)
+
+rootPositionCm = ...
+    local_getRootPositionsCm_(layoutRoots, figHandle);
+
+rootPositionCm(:, 1) = ...
+    rootPositionCm(:, 1) + shiftX;
+
+rootPositionCm(:, 2) = ...
+    rootPositionCm(:, 2) + shiftY;
+
+local_assignRootPositionsCm_( ...
+    layoutRoots, rootPositionCm, figHandle);
+end
+
+function figureSizeCm = local_getFigureSizeCm_(figHandle)
+
+oldUnits = figHandle.Units;
+cleanupObj = onCleanup(@() set(figHandle, 'Units', oldUnits));
+
+figHandle.Units = 'centimeters';
+figurePositionCm = double(figHandle.Position);
+figureSizeCm = figurePositionCm(3:4);
+
+clear cleanupObj;
+end
+
+function local_setFigureSize_( ...
+    figHandle, figureWidthCm, figureHeightCm)
 
 try
-    ColorbarPosition = GetAbsolutePosition( ...
-        ColorbarHandle, FigHandle, Units);
-    LabelHandle = ColorbarHandle.Label;
-    OldUnits = LabelHandle.Units;
-    CleanupObj = onCleanup(@() set(LabelHandle, 'Units', OldUnits));
-    LabelHandle.Units = "pixels";
-    LabelExtentPixels = double(LabelHandle.Extent);
-
-    switch lower(string(Units))
-        case "pixels"
-            LabelExtent = LabelExtentPixels;
-        case "centimeters"
-            LabelExtent = LabelExtentPixels * ...
-                PixelToCentimeterScale(FigHandle);
-        case "inches"
-            LabelExtent = LabelExtentPixels / ...
-                GetPixelsPerInch(FigHandle);
-        otherwise
-            return;
-    end
-
-    Location = lower(string(ColorbarHandle.Location));
-
-    if ColorbarPosition(4) >= ColorbarPosition(3)
-        ExtraWidth = max(0, LabelExtent(3));
-        if contains(Location, "west")
-            Inset(1) = ExtraWidth;
-        else
-            Inset(3) = ExtraWidth;
-        end
-    else
-        ExtraHeight = max(0, LabelExtent(4));
-        if contains(Location, "south")
-            Inset(2) = ExtraHeight;
-        else
-            Inset(4) = ExtraHeight;
-        end
-    end
-
-    clear CleanupObj;
+    figHandle.WindowState = "normal";
 catch
-    Inset = zeros(1, 4);
-end
 end
 
-function Box = GetTextExtentAbsolute(TextHandle, FigHandle, Units)
-OldUnits = TextHandle.Units;
-CleanupObj = onCleanup(@() set(TextHandle, 'Units', OldUnits));
-TextHandle.Units = "pixels";
-ExtentPixels = double(TextHandle.Extent);
-ParentHandle = TextHandle.Parent;
+oldUnits = figHandle.Units;
+cleanupObj = onCleanup(@() set(figHandle, 'Units', oldUnits));
 
-if isa(ParentHandle, 'matlab.ui.Figure')
-    ParentOriginPixels = [0, 0];
+figHandle.Units = 'centimeters';
+figHandle.Position = [ ...
+    1, 1, figureWidthCm, figureHeightCm];
+
+clear cleanupObj;
+
+figHandle.PaperUnits = 'centimeters';
+figHandle.PaperPositionMode = 'manual';
+figHandle.PaperPosition = [ ...
+    0, 0, figureWidthCm, figureHeightCm];
+figHandle.PaperSize = [ ...
+    figureWidthCm, figureHeightCm];
+
+drawnow;
+end
+
+function local_exportCroppedContentPage_( ...
+    figHandle, ...
+    fileName, ...
+    contentBoxCm, ...
+    pageWidthCm, ...
+    pageHeightCm)
+% Crop the temporary figure to the measured content boundary.
+%
+% PaperPosition maps figure coordinates onto paper coordinates. The figure
+% is shifted so that contentBoxCm(1:2) maps to the PDF origin. A small final
+% residual scale maps the measured content width and height exactly to the
+% requested page dimensions.
+
+figureSizeCm = local_getFigureSizeCm_(figHandle);
+
+contentWidthCm = ...
+    contentBoxCm(3) - contentBoxCm(1);
+
+contentHeightCm = ...
+    contentBoxCm(4) - contentBoxCm(2);
+
+if contentWidthCm <= 0 || contentHeightCm <= 0 || ...
+        any(~isfinite([contentBoxCm, figureSizeCm]))
+    error('exportFigure2PDF:InvalidCroppedContentBox', ...
+        'The measured content boundary is invalid.');
+end
+
+scaleX = pageWidthCm / contentWidthCm;
+scaleY = pageHeightCm / contentHeightCm;
+
+paperPosition = [ ...
+    -contentBoxCm(1) * scaleX, ...
+    -contentBoxCm(2) * scaleY, ...
+    figureSizeCm(1) * scaleX, ...
+    figureSizeCm(2) * scaleY];
+
+figHandle.PaperUnits = 'centimeters';
+figHandle.PaperPositionMode = 'manual';
+figHandle.PaperSize = [pageWidthCm, pageHeightCm];
+figHandle.PaperPosition = paperPosition;
+
+oldInvertHardcopy = figHandle.InvertHardcopy;
+cleanupObj = onCleanup(@() set( ...
+    figHandle, ...
+    'InvertHardcopy', ...
+    oldInvertHardcopy));
+
+figHandle.InvertHardcopy = 'off';
+
+print( ...
+    figHandle, ...
+    char(fileName), ...
+    '-dpdf', ...
+    '-painters', ...
+    '-r600');
+
+clear cleanupObj;
+end
+
+function local_exportExactPage_( ...
+    figHandle, fileName, pageWidthCm, pageHeightCm)
+
+figHandle.PaperUnits = 'centimeters';
+figHandle.PaperPositionMode = 'manual';
+figHandle.PaperPosition = [ ...
+    0, 0, pageWidthCm, pageHeightCm];
+figHandle.PaperSize = [ ...
+    pageWidthCm, pageHeightCm];
+
+oldInvertHardcopy = figHandle.InvertHardcopy;
+cleanupObj = onCleanup(@() set( ...
+    figHandle, ...
+    'InvertHardcopy', ...
+    oldInvertHardcopy));
+
+figHandle.InvertHardcopy = 'off';
+
+print( ...
+    figHandle, ...
+    char(fileName), ...
+    '-dpdf', ...
+    '-painters', ...
+    '-r600');
+
+clear cleanupObj;
+end
+
+function tightInsetCm = ...
+    local_getAxesTightInsetCm_(axesHandle, figHandle)
+
+oldUnits = axesHandle.Units;
+cleanupObj = onCleanup(@() set( ...
+    axesHandle, 'Units', oldUnits));
+
+axesHandle.Units = 'pixels';
+tightInsetPx = double(axesHandle.TightInset);
+tightInsetCm = ...
+    tightInsetPx * local_pixelToCentimeterScale_(figHandle);
+
+clear cleanupObj;
+end
+
+function extentCm = ...
+    local_getTextExtentAbsoluteCm_(textHandle, figHandle)
+% Return a text object's extent in absolute figure coordinates.
+%
+% For axes-owned labels and titles, Text.Extent in pixel units is relative
+% to the axes plotting rectangle. For figure-, layout-, panel-, and legend-
+% owned text, it is relative to the corresponding parent container.
+
+oldUnits = textHandle.Units;
+cleanupObj = onCleanup(@() set( ...
+    textHandle, 'Units', oldUnits));
+
+textHandle.Units = 'pixels';
+extentPx = double(textHandle.Extent);
+
+parentHandle = textHandle.Parent;
+
+if isa(parentHandle, 'matlab.ui.Figure')
+    parentOriginPx = [0, 0];
+
+elseif local_isAxesLike_(parentHandle)
+    parentPositionPx = ...
+        double(getpixelposition(parentHandle, true));
+
+    parentOriginPx = parentPositionPx(1:2);
+
 else
     try
-        ParentPositionPixels = double( ...
-            getpixelposition(ParentHandle, true));
-        ParentOriginPixels = ParentPositionPixels(1:2);
+        parentPositionPx = ...
+            double(getpixelposition(parentHandle, true));
+
+        parentOriginPx = parentPositionPx(1:2);
     catch
-        ParentOriginPixels = [0, 0];
+        parentOriginPx = ...
+            local_getContainerOriginPx_( ...
+                parentHandle, figHandle);
     end
 end
 
-BoxPixels = [ ...
-    ParentOriginPixels(1) + ExtentPixels(1), ...
-    ParentOriginPixels(2) + ExtentPixels(2), ...
-    ExtentPixels(3), ExtentPixels(4)];
+absoluteExtentPx = [ ...
+    parentOriginPx(1) + extentPx(1), ...
+    parentOriginPx(2) + extentPx(2), ...
+    extentPx(3), ...
+    extentPx(4)];
 
-switch lower(string(Units))
-    case "pixels"
-        Box = BoxPixels;
-    case "centimeters"
-        Box = BoxPixels * PixelToCentimeterScale(FigHandle);
-    case "inches"
-        Box = BoxPixels / GetPixelsPerInch(FigHandle);
-    otherwise
-        error('exportFigure2PDF:UnsupportedUnits', ...
-            'Unsupported absolute unit: %s.', Units);
+extentCm = ...
+    absoluteExtentPx * ...
+    local_pixelToCentimeterScale_(figHandle);
+
+clear cleanupObj;
 end
 
-clear CleanupObj;
+function originPx = ...
+    local_getContainerOriginPx_(containerHandle, figHandle)
+% Resolve an unsupported container's lower-left origin in figure pixels.
+
+originPx = [0, 0];
+currentHandle = containerHandle;
+
+while ~isempty(currentHandle) && ...
+        isgraphics(currentHandle)
+
+    if currentHandle == figHandle || ...
+            isa(currentHandle, 'matlab.ui.Figure')
+        return;
+    end
+
+    try
+        currentPositionPx = ...
+            double(getpixelposition(currentHandle, true));
+
+        originPx = currentPositionPx(1:2);
+        return;
+    catch
+    end
+
+    try
+        currentHandle = currentHandle.Parent;
+    catch
+        return;
+    end
+end
 end
 
-function [BorderBox, BoxWidth, BoxHeight] = GetBoxUnion(PositionAll)
-if isempty(PositionAll)
+function box = local_getBoxUnion_(positionAll)
+
+if isempty(positionAll)
     error('exportFigure2PDF:EmptyPositionList', ...
         'Cannot calculate a boundary from an empty position list.');
 end
 
-BoxAll = [ ...
-    PositionAll(:, 1), ...
-    PositionAll(:, 2), ...
-    PositionAll(:, 1) + PositionAll(:, 3), ...
-    PositionAll(:, 2) + PositionAll(:, 4)];
+boundaryAll = [ ...
+    positionAll(:, 1), ...
+    positionAll(:, 2), ...
+    positionAll(:, 1) + positionAll(:, 3), ...
+    positionAll(:, 2) + positionAll(:, 4)];
 
-BorderBox = [ ...
-    min(BoxAll(:, 1)), ...
-    min(BoxAll(:, 2)), ...
-    max(BoxAll(:, 3)), ...
-    max(BoxAll(:, 4))];
-BoxWidth = BorderBox(3) - BorderBox(1);
-BoxHeight = BorderBox(4) - BorderBox(2);
+box = [ ...
+    min(boundaryAll(:, 1)), ...
+    min(boundaryAll(:, 2)), ...
+    max(boundaryAll(:, 3)), ...
+    max(boundaryAll(:, 4))];
 end
 
-function Scale = PixelToCentimeterScale(FigHandle)
-Scale = 2.54 / GetPixelsPerInch(FigHandle);
-end
+function scale = local_pixelToCentimeterScale_(~)
 
-function PixelsPerInch = GetPixelsPerInch(~)
 try
-    PixelsPerInch = double(groot.ScreenPixelsPerInch);
+    pixelsPerInch = double(groot.ScreenPixelsPerInch);
 catch
-    PixelsPerInch = 96;
+    pixelsPerInch = 96;
 end
 
-if isempty(PixelsPerInch) || ...
-        ~isfinite(PixelsPerInch) || PixelsPerInch <= 0
-    PixelsPerInch = 96;
-end
+if isempty(pixelsPerInch) || ...
+        ~isfinite(pixelsPerInch) || ...
+        pixelsPerInch <= 0
+    pixelsPerInch = 96;
 end
 
-function DisableToolbars(FigHandle)
-AxesAll = findall(FigHandle, '-property', 'Toolbar');
+scale = 2.54 / pixelsPerInch;
+end
 
-for AxesIndex = 1:numel(AxesAll)
+function tf = local_isAxesLike_(objectHandle)
+
+tf = ...
+    isa(objectHandle, 'matlab.graphics.axis.Axes') || ...
+    isa(objectHandle, 'matlab.graphics.axis.PolarAxes') || ...
+    isa(objectHandle, 'matlab.graphics.axis.GeographicAxes');
+end
+
+function tf = local_hasAxesAncestor_(objectHandle)
+
+tf = false;
+parentHandle = objectHandle.Parent;
+
+while ~isempty(parentHandle) && ...
+        isgraphics(parentHandle)
+    if local_isAxesLike_(parentHandle)
+        tf = true;
+        return;
+    end
+
+    if isa(parentHandle, 'matlab.ui.Figure')
+        return;
+    end
+
     try
-        ToolbarHandle = AxesAll(AxesIndex).Toolbar;
-        if ~isempty(ToolbarHandle)
-            ToolbarHandle.Visible = "off";
+        parentHandle = parentHandle.Parent;
+    catch
+        return;
+    end
+end
+end
+
+function tf = local_hasNonemptyText_(textHandle)
+
+tf = false;
+
+try
+    textString = string(textHandle.String);
+
+    tf = ...
+        ~isempty(textString) && ...
+        any(strlength(textString) > 0);
+catch
+end
+end
+
+function tf = local_isVisible_(objectHandle)
+
+tf = true;
+
+try
+    tf = strcmpi(string(objectHandle.Visible), 'on');
+catch
+end
+end
+
+function typeName = local_getType_(objectHandle)
+
+try
+    typeName = string(objectHandle.Type);
+catch
+    typeName = string(class(objectHandle));
+end
+end
+
+function tf = local_isWritableProperty_(objectHandle, propertyName)
+
+try
+    oldValue = objectHandle.(propertyName);
+    objectHandle.(propertyName) = oldValue;
+    tf = true;
+catch
+    tf = false;
+end
+end
+
+function local_disableToolbars_(figHandle)
+
+axesAll = findall(figHandle, '-property', 'Toolbar');
+
+for axesIndex = 1:numel(axesAll)
+    try
+        toolbarHandle = axesAll(axesIndex).Toolbar;
+
+        if ~isempty(toolbarHandle)
+            toolbarHandle.Visible = 'off';
         end
     catch
     end
 end
 end
 
-function RestorePositionMarginProbe( ...
-    FigHandle, LayoutRoots, OriginalFigurePositionCm, ...
-    OriginalRootPositionCm)
-if isempty(FigHandle) || ~isvalid(FigHandle)
-    return;
-end
+function local_closeIfValid_(figHandle)
 
-try
-    FigHandle.WindowState = "normal";
-catch
-end
-
-try
-    OldUnits = FigHandle.Units;
-    FigHandle.Units = "centimeters";
-    FigHandle.Position = OriginalFigurePositionCm;
-    FigHandle.Units = OldUnits;
-
-    FigHandle.PaperUnits = "centimeters";
-    FigHandle.PaperPositionMode = "manual";
-    FigHandle.PaperPosition = [ ...
-        0, 0, OriginalFigurePositionCm(3), ...
-        OriginalFigurePositionCm(4)];
-    FigHandle.PaperSize = OriginalFigurePositionCm(3:4);
-
-    drawnow;
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, OriginalRootPositionCm, ...
-        FigHandle, "centimeters");
-    drawnow;
-    AssignAbsoluteRootPositions( ...
-        LayoutRoots, OriginalRootPositionCm, ...
-        FigHandle, "centimeters");
-    drawnow;
-catch
-    % Do not mask the original error during cleanup.
-end
-end
-
-function RestorePrintProperties( ...
-    FigHandle, OldColor, OldInvertHardcopy)
-if isempty(FigHandle) || ~isvalid(FigHandle)
-    return;
-end
-
-try
-    FigHandle.Color = OldColor;
-    FigHandle.InvertHardcopy = OldInvertHardcopy;
-catch
-end
-end
-
-function CloseIfValid(FigHandle)
-if ~isempty(FigHandle) && isvalid(FigHandle)
-    close(FigHandle);
+if ~isempty(figHandle) && ...
+        isvalid(figHandle)
+    close(figHandle);
 end
 end
