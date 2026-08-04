@@ -60,8 +60,6 @@ GridSize = mIp.Results.GridSize;
 Channels = mIp.Results.Channels;
 coi0 = mIp.Results.coi;
 fLimits = mIp.Results.fLimits;
-margins = mIp.Results.margins;
-paddings = mIp.Results.paddings;
 
 f_c = 0.8125; % morlet wavelet center frequency
 
@@ -184,7 +182,7 @@ for rIndex = 1:GridSize(1)
             continue;
         end
 
-        subIndex = (rIndex - 1) * ncol + cIndex;
+        subIndex = (rIndex - 1) * GridSize(2) + cIndex;
 
         ax = mu.subplot(tl, subIndex);
         imagesc(ax, "XData", t, ...
