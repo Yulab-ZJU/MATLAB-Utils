@@ -133,7 +133,7 @@ DefaultLinkParams = struct("linewidth", 0.5, ...
                            "color", [0.8, 0.8, 0.8]);
 
 mIp = inputParser;
-mIp.addRequired("X", @(x) validateattributes(x, 'cell', {'vector'}));
+mIp.addRequired("X");
 mIp.addParameter("Orientation", "vertical", @mustBeTextScalar);
 mIp.addParameter("HDirection" , "right", @mustBeTextScalar);
 mIp.addParameter("GroupLabels", '', @mustBeText);
@@ -153,9 +153,16 @@ mIp.addParameter("LinkParameters", {}, @iscell);
 mIp.addParameter("Tag", '', @mustBeTextScalar);
 mIp.parse(varargin{:});
 
-X = mIp.Results.X(:);
-ngroup = numel(X);
-cellfun(@(x) validateattributes(x, 'numeric', {'vector', 'real'}), X);
+X = mIp.Results.X;
+if iscell(X)
+    X = X(:);
+    ngroup = numel(X);
+    cellfun(@(x) validateattributes(x, 'numeric', {'vector', 'real'}), X);
+elseif isnumeric(X)
+    validateattributes(X, 'numeric', {'2d', 'real'});
+    X = num2cell(X, 1);
+    ngroup = numel(X);
+end
 
 Orientation = validatestring(mIp.Results.Orientation, {'vertical', 'horizontal'});
 HDirection  = validatestring(mIp.Results.HDirection, {'right', 'left'});
@@ -179,7 +186,14 @@ Colors = mIp.Results.Colors;
 if isempty(Colors)
     Colors = lines(ngroup);
 else
-    Colors = validatecolor(Colors, "multiple");
+    if iscell(Colors)
+        Colors = cellfun(@validatecolor, Colors, "UniformOutput", false);
+        Colors = cat(1, Colors{:});
+    elseif isnumeric(Colors) && ismatrix(Colors)
+        Colors = validatecolor(Colors, "multiple");
+    else
+        error("Invalid color input.");
+    end
     if size(Colors, 1) == 1 % one color for all groups
         Colors = repmat(Colors, ngroup, 1);
     end
@@ -378,6 +392,7 @@ if Link
 
         links = arrayfun(@(a, b, c, d) line(ax, [a, b], [c, d]), x1, x2, y1, y2);
         applyNV_(links, paramsTemp);
+        uistack(links, 'bottom');
     end
 end
 

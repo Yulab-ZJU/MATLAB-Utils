@@ -31,7 +31,7 @@ if opts.load_speed && exist(fullfile(ROOTPATH, 'mems.edf'), "file")
     % a(t)
     % sensor = 1:3; % which sensor to use, 1 for left/right, 2 for up/down, 3 for forward/backward
     % varargout{2} = motiondata(sensor, :);
-    varargout{2} = motiondata;
+    varargout{2} = motiondata(1:6, :);
 else
     disp("No mem.edf found.");
     varargout{2} = [];
