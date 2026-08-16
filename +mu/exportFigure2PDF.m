@@ -163,7 +163,7 @@ pxPerMm = screenPpi / 25.4;
 mmPerPx = 1 / pxPerMm;
 tolerancePx = opts.toleranceMm * pxPerMm;
 
-if adjustOpt
+if ~adjustOpt
     local_setFigureSizePx_( ...
         tempFig, ...
         [widthMm, heightMm] * pxPerMm);

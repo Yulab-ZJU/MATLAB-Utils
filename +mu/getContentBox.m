@@ -69,7 +69,7 @@ function [contentBox, elementBoxes] = getContentBox(figHandle, opts)
 arguments
     figHandle         (1,1) matlab.ui.Figure
 
-    opts.PositionType {mustBeMember(opts.PositionType, {'Position', 'TightInset'})} = 'Position'
+    opts.PositionType {mustBeMember(opts.PositionType, {'Position', 'TightInset', 'position', 'tightinset'})} = 'Position'
     opts.Annotation   (1,1) logical = false
 end
 
